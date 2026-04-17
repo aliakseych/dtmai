@@ -1,0 +1,13 @@
+# Dev stuff
+.venv
+.idea
+.env
+*.pyc
+.DS_Store
+*/.DS_Store
+
+# DATA
+data/english/*
+data/math/*
+!data/english/.gitkeep
+!data/math/.gitkeep
