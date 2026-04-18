@@ -2,15 +2,15 @@ from src.controllers.bot.container import Container
 from src.controllers.bot.middlewares.error_handler import ErrorMiddleware
 from src.controllers.bot.routers import register_handlers
 from src.interfaces.mongodb.client import MongoClient
-from src.settings import settings
+from src.settings import Settings
 
 from aiogram import Dispatcher, Bot
 from aiogram.fsm.storage.memory import MemoryStorage
 
 
-async def main() -> None:
+async def main(settings: Settings) -> None:
     """Start the Telegram bot."""
-    mongo = MongoClient(settings.MONGO_URI, settings.DB_NAME)
+    mongo = MongoClient(settings.MONGO_URI, settings.MONGO_DB_NAME)
     container = Container(mongo)
 
     storage = MemoryStorage()  # swap for RedisStorage in production

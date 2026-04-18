@@ -26,7 +26,7 @@ SEED_FILE = Path(__file__).parent.parent / "data" / "categories.json"
 
 
 async def main():
-    client = MongoClient(settings.MONGO_URI, settings.DB_NAME)
+    client = MongoClient(settings.MONGO_URI, settings.MONGO_DB_NAME)
     repo = CategoryRepository(client)
 
     seed_data = json.loads(SEED_FILE.read_text(encoding="utf-8"))

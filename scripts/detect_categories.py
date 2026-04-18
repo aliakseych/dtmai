@@ -32,7 +32,7 @@ async def main(folder: Path):
 
     config = get_config(subject)
 
-    client = MongoClient(settings.MONGO_URI, settings.DB_NAME)
+    client = MongoClient(settings.MONGO_URI, settings.MONGO_DB_NAME)
     repo = CategoryRepository(client)
     ai = AIService()
 

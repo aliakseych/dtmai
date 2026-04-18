@@ -126,7 +126,7 @@ async def main():
         print("\n[DRY RUN] Validation passed. No DB write.")
         return
 
-    mongo = MongoClient(settings.MONGO_URI, settings.DB_NAME)
+    mongo = MongoClient(settings.MONGO_URI, settings.MONGO_DB_NAME)
     category_repo = CategoryRepository(mongo)
     question_repo = QuestionRepository(mongo)
     source_repo = SourceRepository(mongo)

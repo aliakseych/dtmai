@@ -1,24 +1,33 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     MONGO_URI: str
-    DB_NAME: str = "dtmai"
+    MONGO_DB_NAME: str
 
     OPENROUTER_API_KEY: str
     AI_MODEL: str = "google/gemini-2.5-pro-preview"
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
 
     TELEGRAM_TOKEN: str
-    ADMIN_ID: int
+    ADMINS_IDS: list[str]
 
-    MINIO_URL: str = "http://127.0.0.1:9000"
-    MINIO_USERNAME: str = ""
-    MINIO_PASSWORD: str = ""
-    MINIO_BUCKET: str = "dtmai"
-    MINIO_PUBLIC_URL: str = ""  # Cloudflare tunnel URL, e.g. https://storage.example.com
+    MINIO_URL: str
+    MINIO_USERNAME: str
+    MINIO_PASSWORD: str
+    MINIO_BUCKET: str
+    MINIO_PUBLIC_URL: str
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    # @field_validator('ADMINS_IDS', mode='before')
+    # @classmethod
+    # def split_admins_ids(cls, v):
+    #     if isinstance(v, str):
+    #         return [x.strip() for x in v.split(',')]
+    #     return v
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8",
+                                      extra="ignore")
 
 
 settings = Settings()

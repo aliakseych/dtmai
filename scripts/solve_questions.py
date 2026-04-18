@@ -78,7 +78,7 @@ def _collect_mock_folders(target: Path) -> list[Path]:
 
 
 async def main(targets: list[Path], dry_run: bool, concurrency: int) -> None:
-    mongo = MongoClient(settings.MONGO_URI, settings.DB_NAME)
+    mongo = MongoClient(settings.MONGO_URI, settings.MONGO_DB_NAME)
 
     question_service = QuestionService(
         ai_service=AIService(),

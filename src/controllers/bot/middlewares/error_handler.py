@@ -30,7 +30,7 @@ class ErrorMiddleware(BaseMiddleware):
 
             try:
                 await bot.send_message(
-                    settings.ADMIN_ID,
+                    settings.ADMINS_IDS,
                     f"⚠️ Error [{error_uuid}]\n{type(e).__name__}: {e}\n\nEvent: {event}",
                 )
             except Exception:

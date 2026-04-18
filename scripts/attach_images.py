@@ -94,7 +94,7 @@ async def main() -> None:
     minio_client = _build_minio_client()
     _ensure_bucket(minio_client, settings.MINIO_BUCKET)
 
-    mongo = MongoClient(settings.MONGO_URI, settings.DB_NAME)
+    mongo = MongoClient(settings.MONGO_URI, settings.MONGO_DB_NAME)
     cat_repo = CategoryRepository(mongo)
     src_repo = SourceRepository(mongo)
 
