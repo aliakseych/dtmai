@@ -30,8 +30,9 @@ class ErrorMiddleware(BaseMiddleware):
 
             try:
                 await bot.send_message(
-                    settings.ADMINS_IDS,
-                    f"⚠️ Error [{error_uuid}]\n{type(e).__name__}: {e}\n\nEvent: {event}",
+                    settings.ADMINS_IDS[0],
+                    f"⚠️ Error [{error_uuid}]\n{type(e).__name__}: {e}\n\nEvent: "
+                    f"{event[:3900]}",
                 )
             except Exception:
                 print(error_uuid, e, event)

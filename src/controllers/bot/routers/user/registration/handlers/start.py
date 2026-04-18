@@ -12,6 +12,8 @@ from aiogram.types import Message
 
 import uuid6
 
+from src.settings import settings
+
 
 @router.message(CommandStart(), UserExists(exists=False), F.chat.type == "private")
 async def start(message: Message, container: Container) -> None:
@@ -34,7 +36,15 @@ async def start(message: Message, container: Container) -> None:
         "• 📋 Готовые программы по направлениям\n"
         "• 📊 Статистику с прогнозом баллов\n\n"
         "Нажми кнопку ниже, чтобы начать 👇\n\n"
-        "<i>Сделано с ❤️ командой Alternative лицея «International House — Tashkent» "
+        "<i>Сделано с ❤️ командой Alternative лицея \"International House - Tashkent\" "
         "(<a href=\"https://t.me/altiht\">@altiht</a>)</i>"
     )
+
+    await message.bot.send_message(
+        chat_id=settings.ADMINS_IDS[0],
+        text=f"Зарегистрирован новый пользователь!\n"
+             f"{"@" + message.from_user.username if 
+             message.from_user.username else message.from_user.full_name}"
+    )
+
     await reply_edit.answer(message, text=text, reply_markup=menu_kb.get(), parse_mode="HTML")
