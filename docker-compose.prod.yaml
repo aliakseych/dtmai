@@ -8,7 +8,7 @@ services:
       # Telegram
       MONGO_URI: ${MONGO_URI}
       TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
-      ADMIN_ID: ${ADMINS_IDS}
+      ADMINS_IDS: ${ADMINS_IDS}
       # MINIO
       MINIO_URL: ${MINIO_URL}
       MINIO_USERNAME: ${MINIO_USERNAME}
@@ -34,8 +34,8 @@ services:
       - "0.0.0.0:9000:9000"     # API Port (for apps/SDKs)
       - "127.0.0.1:9001:9001"   # Console Port (for Web UI)
     environment:
-      MINIO_ROOT_USER:  ${MONGO_USERNAME}
-      MINIO_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MINIO_ROOT_USER:  ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
