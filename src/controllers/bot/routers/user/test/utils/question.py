@@ -22,6 +22,8 @@ def build_question_content(
     local_idx: int,
     local_total: int,
     notice: str = "",
+    show_progress: bool = True,
+    keyboard: InlineKeyboardMarkup | None = None,
 ) -> tuple[str, InlineKeyboardMarkup]:
     """Build question screen text and answer keyboard."""
     subject_label = SUBJECT_DISPLAY.get(q.get("subject", ""), "")
@@ -29,15 +31,17 @@ def build_question_content(
     answers = [render_for_telegram(a) for a in q["answers"]]
 
     image_line = f'\n<a href="{q["image_url"]}">🖼 Изображение</a>' if q.get("image_url") else ""
+    progress = f" ({local_idx + 1}/{local_total})" if show_progress else ""
 
     text = (
         f"{notice}"
-        f"<b>{subject_label}</b> ({local_idx + 1}/{local_total})\n"
+        f"<b>{subject_label}</b>{progress}\n"
         f"\n"
         f"{question_text}"
         f"{image_line}"
     )
-    return text, question_kb.get_answers(answers)
+    resolved_keyboard = keyboard if keyboard is not None else question_kb.get_answers(answers)
+    return text, resolved_keyboard
 
 
 def build_verdict_content(
@@ -46,22 +50,25 @@ def build_verdict_content(
     local_total: int,
     is_correct: bool,
     is_last: bool,
+    keyboard: InlineKeyboardMarkup | None = None,
+    show_progress: bool = True,
 ) -> tuple[str, InlineKeyboardMarkup]:
     """Build post-answer text (question + verdict) and keyboard."""
     verdict = "✅ Правильно!" if is_correct else f"❌ Неверно. Правильный ответ: <b>{render_for_telegram(q['correct_answer'])}</b>"
     subject_label = SUBJECT_DISPLAY.get(q.get("subject", ""), "")
     question_text = render_for_telegram(q["question"])
     image_line = f'\n<a href="{q["image_url"]}">🖼 Изображение</a>' if q.get("image_url") else ""
+    progress = f" ({local_idx + 1}/{local_total})" if show_progress else ""
 
     text = (
-        f"<b>{subject_label}</b> ({local_idx + 1}/{local_total})\n"
+        f"<b>{subject_label}</b>{progress}\n"
         f"\n"
         f"{question_text}"
         f"{image_line}\n\n"
         f"{verdict}"
     )
-    keyboard = question_kb.get_after_answer(
+    resolved_keyboard = keyboard if keyboard is not None else question_kb.get_after_answer(
         has_steps=bool(q.get("solution_steps")),
         is_last=is_last,
     )
-    return text, keyboard
+    return text, resolved_keyboard

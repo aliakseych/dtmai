@@ -57,6 +57,20 @@ class QuestionRepository:
             doc["id"] = str(doc.pop("_id"))
         return docs
 
+    async def get_for_bank(self, subject: str, level: str | None = None) -> list[dict]:
+        """
+        Fetch minimal question data for bank listing.
+        Returns only id, question (for preview), and level — avoids loading solution_steps.
+        """
+        query: dict = {"subject": subject}
+        if level:
+            query["level"] = level
+        projection = {"_id": 1, "question": 1, "level": 1}
+        docs = await self.collection.find(query, projection).sort("level", 1).to_list(length=None)
+        for doc in docs:
+            doc["id"] = str(doc.pop("_id"))
+        return docs
+
     async def count_available(
         self,
         subject: str,
