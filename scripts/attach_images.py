@@ -2,7 +2,7 @@
 Attach source images to questions interactively.
 
 For each question without an image_url, shows the question text + source,
-prompts for a local image path, uploads it to MinIO, and stores the public URL.
+prompts for a local image path, uploads it to RustFS, and stores the public URL.
 
 Usage:
     python -m scripts.attach_images              # only questions missing image_url
@@ -19,14 +19,11 @@ import json
 import mimetypes
 import sys
 from pathlib import Path
-from urllib.parse import urlparse
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from minio import Minio
-from minio.commonconfig import ENABLED
-from minio.lifecycleconfig import LifecycleConfig
-from minio.error import S3Error
+import boto3
+from botocore.exceptions import ClientError
 
 from src.interfaces.mongodb.client import MongoClient
 from src.interfaces.mongodb.repositories.categories import CategoryRepository
@@ -34,24 +31,26 @@ from src.interfaces.mongodb.repositories.sources import SourceRepository
 from src.settings import settings
 
 
-# ── MinIO helpers ─────────────────────────────────────────────────────────────
+# ── RustFS helpers ────────────────────────────────────────────────────────────
 
-def _build_minio_client() -> Minio:
-    parsed = urlparse(settings.MINIO_URL)
-    endpoint = parsed.netloc or parsed.path  # strip protocol
-    secure = parsed.scheme == "https"
-    return Minio(
-        endpoint,
-        access_key=settings.MINIO_USERNAME,
-        secret_key=settings.MINIO_PASSWORD,
-        secure=secure,
+def _build_s3_client():
+    return boto3.client(
+        "s3",
+        endpoint_url=settings.S3_URL,
+        aws_access_key_id=settings.S3_ACCESS_KEY,
+        aws_secret_access_key=settings.S3_SECRET_KEY,
     )
 
 
-def _ensure_bucket(client: Minio, bucket: str) -> None:
-    if not client.bucket_exists(bucket):
-        client.make_bucket(bucket)
-        print(f"Created bucket: {bucket}")
+def _ensure_bucket(client, bucket: str) -> None:
+    try:
+        client.head_bucket(Bucket=bucket)
+    except ClientError as e:
+        if e.response["Error"]["Code"] in ("404", "NoSuchBucket"):
+            client.create_bucket(Bucket=bucket)
+            print(f"Created bucket: {bucket}")
+        else:
+            raise
 
     policy = json.dumps({
         "Version": "2012-10-17",
@@ -62,18 +61,23 @@ def _ensure_bucket(client: Minio, bucket: str) -> None:
             "Resource": [f"arn:aws:s3:::{bucket}/*"],
         }],
     })
-    client.set_bucket_policy(bucket, policy)
+    client.put_bucket_policy(Bucket=bucket, Policy=policy)
     print(f"Public-read policy applied to bucket: {bucket}")
 
 
-def _upload(client: Minio, bucket: str, question_id: str, image_path: Path) -> str:
+def _upload(client, bucket: str, question_id: str, image_path: Path) -> str:
     ext = image_path.suffix.lower()
     object_name = f"{question_id}{ext}"
     content_type = mimetypes.guess_type(image_path)[0] or "application/octet-stream"
 
-    client.fput_object(bucket, object_name, str(image_path), content_type=content_type)
+    client.upload_file(
+        str(image_path),
+        bucket,
+        object_name,
+        ExtraArgs={"ContentType": content_type},
+    )
 
-    base = settings.MINIO_PUBLIC_URL.rstrip("/")
+    base = settings.S3_PUBLIC_URL.rstrip("/")
     return f"{base}/{bucket}/{object_name}"
 
 
@@ -87,12 +91,12 @@ async def main() -> None:
         idx = args.index("--subject")
         subject_filter = args[idx + 1].upper() if idx + 1 < len(args) else None
 
-    if not settings.MINIO_PUBLIC_URL:
-        print("Error: MINIO_PUBLIC_URL is not set in .env")
+    if not settings.S3_PUBLIC_URL:
+        print("Error: S3_PUBLIC_URL is not set in .env")
         sys.exit(1)
 
-    minio_client = _build_minio_client()
-    _ensure_bucket(minio_client, settings.MINIO_BUCKET)
+    s3_client = _build_s3_client()
+    _ensure_bucket(s3_client, settings.S3_BUCKET)
 
     mongo = MongoClient(settings.MONGO_URI, settings.MONGO_DB_NAME)
     cat_repo = CategoryRepository(mongo)
@@ -151,12 +155,12 @@ async def main() -> None:
             continue
 
         try:
-            url = _upload(minio_client, settings.MINIO_BUCKET, question_id, image_path)
+            url = _upload(s3_client, settings.S3_BUCKET, question_id, image_path)
             await collection.update_one({"_id": doc["_id"]}, {"$set": {"image_url": url}})
             print(f"  ✓ Uploaded → {url}")
             done += 1
-        except S3Error as e:
-            print(f"  ✗ MinIO error: {e}")
+        except ClientError as e:
+            print(f"  ✗ S3 error: {e}")
             skipped += 1
 
     print(f"\nDone. Attached: {done}  Skipped: {skipped}")
