@@ -5,6 +5,7 @@
 *.pyc
 .DS_Store
 */.DS_Store
+.python-version
 
 # DATA
 data/english/*

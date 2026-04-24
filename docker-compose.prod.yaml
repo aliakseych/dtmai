@@ -9,12 +9,12 @@ services:
       MONGO_URI: ${MONGO_URI}
       TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
       ADMINS_IDS: ${ADMINS_IDS}
-      # MINIO
-      MINIO_URL: ${MINIO_URL}
-      MINIO_USERNAME: ${MINIO_USERNAME}
-      MINIO_PASSWORD: ${MINIO_PASSWORD}
-      MINIO_BUCKET: ${MINIO_BUCKET}
-      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL}
+      # S3 (RustFS)
+      S3_URL: ${S3_URL}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL}
 
   mongodb:
     image: mongo:7
@@ -27,21 +27,21 @@ services:
     volumes:
       - mongo_data:/data/db
 
-  minio:
-    image: quay.io/minio/minio:latest
+  rustfs:
+    image: rustfs/rustfs:latest
     restart: unless-stopped
     ports:
       - "0.0.0.0:9000:9000"     # API Port (for apps/SDKs)
       - "127.0.0.1:9001:9001"   # Console Port (for Web UI)
     environment:
-      MINIO_ROOT_USER:  ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
     volumes:
-      - minio_data:/data
+      - rustfs_data:/data
     command: server /data --console-address ":9001"
 
 volumes:
   mongo_data:
     driver: local
-  minio_data:
+  rustfs_data:
     driver: local
