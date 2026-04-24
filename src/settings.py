@@ -13,11 +13,11 @@ class Settings(BaseSettings):
     TELEGRAM_TOKEN: str
     ADMINS_IDS: list[str]
 
-    MINIO_URL: str
-    MINIO_USERNAME: str
-    MINIO_PASSWORD: str
-    MINIO_BUCKET: str
-    MINIO_PUBLIC_URL: str
+    S3_URL: str
+    S3_ACCESS_KEY: str
+    S3_SECRET_KEY: str
+    S3_BUCKET: str
+    S3_PUBLIC_URL: str
 
     # @field_validator('ADMINS_IDS', mode='before')
     # @classmethod

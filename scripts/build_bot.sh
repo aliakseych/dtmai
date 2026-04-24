@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Building for ARM
-docker build --platform linux/arm64 -t ghcr.io/aliakseych/dtmai:bot-latest -f bot.Dockerfile .
+# Building for x86
+docker build --platform linux/amd64 -t ghcr.io/aliakseych/dtmai:bot-latest -f bot.Dockerfile .
 
 read -r -p "Push to GHCR? (y/N)... " dopush
 case $dopush in
