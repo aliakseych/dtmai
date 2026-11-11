@@ -1,16 +1,19 @@
-from typing import Annotated, Any
-from uuid import UUID
+import re
+from pathlib import PurePosixPath
+from typing import Annotated, Any, Literal
+from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.labeling.infrastructure.files import store_for, upload_root
 from app.modules.labeling.infrastructure.orm import ImportBatchRow, ImportFileRow
 from app.modules.labeling.wiring import IngestDep
 from app.shared.db import get_session
 from app.shared.deps import require_role
-from app.shared.errors import NotFound, ProblemDetails
+from app.shared.errors import NotFound, ProblemDetails, ValidationFailed
 from app.shared.security import Principal
 
 admin_router = APIRouter(tags=["ingestion-admin"])
@@ -83,6 +86,57 @@ async def create_batch(body: BatchIn, svc: IngestDep, session: SessionDep, who: 
         root=body.root, source_code=body.source_code, source_name=body.source_name, source_year=body.source_year,
         subject_id=body.subject_id, language=body.language, base=body.base, has_answer_key=body.has_answer_key,
         topic_id=body.topic_id, type_ids=body.type_ids, created_by=who.user_id,
+    )
+    await session.commit()
+    await run_import.kiq(str(batch.id))
+    return _batch(batch)
+
+
+UPLOAD_MIME = {"application/pdf": ".pdf", "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp"}
+UPLOAD_MAX_FILES = 50
+UPLOAD_MAX_BYTES = 25 * 1024 * 1024
+
+
+@admin_router.post("/batches/upload", operation_id="ingestion_upload_batch", response_model=BatchOut,
+                   status_code=202, responses=ERR)
+async def upload_batch(
+    svc: IngestDep, session: SessionDep, who: Admin,
+    files: Annotated[list[UploadFile], File(description="PDF/PNG/JPEG/WebP, max 50 files, 25 MB each")],
+    source_code: Annotated[str, Form(max_length=80)],
+    subject_id: Annotated[UUID, Form()],
+    language: Annotated[Literal["uz", "ru"], Form()],
+    source_name: Annotated[str | None, Form()] = None,
+    source_year: Annotated[int | None, Form()] = None,
+    base: Annotated[str | None, Form()] = None,
+    has_answer_key: Annotated[bool, Form()] = False,
+    topic_id: Annotated[UUID | None, Form()] = None,
+) -> BatchOut:
+    from app.modules.labeling.tasks import run_import
+
+    if not files:
+        raise ValidationFailed("No files uploaded")
+    if len(files) > UPLOAD_MAX_FILES:
+        raise ValidationFailed(f"At most {UPLOAD_MAX_FILES} files per upload")
+    blobs: list[tuple[str, bytes, str]] = []
+    for i, f in enumerate(files, 1):
+        mime = (f.content_type or "").split(";")[0].strip().lower()
+        if mime not in UPLOAD_MIME:
+            raise ValidationFailed(f"Unsupported file type for {f.filename!r}: {mime or 'unknown'}")
+        data = await f.read(UPLOAD_MAX_BYTES + 1)
+        if len(data) > UPLOAD_MAX_BYTES:
+            raise ValidationFailed(f"{f.filename!r} exceeds 25 MB")
+        stem = re.sub(r"[^\w.-]+", "_", PurePosixPath((f.filename or "file").replace("\\", "/")).stem)[:80] or "file"
+        blobs.append((f"{i:03d}_{stem}{UPLOAD_MIME[mime]}", data, mime))
+
+    batch_uuid = uuid4().hex
+    root = upload_root(batch_uuid)
+    store = store_for(root)
+    for name, data, mime in blobs:
+        await store.put(root, name, data, mime)
+    batch = await svc.create_batch(
+        root=root, source_code=source_code, source_name=source_name, source_year=source_year,
+        subject_id=subject_id, language=language, base=base, has_answer_key=has_answer_key,
+        topic_id=topic_id, type_ids=None, created_by=who.user_id,
     )
     await session.commit()
     await run_import.kiq(str(batch.id))

@@ -20,3 +20,4 @@ apps/mobile/ios/Pods/
 *.log
 .codegraph/
 .omp/
+.uploads/

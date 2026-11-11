@@ -33,6 +33,18 @@ class LocalFileStore:
     async def put_public(self, key: str, data: bytes, mime: str) -> str | None:
         return None
 
+    async def put(self, root: str, name: str, data: bytes, mime: str) -> None:
+        base = Path(root).resolve()
+        path = (base / name).resolve()
+        if base not in path.parents:
+            raise ValueError("invalid upload name")
+
+        def write() -> None:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+
+        await asyncio.to_thread(write)
+
 
 class S3FileStore:
     def __init__(self) -> None:
@@ -72,9 +84,24 @@ class S3FileStore:
         await asyncio.to_thread(self._c.put_object, Bucket=self._bucket, Key=key, Body=data, ContentType=mime)
         return key
 
+    async def put(self, root: str, name: str, data: bytes, mime: str) -> None:
+        bucket, prefix = self.split(root)
+        key = f"{prefix.rstrip('/')}/{name}"
+        await asyncio.to_thread(self._c.put_object, Bucket=bucket, Key=key, Body=data, ContentType=mime)
+
 
 def store_for(root: str) -> LocalFileStore | S3FileStore:
     return S3FileStore() if root.startswith("s3://") else LocalFileStore()
+
+
+def upload_root(batch_uuid: str) -> str:
+    """Root for uploaded files: s3://bucket/uploads/<uuid> when S3 is configured, else a local dir."""
+    s = get_settings()
+    if s.s3_access_key:
+        return f"s3://{s.s3_bucket}/uploads/{batch_uuid}"
+    from app.modules.labeling.infrastructure.config import get_labeling_settings
+
+    return str((Path(get_labeling_settings().labeling_upload_dir) / "uploads" / batch_uuid).resolve())
 
 
 class DefaultRenderer:

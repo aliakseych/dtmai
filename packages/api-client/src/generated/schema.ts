@@ -880,6 +880,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/ingestion/batches/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload Batch */
+        post: operations["ingestion_upload_batch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/ingestion/batches/{batch_id}": {
         parameters: {
             query?: never;
@@ -2729,6 +2746,39 @@ export interface components {
             my_rank: number | null;
             /** Rows */
             rows: components["schemas"]["LeaderRowOut"][];
+        };
+        /** Body_ingestion_upload_batch */
+        Body_ingestion_upload_batch: {
+            /** Base */
+            base?: string | null;
+            /**
+             * Files
+             * @description PDF/PNG/JPEG/WebP, max 50 files, 25 MB each
+             */
+            files: string[];
+            /**
+             * Has Answer Key
+             * @default false
+             */
+            has_answer_key: boolean;
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "uz" | "ru";
+            /** Source Code */
+            source_code: string;
+            /** Source Name */
+            source_name?: string | null;
+            /** Source Year */
+            source_year?: number | null;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Topic Id */
+            topic_id?: string | null;
         };
         /** Body_media_admin_upload */
         Body_media_admin_upload: {
@@ -11218,6 +11268,75 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["BatchIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ingestion_upload_batch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_ingestion_upload_batch"];
             };
         };
         responses: {

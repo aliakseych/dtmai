@@ -990,6 +990,95 @@
         "title": "BoardOut",
         "type": "object"
       },
+      "Body_ingestion_upload_batch": {
+        "properties": {
+          "base": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base"
+          },
+          "files": {
+            "description": "PDF/PNG/JPEG/WebP, max 50 files, 25 MB each",
+            "items": {
+              "contentMediaType": "application/octet-stream",
+              "type": "string"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "has_answer_key": {
+            "default": false,
+            "title": "Has Answer Key",
+            "type": "boolean"
+          },
+          "language": {
+            "enum": [
+              "uz",
+              "ru"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "source_code": {
+            "maxLength": 80,
+            "title": "Source Code",
+            "type": "string"
+          },
+          "source_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Name"
+          },
+          "source_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Year"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          }
+        },
+        "required": [
+          "files",
+          "source_code",
+          "subject_id",
+          "language"
+        ],
+        "title": "Body_ingestion_upload_batch",
+        "type": "object"
+      },
       "Body_media_admin_upload": {
         "properties": {
           "file": {
@@ -15499,6 +15588,92 @@
         ]
       }
     },
+    "/v1/admin/ingestion/batches/upload": {
+      "post": {
+        "operationId": "ingestion_upload_batch",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_ingestion_upload_batch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Upload Batch",
+        "tags": [
+          "ingestion-admin"
+        ]
+      }
+    },
     "/v1/admin/ingestion/batches/{batch_id}": {
       "get": {
         "operationId": "ingestion_get_batch",
@@ -22668,7 +22843,7 @@
             "required": false,
             "schema": {
               "default": 30,
-              "maximum": 100,
+              "maximum": 500,
               "minimum": 1,
               "title": "Limit",
               "type": "integer"
