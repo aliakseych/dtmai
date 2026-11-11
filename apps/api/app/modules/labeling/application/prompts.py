@@ -62,7 +62,7 @@ DEFAULT_GENERATION_TEMPLATE = (
 
 def generate_messages(
     template: str | None, *, kind: str, subject: str, topic: str, language: str, count: int, difficulty: str,
-    type_config: dict[str, Any],
+    type_config: dict[str, Any], examples: list[dict[str, Any]] | None = None,
 ) -> list[LLMMessage]:
     tpl = template or DEFAULT_GENERATION_TEMPLATE
     values = {
@@ -82,6 +82,19 @@ def generate_messages(
         '{"left": [{"id","text"}], "right": [{"id","text"}]}; for ordering {"items": [{"id","text"}]}. '
         f"Type rules (JSON): {sanitize_user_text(str(type_config))[:1500]}"
     )
+    if examples:
+        shown = "\n".join(
+            json.dumps(
+                {"stem": str(e["stem"])[:600], "payload": e.get("payload", {}), "answer": e.get("answer", {})},
+                ensure_ascii=False,
+            )
+            for e in examples
+        )
+        brief += (
+            "\n\nEXISTING EXAMPLES (same topic and type). Mimic their style, format and difficulty, but NEVER "
+            "copy or paraphrase them: every generated question must be new, with different numbers, "
+            "scenarios and wording:\n" + shown
+        )
     return [LLMMessage("system", system), LLMMessage("user", brief)]
 
 

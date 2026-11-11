@@ -12,6 +12,8 @@ class LabelingSettings(BaseSettings):
     labeling_min_models: int = 2
     labeling_min_confidence: float = 0.7
     labeling_bulk_min_agreement: float = 0.95
+    labeling_autogen_per_question: int = 2
+    labeling_autogen_max_per_batch: int = 60
     labeling_upload_dir: str = "./.uploads"
 
 

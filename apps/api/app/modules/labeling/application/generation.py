@@ -18,6 +18,7 @@ from app.shared.ids import new_id
 
 log = logging.getLogger(__name__)
 
+EXAMPLES = 5  # few-shot examples per model call
 BATCH = 5  # questions requested per model call
 
 
@@ -54,6 +55,7 @@ class GenerationService:
         subject = await self._subject_label(run.subject_id)
         route = (await self._gw.routes(Task.GENERATE))[0]
         template = run.prompt_template or (qt.prompt_template if qt else None)
+        examples = await self._examples(run)
         remaining = run.requested
         created_ids: list[UUID] = []
         try:
@@ -63,7 +65,7 @@ class GenerationService:
                     route,
                     prompts.generate_messages(
                         template, kind=run.kind, subject=subject, topic=await _topic(self._s, run.topic_id), language=run.language,
-                        count=n, difficulty=_difficulty_word(run.difficulty), type_config=qt.config if qt else {},
+                        count=n, difficulty=_difficulty_word(run.difficulty), type_config=qt.config if qt else {}, examples=examples,
                     ),
                     purpose="labeling.generate", ref=str(run.id),
                 )
@@ -87,6 +89,20 @@ class GenerationService:
         run.finished_at = datetime.now(UTC)
         await self._s.commit()
         await self.solve_created(created_ids)
+
+    async def _examples(self, run: GenerationRunRow) -> list[dict[str, Any]]:
+        picked: list[bank.QuestionDTO] = []
+        for statuses in (("verified",), ("auto_agreed", "draft")):
+            if len(picked) >= EXAMPLES:
+                break
+            picked += await bank.pick_questions(
+                self._s, subject_id=run.subject_id, topic_ids=[run.topic_id], type_ids=[run.type_id],
+                language=run.language, n=EXAMPLES - len(picked), exclude_ids=[q.id for q in picked],
+                statuses=statuses,
+            )
+        return [
+            {"stem": q.stem, "payload": q.payload, "answer": await bank.get_answer(self._s, q.id)} for q in picked
+        ]
 
     async def solve_created(self, ids: list[UUID]) -> None:
         solver = SolveService(self._s, self._gw)
