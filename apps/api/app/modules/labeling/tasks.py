@@ -1,9 +1,11 @@
+import asyncio
 import logging
+from collections.abc import Iterable
 from uuid import UUID
 
 from app.bootstrap.tasks import broker
-from app.modules.bank import facade as bank
 from app.modules.ai.wiring import get_gateway
+from app.modules.bank import facade as bank
 from app.modules.labeling.application.generation import GenerationService
 from app.modules.labeling.application.ingest import IngestService
 from app.modules.labeling.application.solve import SolveService
@@ -14,6 +16,7 @@ from app.shared.errors import NotFound, ValidationFailed
 
 log = logging.getLogger(__name__)
 CHUNK = 50
+SOLVE_CONCURRENCY = 6
 
 
 def _solver(session) -> SolveService:  # noqa: ANN001
@@ -21,20 +24,28 @@ def _solver(session) -> SolveService:  # noqa: ANN001
     return SolveService(session, get_gateway(), min_models=s.labeling_min_models, min_confidence=s.labeling_min_confidence)
 
 
-@broker.task(task_name="labeling.solve_questions")
-async def solve_questions(question_ids: list[str], trigger: str = "manual") -> int:
-    done = 0
-    async with get_sessionmaker()() as session:
-        svc = _solver(session)
-        for qid in question_ids:
+async def solve_many(question_ids: Iterable[UUID], trigger: str, concurrency: int = SOLVE_CONCURRENCY) -> int:
+    """Solve questions concurrently, one session each (a question's latency is bound by the slowest model)."""
+    sem = asyncio.Semaphore(concurrency)
+    maker = get_sessionmaker()
+
+    async def one(qid: UUID) -> bool:
+        async with sem, maker() as session:
             try:
-                await svc.solve_question(UUID(qid), trigger=trigger)
+                await _solver(session).solve_question(qid, trigger=trigger)
                 await session.commit()
-                done += 1
+                return True
             except Exception:  # noqa: BLE001 - keep going; the failure is logged
                 await session.rollback()
                 log.exception("solve failed for %s", qid)
-    return done
+                return False
+
+    return sum(await asyncio.gather(*(one(q) for q in question_ids)))
+
+
+@broker.task(task_name="labeling.solve_questions")
+async def solve_questions(question_ids: list[str], trigger: str = "manual") -> int:
+    return await solve_many([UUID(q) for q in question_ids], trigger)
 
 
 @broker.task(task_name="labeling.run_generation")

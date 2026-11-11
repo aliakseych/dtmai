@@ -36,8 +36,10 @@ def crop_png(image: bytes, bbox: list[int] | None) -> bytes | None:
 
 
 class LocalFileStore:
-    def __init__(self, media_dir: Path | None = None) -> None:
-        self._media = media_dir
+    """Reads sources from disk; figure media goes to the public S3 bucket when one is configured."""
+
+    def __init__(self, public: "S3FileStore | None" = None) -> None:
+        self._public = public
 
     async def list(self, root: str) -> list[str]:
         p = Path(root)
@@ -50,7 +52,7 @@ class LocalFileStore:
         return await asyncio.to_thread(Path(path).read_bytes)
 
     async def put_public(self, key: str, data: bytes, mime: str) -> str | None:
-        return None
+        return await self._public.put_public(key, data, mime) if self._public else None
 
     async def put(self, root: str, name: str, data: bytes, mime: str) -> None:
         base = Path(root).resolve()
@@ -110,7 +112,9 @@ class S3FileStore:
 
 
 def store_for(root: str) -> LocalFileStore | S3FileStore:
-    return S3FileStore() if root.startswith("s3://") else LocalFileStore()
+    if root.startswith("s3://"):
+        return S3FileStore()
+    return LocalFileStore(S3FileStore() if get_settings().s3_access_key else None)
 
 
 def upload_root(batch_uuid: str) -> str:

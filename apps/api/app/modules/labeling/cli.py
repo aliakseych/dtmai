@@ -3,12 +3,13 @@ import asyncio
 from pathlib import Path
 from uuid import UUID
 
-from app.modules.ai.wiring import get_gateway
 from sqlalchemy import text
+
+from app.modules.ai.wiring import get_gateway
 from app.modules.labeling.application.classify import classify_topics
 from app.modules.labeling.application.ingest import IngestService
-from app.modules.labeling.application.solve import SolveService
 from app.modules.labeling.infrastructure import catalog_adapter
+from app.modules.labeling.tasks import solve_many
 from app.shared.db import get_sessionmaker
 
 
@@ -54,10 +55,7 @@ async def run(argv: list[str]) -> int:
         created = await svc.run(batch.id)
         print(f"batch {batch.id}: {batch.status}, {len(created)} questions, {batch.error or 'ok'}")
         if not a.no_solve:
-            solver = SolveService(session, gw)
-            for qid in created:
-                await solver.solve_question(qid, trigger="ingestion")
-                await session.commit()
+            await solve_many(created, "ingestion")
     return 0 if batch.status == "done" else 1
 
 
@@ -102,9 +100,6 @@ async def solve_drafts(argv: list[str]) -> int:
             {"s": hit.id},
         )
         ids = [r[0] for r in rows]
-        solver = SolveService(session, get_gateway())
-        for qid in ids:
-            await solver.solve_question(qid, trigger="ingestion")
-            await session.commit()
-        print(f"solved {len(ids)} draft question(s)")
+        done = await solve_many(ids, "ingestion")
+        print(f"solved {done}/{len(ids)} draft question(s)")
     return 0
