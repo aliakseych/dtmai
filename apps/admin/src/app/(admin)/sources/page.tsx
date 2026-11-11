@@ -27,7 +27,7 @@ export default function SourcesPage() {
 
   return (
     <>
-      <PageHeader title="Question bases" sub="Where questions come from: official papers, Bluebook, generated, harvested." actions={<Btn variant="primary" onClick={() => setEdit({ form: blank })}>New base</Btn>} />
+      <PageHeader title="Question bases" sub="Where questions come from: official papers, practice papers, generated, harvested." actions={<Btn variant="primary" onClick={() => setEdit({ form: blank })}>New base</Btn>} />
       <div className="min-h-0 flex-1 overflow-auto">
         <DataTable rows={q.data} loading={q.isLoading} error={q.error} rowKey={(r) => r.id} onRow={open}
           cols={[

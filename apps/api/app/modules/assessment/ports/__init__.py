@@ -33,6 +33,7 @@ class Blueprint:
     version: int
     duration_min: int
     sections: list[dict[str, Any]]
+    source_id: UUID | None = None
 
 
 @dataclass(frozen=True, slots=True)

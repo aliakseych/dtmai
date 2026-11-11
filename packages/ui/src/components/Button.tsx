@@ -3,12 +3,18 @@ import { cn } from "../cn";
 
 export type ButtonVariant = "primary" | "secondary" | "danger" | "ghost" | "super";
 
+/**
+ * Duolingo-style 3D buttons: a solid "edge" drawn as a bottom box-shadow
+ * (--edge) that collapses on press while the face moves down, so the layout
+ * box never changes size.
+ */
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-green-deep text-white border-[#3d7300]",
-  secondary: "bg-white text-blue border-line border-2 border-b-4 hover:bg-snow",
-  danger: "bg-red-deep text-white border-[#8f1f1f]",
-  ghost: "bg-transparent text-blue border-transparent hover:bg-blue-soft",
-  super: "bg-gold text-ink border-gold-deep",
+  primary: "bg-brand text-white [--edge:var(--color-brand-deep)] hover:brightness-110",
+  secondary:
+    "border-2 border-line bg-white text-brand [--edge:var(--color-line)] hover:bg-snow",
+  danger: "bg-red text-white [--edge:var(--color-red-deep)] hover:brightness-105",
+  ghost: "bg-transparent text-brand shadow-none hover:bg-brand-soft",
+  super: "bg-accent text-black [--edge:var(--color-accent-deep)] hover:brightness-105",
 };
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -17,11 +23,13 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const BASE =
-  "inline-flex select-none items-center justify-center gap-2 rounded-2xl px-5 py-3 text-[15px] font-extrabold uppercase tracking-wide transition active:translate-y-[2px] active:border-b-2 disabled:cursor-not-allowed disabled:bg-line disabled:text-[#afafaf] disabled:border-[#cfcfcf] disabled:active:translate-y-0 disabled:active:border-b-4";
+  "inline-flex select-none items-center justify-center gap-2 rounded-2xl px-5 py-3 text-[15px] font-extrabold uppercase tracking-wide transition-[transform,box-shadow,filter,background-color] duration-100";
+const RAISED =
+  "shadow-[0_4px_0_0_var(--edge)] active:translate-y-[4px] active:shadow-[0_0_0_0_var(--edge)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-line disabled:text-[#afafaf] disabled:shadow-[0_4px_0_0_#cfcfcf] disabled:hover:brightness-100 disabled:active:translate-y-0 disabled:active:shadow-[0_4px_0_0_#cfcfcf]";
+const FLAT = "disabled:cursor-not-allowed disabled:text-[#afafaf] disabled:hover:bg-transparent";
 
 export function buttonClass(variant: ButtonVariant = "primary", block?: boolean, extra?: string): string {
-  const border = variant === "secondary" ? "" : variant === "ghost" ? "border-b-0 active:translate-y-0" : "border-b-4";
-  return cn(BASE, border, VARIANTS[variant], block && "w-full", extra);
+  return cn(BASE, variant === "ghost" ? FLAT : RAISED, VARIANTS[variant], block && "w-full", extra);
 }
 
 export function Button({ variant = "primary", block, className, type = "button", ...rest }: ButtonProps) {

@@ -8,7 +8,7 @@ import { RequireAuth, useLearnLanguage } from "@/lib/auth";
 function Run({ id }: { id: string }) {
   const language = useLearnLanguage();
   const load = useMemo(() => () => api.unwrap(api.client.POST("/v1/learning/lessons/start", { body: { lesson_id: id, language } })), [id, language]);
-  return <LessonPlayer load={load} exitHref="/learn/" />;
+  return <LessonPlayer load={load} exitHref="/learn/" lessonId={id} />;
 }
 
 export function LessonRoute() {

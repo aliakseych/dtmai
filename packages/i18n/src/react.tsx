@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { GbFlag, LanguageSelector, RuFlag, UzFlag } from "@dtmai/ui";
 import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS, isLocale, translate, type Locale, type MessageKey } from "./locales";
 
 const STORAGE_KEY = "dtmai.locale";
@@ -40,23 +41,34 @@ export function useT() {
   );
 }
 
-export function LocaleSwitcher({ className = "" }: { className?: string }) {
+const FLAGS: Record<Locale, ReactNode> = {
+  "uz-Latn": <UzFlag />,
+  "uz-Cyrl": <UzFlag />,
+  ru: <RuFlag />,
+  en: <GbFlag />,
+};
+
+export function LocaleSwitcher({
+  className,
+  placement,
+  align,
+}: {
+  className?: string;
+  placement?: "bottom" | "top";
+  align?: "start" | "end";
+}) {
   const { locale, setLocale } = useLocale();
   const t = useT();
+  const options = useMemo(() => LOCALES.map((l) => ({ value: l, label: LOCALE_LABELS[l], flag: FLAGS[l] })), []);
   return (
-    <label className={className}>
-      <span className="sr-only">{t("common.language")}</span>
-      <select
-        value={locale}
-        onChange={(e) => setLocale(e.target.value as Locale)}
-        className="rounded-xl border-2 border-[#e5e5e5] bg-white px-3 py-2 text-sm font-extrabold text-[#4b4b4b]"
-      >
-        {LOCALES.map((l) => (
-          <option key={l} value={l}>
-            {LOCALE_LABELS[l]}
-          </option>
-        ))}
-      </select>
-    </label>
+    <LanguageSelector
+      value={locale}
+      options={options}
+      onChange={(v) => setLocale(v as Locale)}
+      label={t("language.site" as MessageKey)}
+      placement={placement}
+      align={align}
+      className={className}
+    />
   );
 }

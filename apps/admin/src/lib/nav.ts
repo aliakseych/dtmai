@@ -19,7 +19,7 @@ export const NAV: NavSection[] = [
   ] },
   { title: "Platform", items: [
     { href: "/ai/", label: "AI models & spend", keywords: "openrouter routes limits" },
-    { href: "/lyceums/", label: "Lyceum import", keywords: "edu.uz quota" },
+    { href: "/lyceums/", label: "Lyceums", keywords: "profiles reps moderation posts import edu.uz quota" },
     { href: "/billing/", label: "Plans & grants", keywords: "premium subscription" },
     { href: "/users/", label: "Users" },
     { href: "/notifications/", label: "Notifications" },

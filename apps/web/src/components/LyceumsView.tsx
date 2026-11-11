@@ -1,99 +1,70 @@
 "use client";
 import { useState } from "react";
-import { Card } from "@dtmai/ui";
 import { useLocale, useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
 import { PageTitle } from "@/components/PageTitle";
+import { LyceumCard } from "@/components/lyceums/LyceumCard";
+import { useLyceumDetails } from "@/components/lyceums/useLyceumDetail";
 import { api } from "@/lib/api";
-import { fmt, pick } from "@/lib/localized";
+import { pick } from "@/lib/localized";
 import { useAsync } from "@/lib/useAsync";
-
-const DASH = "—";
-
-function Stats({ lyceumId }: { lyceumId: string }) {
-  const t = useT();
-  const { locale } = useLocale();
-  const ratio = new Intl.NumberFormat(fmt(locale).resolvedOptions().locale, { maximumFractionDigits: 1, minimumFractionDigits: 1 });
-  const detail = useAsync(() => api.unwrap(api.client.GET("/v1/lyceums/{lyceum_id}", { params: { path: { lyceum_id: lyceumId } } })), [lyceumId]);
-  const langs = useAsync(() => api.unwrap(api.client.GET("/v1/lyceums/languages")), []);
-  const langName = (id: string) => {
-    const l = langs.state.status === "ready" ? langs.state.data.find((x) => x.id === id) : undefined;
-    return l ? pick(l.names, locale) : "";
-  };
-  return (
-    <AsyncView state={detail.state} onRetry={detail.reload} isEmpty={(d) => d.stats.length === 0} emptyText={t("lyceums.empty")}>
-      {(d) => (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[34rem] text-left">
-            <thead className="text-sm uppercase text-ink-soft">
-              <tr>
-                <th scope="col" className="py-2">{t("lyceums.year")}</th>
-                <th scope="col">{t("lyceums.speciality")}</th>
-                <th scope="col">{t("lyceums.quota")}</th>
-                <th scope="col">{t("lyceums.applications")}</th>
-                <th scope="col">{t("lyceums.competition")}</th>
-                <th scope="col">{t("lyceums.passing")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {d.stats.map((r) => (
-                <tr key={r.id} className="border-t-2 border-line">
-                  <td className="py-2">{r.year}</td>
-                  <td>
-                    {r.name} <span className="text-ink-soft">({langName(r.language_id) || r.speciality_code})</span>
-                  </td>
-                  <td>{r.quota}</td>
-                  <td>{r.applications}</td>
-                  <td>{r.competition_ratio != null ? ratio.format(r.competition_ratio) : DASH}</td>
-                  <td>{r.passing_score != null ? r.passing_score : DASH}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </AsyncView>
-  );
-}
 
 export function LyceumsView() {
   const t = useT();
   const { locale } = useLocale();
   const [q, setQ] = useState("");
+  const [city, setCity] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const { state, reload } = useAsync(() => api.unwrap(api.client.GET("/v1/lyceums", { params: { query: { q: q || undefined } } })), [q]);
+  const details = useLyceumDetails(state.status === "ready" ? state.data.map((l) => l.id) : []);
+  // The list summary has no city, so options come from the loaded lyceum profiles.
+  const cities = Array.from(new Set(Object.values(details).map((d) => d.profile.city).filter((c): c is string => !!c))).sort((a, b) => a.localeCompare(b));
   return (
     <>
       <PageTitle>{t("lyceums.title")}</PageTitle>
-      <input
-        type="search"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder={t("lyceums.search")}
-        aria-label={t("lyceums.search")}
-        className="mb-4 w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-blue focus:bg-white"
-      />
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row">
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={t("lyceums.search")}
+          aria-label={t("lyceums.search")}
+          className="w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-blue focus:bg-white"
+        />
+        <select
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          aria-label={t("lyceums.city")}
+          className="rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-blue focus:bg-white sm:w-56"
+        >
+          <option value="">{t("lyceums.city.all")}</option>
+          {cities.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </div>
       <AsyncView state={state} onRetry={reload} isEmpty={(d) => d.length === 0} emptyText={t("lyceums.none")}>
-        {(list) => (
-          <div className="flex flex-col gap-3">
-            {list.map((l) => (
-              <Card key={l.id}>
-                <button type="button" aria-expanded={open === l.id} onClick={() => setOpen(open === l.id ? null : l.id)} className="w-full text-left">
-                  <h2 className="text-lg text-ink">{pick(l.names, locale)}</h2>
-                  <p className="text-ink-soft">
-                    {l.competition_ratio != null ? `${t("lyceums.competition")}: ${l.competition_ratio.toFixed(1)}` : DASH}
-                    {l.latest_year ? ` · ${l.latest_year}` : ""}
-                  </p>
-                </button>
-                {open === l.id && (
-                  <div className="mt-3">
-                    <Stats lyceumId={l.id} />
-                  </div>
-                )}
-              </Card>
-            ))}
-          </div>
-        )}
+        {(all) => {
+          const list = city ? all.filter((l) => details[l.id]?.profile.city === city) : all;
+          if (list.length === 0) return <p className="py-10 text-center text-ink-soft">{t("lyceums.none")}</p>;
+          return (
+            <div className="grid gap-3 lg:grid-cols-2">
+              {list.map((l) => (
+                <div key={l.id} className={open === l.id ? "lg:col-span-2" : undefined}>
+                  <LyceumCard
+                    summary={l}
+                    detail={details[l.id]}
+                    title={pick(l.names, locale)}
+                    open={open === l.id}
+                    onToggle={() => setOpen(open === l.id ? null : l.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          );
+        }}
       </AsyncView>
     </>
   );

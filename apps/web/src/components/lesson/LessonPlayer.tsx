@@ -13,6 +13,9 @@ import { useBilling } from "@/lib/billing";
 import { refreshStats } from "@/lib/stats";
 import { useTmaBackButton } from "@/lib/tma";
 import { useAsync } from "@/lib/useAsync";
+import { TheoryCards, type TheoryCard } from "./TheoryCards";
+import { isTheorySeen, markTheorySeen } from "./theorySeen";
+import { useLessonTheory } from "./useLessonTheory";
 import { HeartsGate } from "./HeartsGate";
 import { correctText, isAnswered, QuestionBody, type Response } from "./QuestionBody";
 
@@ -20,7 +23,7 @@ type Phase = "answering" | "feedback" | "done";
 const isNoHearts = (e: unknown) => e instanceof ApiError && e.status === 409 && e.code === "no_hearts";
 
 /** Lesson/drill/review/placement runner: CHECK -> feedback sheet -> CONTINUE. Hearts apply to lesson and drill only. */
-export function LessonPlayer({ load, exitHref, doneHref }: { load: () => Promise<SessionOut>; exitHref: string; doneHref?: string }) {
+export function LessonPlayer({ load, exitHref, doneHref, lessonId }: { load: () => Promise<SessionOut>; exitHref: string; doneHref?: string; lessonId?: string }) {
   // The session id lives in the URL (?s=) so a reload or the hearts gate resumes it instead of starting over.
   const resumeId = useRef<string | null>(typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("s"));
   const start = useCallback(async () => {
@@ -44,12 +47,33 @@ export function LessonPlayer({ load, exitHref, doneHref }: { load: () => Promise
   if (state.status === "error" && isNoHearts(state.error)) return <HeartsGate exitHref={exitHref} onRetry={reload} />;
   return (
     <AsyncView state={state} onRetry={reload} isEmpty={(s) => s.items.length === 0 && s.answered === 0}>
-      {(s) => <Runner session={s} exitHref={exitHref} doneHref={doneHref ?? exitHref} />}
+      {(s) => <TheoryFirst session={s} lessonId={lessonId} exitHref={exitHref} doneHref={doneHref ?? exitHref} />}
     </AsyncView>
   );
 }
 
-function Runner({ session, exitHref, doneHref }: { session: SessionOut; exitHref: string; doneHref: string }) {
+/** A lesson with theory shows its cards once per device before the first question; the same cards stay reachable from the wrong-answer sheet. */
+function TheoryFirst({ session, lessonId, exitHref, doneHref }: { session: SessionOut; lessonId?: string; exitHref: string; doneHref: string }) {
+  const t = useT();
+  const theory = useLessonTheory(session.subject_id, lessonId);
+  const [shown, setShown] = useState(false);
+  if (theory === undefined) return <div className="min-h-dvh" aria-busy="true" />;
+  if (lessonId && theory.length > 0 && !shown && session.answered === 0 && !isTheorySeen(lessonId))
+    return (
+      <TheoryCards
+        cards={theory}
+        doneLabel={t("theory.startPractice")}
+        onDone={() => {
+          markTheorySeen(lessonId);
+          setShown(true);
+        }}
+      />
+    );
+  return <Runner session={session} exitHref={exitHref} doneHref={doneHref} theory={theory} />;
+}
+
+function Runner({ session, exitHref, doneHref, theory }: { session: SessionOut; exitHref: string; doneHref: string; theory?: TheoryCard[] }) {
+  const [theoryOpen, setTheoryOpen] = useState(false);
   const t = useT();
   const router = useRouter();
   const { canBuy } = useBilling();
@@ -166,7 +190,7 @@ function Runner({ session, exitHref, doneHref }: { session: SessionOut; exitHref
 
   // Enter = CHECK / CONTINUE (ignored on buttons/links so it never double-fires); focus follows the phase.
   useEffect(() => {
-    if (phase === "done" || gate || exit) return;
+    if (phase === "done" || gate || exit || theoryOpen) return;
     const h = (e: KeyboardEvent) => {
       if (e.key !== "Enter" || (e.target as HTMLElement).closest("button,a")) return;
       e.preventDefault();
@@ -175,7 +199,7 @@ function Runner({ session, exitHref, doneHref }: { session: SessionOut; exitHref
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [phase, gate, exit, check, next]);
+  }, [phase, gate, exit, theoryOpen, check, next]);
   useEffect(() => {
     if (phase === "answering") main.current?.querySelector<HTMLElement>("[data-option],input,select")?.focus({ preventScroll: true });
   }, [index, phase]);
@@ -274,6 +298,13 @@ function Runner({ session, exitHref, doneHref }: { session: SessionOut; exitHref
                 {explain ? t("lesson.explaining") : t("lesson.explain")}
               </button>
             )}
+            {!result.correct && theory && theory.length > 0 && (
+              <div className="mt-1">
+                <button type="button" onClick={() => setTheoryOpen(true)} className="font-extrabold underline">
+                  {t("theory.see")}
+                </button>
+              </div>
+            )}
             <div className="mt-1">
               {report === "sent" ? (
                 <span className="text-sm font-semibold text-ink-soft">{t("lesson.reported")}</span>
@@ -294,6 +325,7 @@ function Runner({ session, exitHref, doneHref }: { session: SessionOut; exitHref
       </div>
 
       <ConfirmModal open={exit} title={t("lesson.exitTitle")} message={t("lesson.quit")} confirmLabel={t("lesson.exit")} cancelLabel={t("lesson.stay")} danger onConfirm={leave} onClose={() => setExit(false)} />
+      {theoryOpen && theory && <TheoryCards cards={theory} title={t("theory.title")} onDone={() => setTheoryOpen(false)} />}
     </div>
   );
 }

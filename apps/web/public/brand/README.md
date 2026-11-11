@@ -1,6 +1,6 @@
 # Brand assets
 
-Mascot: **Temur**, Uzbek corsac fox (flat style, dark-olive outline, sand fur, cream ears, teal doppa with yellow zigzag).
+Mascot: **Temur**, Uzbek corsac fox (flat vector, dark navy outline #1b1b2e, grey-sand fur, cream inner ears, black ear and tail tips, doppa in brand blue #100FA0 with white pattern and lime #AFF50B stitching). All files derive from the `straight` master.
 
 > Mascot poses are shipped as `temur-<mood>.webp` (720px max, q82) for web weight; the PNG masters are not kept in the repo.
 
@@ -29,5 +29,8 @@ Mascot: **Temur**, Uzbek corsac fox (flat style, dark-olive outline, sand fur, c
 ## Alt text suggestions
 Mascot poses: "Temur the fox mascot <celebrating|sad|thinking|holding a flame|sleeping|holding a trophy|wearing a crown|waving>". Icons are decorative (`alt=""`) when beside a label.
 
+## Illustrations (800x600 transparent WebP, card slots)
+- `illus-path.webp` Temur on a winding path of lesson nodes; `illus-lyceum-dream.webp` pinning a lyceum photo on a wall; `illus-mocks.webp` exam sheet and timer; `illus-register.webp` stack of subject books. Alt: "Temur the fox mascot <walking a learning path|pinning a lyceum photo|holding an exam sheet and timer|holding subject books>".
+
 ## Prompts (reproducibility)
-Model: openai-codex gpt-image-2, input the `straight` original above. Style suffix: "Flat vector mascot matching Image 1 exactly: thick dark-olive (#5a4f1e) outline, sand fur (#c9c49a), cream inner ears (#faf3d6), teal doppa (#1a9a9a) with yellow zigzag (#d4d01c). No gradients, no shadows. Solid pure white background." White background removed with ImageMagick flood fill (`-fuzz 6%`).
+Model: openai-codex gpt-image-2. Master `straight`: "Temur, friendly corsac fox mascot, head only, front view, big upright ears with cream inner ear and black tips, grey-sand fur (#C8BFA6), white cheeks, big glossy dark eyes, black nose, gentle smile, rosy cheeks, Uzbek doppa in #100FA0 with white pattern and #AFF50B accents. Duolingo-quality clean flat vector, bold dark outline (#1b1b2e), no gradients/shadows, solid white background." Every other asset: master passed as Image 1, "Image 1 is the master character Temur. <pose/scene description>. identical flat vector style as Image 1, solid pure white background". Poses: left/right 3/4 head turns, top (tilted down), left-bottom/right-bottom (turned + chin lowered); full-body celebrate, sad (broken heart), thinking (lightbulb), streak (flame), sleep (curled, zzz), trophy, premium (crown, stars), wave; hero (books + lyceum building, right-aligned, left empty); illustrations as listed above. White background removed with ImageMagick flood fill from the corner (`-fuzz 9%`), trimmed, resized (heads/poses max 720px WebP q82; illus 800x600 canvas). App icon: `straight` on #100FA0 composited with ImageMagick.

@@ -3,6 +3,7 @@ import type { Tokens } from "@dtmai/api-client";
 import { useLocale, useT } from "@dtmai/i18n";
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { GuestNudge } from "@/components/auth/GuestNudge";
 import { api, setApiLocale, setUnauthorizedHandler, type Language, type Me } from "./api";
 import { contentLang } from "./localized";
 import { readTokens, writeTokens } from "./session";
@@ -188,7 +189,7 @@ function MergeBanner() {
  * and a user without a target lyceum is sent to /onboarding/.
  */
 export function RequireAuth({ children, allowUnonboarded }: { children: ReactNode; allowUnonboarded?: boolean }) {
-  const { me, loading, onboarded, startGuest } = useAuth();
+  const { me, loading, onboarded, isGuest, startGuest } = useAuth();
   const router = useRouter();
   const starting = useRef(false);
   useEffect(() => {
@@ -207,6 +208,7 @@ export function RequireAuth({ children, allowUnonboarded }: { children: ReactNod
   return (
     <>
       <MergeBanner />
+      {isGuest && onboarded && <GuestNudge />}
       {children}
     </>
   );

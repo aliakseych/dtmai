@@ -11,11 +11,14 @@ from app.modules.identity.domain.models import (
     RefreshToken,
     Role,
     User,
+    guest_cutoff,
     locale_from_telegram,
     normalize_email,
     parse_roles,
+    validate_city,
     validate_locale,
     validate_password,
+    validate_subject_ids,
 )
 from app.modules.identity.ports import (
     Clock,
@@ -203,6 +206,8 @@ class IdentityService:
         locale: str | None = None,
         target_lyceum_id: UUID | None | object = UNSET,
         education_language_id: UUID | None | object = UNSET,
+        city: str | None | object = UNSET,
+        subject_ids: list[UUID] | object = UNSET,
     ) -> User:
         user = await self.get_me(user_id)
         if name is not None:
@@ -213,8 +218,29 @@ class IdentityService:
             user.target_lyceum_id = target_lyceum_id  # type: ignore[assignment]
         if education_language_id is not UNSET:
             user.education_language_id = education_language_id  # type: ignore[assignment]
+        if city is not UNSET:
+            user.city = validate_city(city)  # type: ignore[arg-type]
+        if subject_ids is not UNSET:
+            user.subject_ids = validate_subject_ids(subject_ids)  # type: ignore[arg-type]
         await self._users.save(user)
         return user
+
+    async def grant_role(self, user_id: UUID, role: Role) -> User:
+        """Add a role (idempotent). Guests cannot hold other roles."""
+        user = await self.get_me(user_id)
+        if Role.GUEST in user.roles:
+            raise ValidationFailed("guest cannot be combined with other roles", code="invalid_role")
+        if role not in user.roles:
+            user.roles = user.roles | {role}
+            await self._users.save(user)
+        return user
+
+    async def count_dreamers(self, lyceum_id: UUID) -> int:
+        return await self._users.count_by_target_lyceum(lyceum_id)
+
+    async def cleanup_guests(self) -> int:
+        """Delete guest accounts inactive for more than the retention window."""
+        return await self._users.delete_guests_unseen_since(guest_cutoff(self._clock.now()))
 
     async def _login_profile(self, profile: telegram.TelegramProfile) -> TokenPair:
         user = await self._users.by_telegram_id(profile.id)
@@ -241,6 +267,7 @@ class IdentityService:
         await self._mailer.send(user.email, "DTM AI: " + code, f"Your DTM AI {purpose} code: {code}")
 
     async def _issue(self, user: User) -> TokenPair:
+        await self._users.touch(user.id, self._clock.now())
         raw = secrets.token_urlsafe(48)
         await self._refresh.add(
             RefreshToken(

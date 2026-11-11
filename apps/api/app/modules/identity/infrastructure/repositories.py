@@ -1,6 +1,7 @@
+from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import func, or_, select, update
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,7 +15,9 @@ def _to_domain(r: UserRow) -> User:
         id=r.id, name=r.name, locale=r.locale, email=r.email, email_verified=r.email_verified,
         password_hash=r.password_hash, telegram_id=r.telegram_id,
         roles={Role(x) for x in r.roles}, target_lyceum_id=r.target_lyceum_id,
-        education_language_id=r.education_language_id, created_at=r.created_at,
+        education_language_id=r.education_language_id, city=r.city,
+        subject_ids=list(r.subject_ids or []), created_at=r.created_at,
+        last_seen_at=r.last_seen_at,
     )
 
 
@@ -23,6 +26,7 @@ def _fill(r: UserRow, u: User) -> None:
     r.telegram_id, r.name, r.locale = u.telegram_id, u.name, u.locale
     r.roles = sorted(x.value for x in u.roles)
     r.target_lyceum_id, r.education_language_id = u.target_lyceum_id, u.education_language_id
+    r.city, r.subject_ids = u.city, list(u.subject_ids)
 
 
 class SqlUserRepository:
@@ -86,6 +90,32 @@ class SqlUserRepository:
         if with_email:
             stmt = stmt.where(UserRow.email.is_not(None), UserRow.email_verified.is_(True))
         return [_to_domain(r) for r in (await self._s.execute(stmt)).scalars()]
+
+
+    async def touch(self, user_id: UUID, now: datetime) -> None:
+        await self._s.execute(
+            update(UserRow).where(UserRow.id == user_id).values(last_seen_at=now)
+        )
+
+    async def delete_guests_unseen_since(self, cutoff: datetime) -> int:
+        """Delete pure-guest users not seen since `cutoff`; tokens/codes cascade."""
+        result = await self._s.execute(
+            delete(UserRow).where(
+                UserRow.roles == [Role.GUEST.value], UserRow.last_seen_at < cutoff
+            )
+        )
+        return int(result.rowcount or 0)  # type: ignore[attr-defined]
+
+    async def count_by_target_lyceum(self, lyceum_id: UUID) -> int:
+        return int(
+            (
+                await self._s.execute(
+                    select(func.count()).select_from(UserRow).where(
+                        UserRow.target_lyceum_id == lyceum_id
+                    )
+                )
+            ).scalar_one()
+        )
 
 
 class SqlEmailCodeRepository:

@@ -34,7 +34,7 @@ TYPES: list[dict[str, Any]] = [
 
 BASES: list[dict[str, Any]] = [
     {"code": "previous_years", "kind": "previous_year", "names": {"en": "Previous-year exams", "ru": "Экзамены прошлых лет", "uz-Latn": "Oldingi yillar imtihonlari", "uz-Cyrl": "Олдинги йиллар имтиҳонлари"}},
-    {"code": "bluebook", "kind": "bluebook", "names": {"en": "Bluebook-style practice papers", "ru": "Пробные работы (Bluebook)", "uz-Latn": "Bluebook uslubidagi mashq", "uz-Cyrl": "Bluebook услубидаги машқ"}},
+    {"code": "bluebook", "kind": "bluebook", "names": {"en": "Practice papers", "ru": "Тренировочные варианты", "uz-Latn": "Mashq variantlari", "uz-Cyrl": "Машқ вариантлари"}},
     {"code": "ai_generated", "kind": "ai_generated", "names": {"en": "AI-generated", "ru": "Созданные ИИ", "uz-Latn": "AI yaratgan", "uz-Cyrl": "AI яратган"}},
     {"code": "harvested", "kind": "harvested", "names": {"en": "Harvested bank", "ru": "Общий банк вопросов", "uz-Latn": "Umumiy savollar banki", "uz-Cyrl": "Умумий саволлар банки"}},
 ]

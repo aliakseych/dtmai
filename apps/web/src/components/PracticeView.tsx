@@ -37,7 +37,6 @@ function Panel({ subjectId }: { subjectId: string }) {
         )}
       </AsyncView>
       <TopicBrowser subjectId={subjectId} />
-      <TopicBrowser subjectId={subjectId} />
       <Card className="flex flex-col gap-3">
         <h2 className="text-xl">{t("practice.weak")}</h2>
         <p className="text-ink-soft">{t("practice.weak.text")}</p>

@@ -22,6 +22,9 @@ class Users:
     async def save(self, user):
         self.u = user
 
+    async def touch(self, user_id, at=None):
+        return None
+
 
 class Codes:
     def __init__(self):

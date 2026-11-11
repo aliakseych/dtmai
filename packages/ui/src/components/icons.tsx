@@ -22,7 +22,7 @@ export const GemIcon = (p: P) => (
 );
 export const XpIcon = (p: P) => (
   <svg {...base} {...p}>
-    <path d="M13 2 4 14h6l-1 8 9-12h-6z" fill="#ffc800" />
+    <path d="M13 2 4 14h6l-1 8 9-12h-6z" fill="#aff50b" stroke="#5f8a00" strokeWidth="1.2" strokeLinejoin="round" />
   </svg>
 );
 export const StarIcon = (p: P) => (

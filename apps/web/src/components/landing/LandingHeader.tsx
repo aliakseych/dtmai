@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { buttonClass } from "@dtmai/ui";
+import { buttonClass, Logo } from "@dtmai/ui";
 import { LocaleSwitcher, useT } from "@dtmai/i18n";
 
 const LINKS = [
@@ -14,8 +14,8 @@ export function LandingHeader() {
   return (
     <header className="sticky top-0 z-30 border-b-2 border-line bg-white/95">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3">
-        <Link href="/" className="whitespace-nowrap text-xl font-extrabold text-green sm:text-3xl">
-          {t("app.name")}
+        <Link href="/" aria-label={t("app.name")}>
+          <Logo name={t("app.name")} size={32} />
         </Link>
         <nav className="hidden gap-6 text-sm font-extrabold uppercase text-ink-soft md:flex" aria-label={t("nav.main")}>
           {LINKS.map(([href, key]) => (

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@dtmai/ui";
 import { useLocale, useT } from "@dtmai/i18n";
 import { AuthFrame, Field } from "@/components/auth/AuthFrame";
+import { RegisterBenefits } from "@/components/auth/RegisterBenefits";
 import { OrDivider } from "@/components/auth/OrDivider";
 import { TelegramLogin } from "@/components/auth/TelegramLogin";
 import { useSignedIn } from "@/components/auth/useSignedIn";
@@ -73,6 +74,7 @@ function RegisterForm() {
       }
     >
       {isGuest && <p className="text-center text-ink-soft">{t("auth.save.text")}</p>}
+      {step === "details" && <RegisterBenefits />}
       <form onSubmit={submit} className="flex flex-col gap-4">
         {step === "details" ? (
           <>

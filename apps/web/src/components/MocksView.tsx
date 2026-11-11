@@ -27,6 +27,7 @@ export function MocksView() {
   const t = useT();
   const { locale } = useLocale();
   const [kind, setKind] = useState<"all" | Mock["kind"]>("all");
+  const [baseId, setBaseId] = useState<string | null>(null);
   const [limit, setLimit] = useState(PAGE);
   const mocks = useAsync(listMocks, []);
   const bases = useAsync(listBases, []);
@@ -59,7 +60,7 @@ export function MocksView() {
           </div>
           <AsyncView state={mocks.state} onRetry={mocks.reload} isEmpty={(d) => d.length === 0} emptyText={t("mocks.empty")}>
             {(list) => {
-              const shown = kind === "all" ? list : list.filter((m) => m.kind === kind);
+              const shown = list.filter((m) => (kind === "all" || m.kind === kind) && (!baseId || m.source_id === baseId));
               return (
                 <div className="flex flex-col gap-3">
                   {shown.length === 0 && <p className="font-bold text-ink-soft">{t("mocks.empty")}</p>}
@@ -79,17 +80,30 @@ export function MocksView() {
           <AsyncView state={bases.state} onRetry={bases.reload} isEmpty={(d) => d.length === 0} emptyText={t("mocks.basesEmpty")}>
             {(list) => (
               <ul className="flex flex-col gap-2">
-                {list.map((b) => (
-                  <li key={b.id}>
-                    <Card className="flex items-center justify-between gap-3 py-3">
-                      <span className="font-bold">{pick(b.names, locale)}</span>
-                      <span className="text-sm text-ink-soft">
-                        {t(`mocks.baseKind.${b.kind}` as Parameters<typeof t>[0])}
-                        {b.year ? ` · ${b.year}` : ""}
-                      </span>
-                    </Card>
-                  </li>
-                ))}
+                {list.map((b) => {
+                  const on = baseId === b.id;
+                  return (
+                    <li key={b.id}>
+                      <button
+                        type="button"
+                        aria-pressed={on}
+                        aria-label={`${pick(b.names, locale)}: ${t("mocks.baseOpen")}`}
+                        onClick={() => {
+                          setBaseId(on ? null : b.id);
+                          setKind("all");
+                          document.getElementById("mocks-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }}
+                        className={`flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-card border-2 px-5 py-3 text-left hover:border-blue ${on ? "border-blue bg-snow" : "border-line bg-white"}`}
+                      >
+                        <span className="min-w-0 break-words font-bold">{pick(b.names, locale)}</span>
+                        <span className="text-sm text-ink-soft">
+                          {t(`mocks.baseKind.${b.kind}` as Parameters<typeof t>[0])}
+                          {b.year ? ` · ${b.year}` : ""}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </AsyncView>

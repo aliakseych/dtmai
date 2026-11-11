@@ -33,6 +33,7 @@ MODULES: list[tuple[APIRouter, str]] = [
 
 # Modules exposing taskiq tasks (dotted import paths).
 TASK_MODULES: list[str] = [
+    "app.interfaces.jobs.identity",
     "app.interfaces.jobs.lyceums",
     "app.interfaces.jobs.notify",
     "app.modules.labeling.tasks",

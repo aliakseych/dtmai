@@ -28,7 +28,7 @@ export function MockCard({ mock }: { mock: Mock }) {
   }
 
   return (
-    <Card className="flex flex-col gap-2">
+    <Card className="flex cursor-pointer flex-col gap-2 hover:border-blue" onClick={() => !busy && void start()}>
       <div className="flex items-center justify-between gap-4">
         <div>
           <h3 className="text-lg">{pick(mock.names, locale) || mock.code}</h3>
@@ -36,7 +36,7 @@ export function MockCard({ mock }: { mock: Mock }) {
             {t("mocks.questions", { n: mock.question_count })} · {t("mocks.minutes", { n: mock.duration_min })}
           </p>
         </div>
-        <Button onClick={start} disabled={busy}>
+        <Button disabled={busy}>
           {busy ? t("mock.starting") : t("mocks.start")}
         </Button>
       </div>

@@ -88,6 +88,8 @@ class MeOut(BaseModel):
     roles: list[str]
     target_lyceum_id: UUID | None
     education_language_id: UUID | None
+    city: str | None
+    subject_ids: list[UUID]
 
 
 class MePatch(BaseModel):
@@ -95,6 +97,8 @@ class MePatch(BaseModel):
     locale: str | None = None
     target_lyceum_id: UUID | None = None
     education_language_id: UUID | None = None
+    city: str | None = Field(default=None, max_length=100)
+    subject_ids: list[UUID] | None = Field(default=None, max_length=10)
 
 
 def _tokens(t: TokenPair) -> TokensOut:
@@ -114,6 +118,8 @@ def _me(u: User) -> MeOut:
         roles=sorted(r.value for r in u.roles),
         target_lyceum_id=u.target_lyceum_id,
         education_language_id=u.education_language_id,
+        city=u.city,
+        subject_ids=list(u.subject_ids),
     )
 
 
@@ -195,6 +201,8 @@ async def patch_me(body: MePatch, user: CurrentUser, svc: IdentityServiceDep) ->
         education_language_id=(
             body.education_language_id if "education_language_id" in sent else UNSET
         ),
+        city=body.city if "city" in sent else UNSET,
+        subject_ids=(body.subject_ids or []) if "subject_ids" in sent else UNSET,
     )
     return _me(updated)
 

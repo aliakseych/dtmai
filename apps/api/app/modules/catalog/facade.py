@@ -68,6 +68,7 @@ class LessonDTO:
     question_count: int
     legendary: bool
     pool: int
+    theory: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass(frozen=True, slots=True)
@@ -170,7 +171,7 @@ async def get_path(session: AsyncSession, subject_id: UUID, language: str, *, lo
             types = [UUID(t) for t in le["type_ids"]]
             pool = await bank.count_verified(session, subject_id=subject_id, topic_ids=eff or None, type_ids=types or None, language=language)
             if dom.lesson_visible(pool, le["question_count"], min_pool) or include_draft:
-                lessons.append(LessonDTO(le["id"], le["names"], dom.pick_name(le["names"], locale), topics, eff, types, le["question_count"], le["legendary"], pool))
+                lessons.append(LessonDTO(le["id"], le["names"], dom.pick_name(le["names"], locale), topics, eff, types, le["question_count"], le["legendary"], pool, list(le.get("theory") or [])))
         if lessons:
             units.append(UnitDTO(u["id"], u["names"], dom.pick_name(u["names"], locale), lessons))
     return PathDTO(p["id"], subject_id, language, p["names"], units)

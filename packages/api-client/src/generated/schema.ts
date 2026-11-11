@@ -1068,6 +1068,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/lyceums/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Posts */
+        get: operations["lyceums_admin_list_posts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/lyceums/posts/{post_id}/moderate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Moderate Post */
+        post: operations["lyceums_admin_moderate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/lyceums/rep/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Applications */
+        get: operations["lyceums_admin_list_applications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/lyceums/stats/{stat_id}": {
         parameters: {
             query?: never;
@@ -1083,6 +1134,57 @@ export interface paths {
         head?: never;
         /** Set Passing Score */
         patch: operations["set_passing_score_v1_admin_lyceums_stats__stat_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/lyceums/{lyceum_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Profile */
+        patch: operations["lyceums_admin_update_profile"];
+        trace?: never;
+    };
+    "/v1/admin/lyceums/{lyceum_id}/rep/{user_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Rep */
+        post: operations["lyceums_admin_approve_rep"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/lyceums/{lyceum_id}/rep/{user_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Rep */
+        post: operations["lyceums_admin_reject_rep"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/admin/media": {
@@ -2304,6 +2406,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/lyceums/{lyceum_id}/rep/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rep Apply */
+        post: operations["lyceums_rep_apply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/lyceums/{lyceum_id}/rep/membership": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rep Membership */
+        get: operations["lyceums_rep_membership"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/lyceums/{lyceum_id}/rep/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rep List Posts */
+        get: operations["lyceums_rep_list_posts"];
+        put?: never;
+        /** Rep Create Post */
+        post: operations["lyceums_rep_create_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/lyceums/{lyceum_id}/rep/posts/{post_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Rep Update Post */
+        put: operations["lyceums_rep_update_post"];
+        post?: never;
+        /** Rep Delete Post */
+        delete: operations["lyceums_rep_delete_post"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/daily-goal": {
         parameters: {
             query?: never;
@@ -2473,6 +2645,11 @@ export interface components {
             total: number;
             /** Unlimited Hearts */
             unlimited_hearts: boolean;
+        };
+        /** ApplyIn */
+        ApplyIn: {
+            /** Note */
+            note?: string | null;
         };
         /** AttemptOut */
         AttemptOut: {
@@ -2932,6 +3109,24 @@ export interface components {
             xp_per_item_cap: number;
             /** Xp Session Cap */
             xp_session_cap: number;
+        };
+        /** ContactsIn */
+        ContactsIn: {
+            /** Email */
+            email?: string | null;
+            /** Phone */
+            phone?: string | null;
+            /** Telegram */
+            telegram?: string | null;
+        };
+        /** ContactsOut */
+        ContactsOut: {
+            /** Email */
+            email?: string | null;
+            /** Phone */
+            phone?: string | null;
+            /** Telegram */
+            telegram?: string | null;
         };
         /** CoverageRow */
         CoverageRow: {
@@ -3401,6 +3596,8 @@ export interface components {
         };
         /** LearnerLessonOut */
         LearnerLessonOut: {
+            /** Has Theory */
+            has_theory: boolean;
             /**
              * Id
              * Format: uuid
@@ -3417,6 +3614,8 @@ export interface components {
             progress: components["schemas"]["ProgressOut"];
             /** Question Count */
             question_count: number;
+            /** Theory */
+            theory: components["schemas"]["TheoryCard"][];
             /** Title */
             title: string;
             /** Topic Ids */
@@ -3481,6 +3680,11 @@ export interface components {
              */
             question_count: number;
             /**
+             * Theory
+             * @default []
+             */
+            theory: components["schemas"]["TheoryCard"][];
+            /**
              * Topic Ids
              * @default []
              */
@@ -3513,6 +3717,8 @@ export interface components {
             position: number;
             /** Question Count */
             question_count: number;
+            /** Theory */
+            theory: components["schemas"]["TheoryCard"][];
             /** Topic Ids */
             topic_ids: string[];
             /** Type Ids */
@@ -3535,6 +3741,8 @@ export interface components {
             position?: number | null;
             /** Question Count */
             question_count?: number | null;
+            /** Theory */
+            theory?: components["schemas"]["TheoryCard"][] | null;
             /** Topic Ids */
             topic_ids?: string[] | null;
             /** Type Ids */
@@ -3591,16 +3799,45 @@ export interface components {
         LyceumDetail: {
             /** Code */
             code: string;
+            /** Dreamers Count */
+            dreamers_count: number;
             /**
              * Id
              * Format: uuid
              */
             id: string;
             names: components["schemas"]["NamesOut"];
+            /** Posts */
+            posts: components["schemas"]["PostOut"][];
+            profile: components["schemas"]["ProfileOut"];
             /** Stats */
             stats: components["schemas"]["StatOut"][];
             /** Years */
             years: components["schemas"]["YearSummary"][];
+        };
+        /** LyceumPatch */
+        LyceumPatch: {
+            /** Campus Photo Url */
+            campus_photo_url?: string | null;
+            /** City */
+            city?: string | null;
+            contacts?: components["schemas"]["ContactsIn"] | null;
+            /** Courses */
+            courses?: string[] | null;
+            /** Description */
+            description?: {
+                [key: string]: string;
+            } | null;
+            /** Gallery Urls */
+            gallery_urls?: string[] | null;
+            /** Logo Url */
+            logo_url?: string | null;
+            /** University Name */
+            university_name?: string | null;
+            /** Verified Rep */
+            verified_rep?: boolean | null;
+            /** Website */
+            website?: string | null;
         };
         /** LyceumSummary */
         LyceumSummary: {
@@ -3623,6 +3860,8 @@ export interface components {
         };
         /** MeOut */
         MeOut: {
+            /** City */
+            city: string | null;
             /** Education Language Id */
             education_language_id: string | null;
             /** Email */
@@ -3640,6 +3879,8 @@ export interface components {
             name: string;
             /** Roles */
             roles: string[];
+            /** Subject Ids */
+            subject_ids: string[];
             /** Target Lyceum Id */
             target_lyceum_id: string | null;
             /** Telegram Id */
@@ -3647,14 +3888,39 @@ export interface components {
         };
         /** MePatch */
         MePatch: {
+            /** City */
+            city?: string | null;
             /** Education Language Id */
             education_language_id?: string | null;
             /** Locale */
             locale?: string | null;
             /** Name */
             name?: string | null;
+            /** Subject Ids */
+            subject_ids?: string[] | null;
             /** Target Lyceum Id */
             target_lyceum_id?: string | null;
+        };
+        /** MembershipOut */
+        MembershipOut: {
+            /** Created At */
+            created_at: string | null;
+            /** Decided At */
+            decided_at: string | null;
+            /**
+             * Lyceum Id
+             * Format: uuid
+             */
+            lyceum_id: string;
+            /** Note */
+            note: string | null;
+            /** Status */
+            status: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
         };
         /** MergeGuestIn */
         MergeGuestIn: {
@@ -3680,8 +3946,20 @@ export interface components {
             };
             /** Question Count */
             question_count: number;
+            /** Source Id */
+            source_id?: string | null;
             /** Version */
             version: number;
+        };
+        /** ModerateIn */
+        ModerateIn: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "publish" | "reject";
+            /** Reason */
+            reason?: string | null;
         };
         /** MyBillingOut */
         MyBillingOut: {
@@ -3928,6 +4206,60 @@ export interface components {
             /** Sort Order */
             sort_order?: number | null;
         };
+        /** PostIn */
+        PostIn: {
+            /**
+             * Body
+             * @default
+             */
+            body: string;
+            /** Kind */
+            kind: string;
+            /** Link */
+            link?: string | null;
+            /** Starts At */
+            starts_at?: string | null;
+            /** Title */
+            title: string;
+        };
+        /** PostOut */
+        PostOut: {
+            /** Body */
+            body: string;
+            /** Created At */
+            created_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Link */
+            link: string | null;
+            /**
+             * Lyceum Id
+             * Format: uuid
+             */
+            lyceum_id: string;
+            /** Published At */
+            published_at: string | null;
+            /** Reject Reason */
+            reject_reason: string | null;
+            /** Starts At */
+            starts_at: string | null;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /**
+         * PostStatus
+         * @enum {string}
+         */
+        PostStatus: "draft" | "pending" | "published" | "rejected";
         /** PredictionOut */
         PredictionOut: {
             /** Attempts */
@@ -4008,6 +4340,30 @@ export interface components {
             title: string;
             /** Type */
             type: string;
+        };
+        /** ProfileOut */
+        ProfileOut: {
+            /** Campus Photo Url */
+            campus_photo_url: string | null;
+            /** City */
+            city: string | null;
+            contacts: components["schemas"]["ContactsOut"];
+            /** Courses */
+            courses: string[];
+            /** Description */
+            description: {
+                [key: string]: string;
+            };
+            /** Gallery Urls */
+            gallery_urls: string[];
+            /** Logo Url */
+            logo_url: string | null;
+            /** University Name */
+            university_name: string | null;
+            /** Verified Rep */
+            verified_rep: boolean;
+            /** Website */
+            website: string | null;
         };
         /** ProgressOut */
         ProgressOut: {
@@ -4976,6 +5332,15 @@ export interface components {
             username?: string | null;
         } & {
             [key: string]: unknown;
+        };
+        /** TheoryCard */
+        TheoryCard: {
+            /** Body Md */
+            body_md: string;
+            /** Example Md */
+            example_md?: string | null;
+            /** Title */
+            title: string;
         };
         /** TierOut */
         TierOut: {
@@ -12133,6 +12498,183 @@ export interface operations {
             };
         };
     };
+    lyceums_admin_list_posts: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["PostStatus"];
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_admin_moderate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_admin_list_applications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     set_passing_score_v1_admin_lyceums_stats__stat_id__patch: {
         parameters: {
             query?: never;
@@ -12156,6 +12698,184 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["StatOut"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_admin_update_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lyceum_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LyceumPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_admin_approve_rep: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lyceum_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_admin_reject_rep: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lyceum_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {
@@ -16868,6 +17588,366 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["LyceumDetail"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_rep_apply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lyceum_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_rep_membership: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lyceum_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_rep_list_posts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lyceum_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_rep_create_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lyceum_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_rep_update_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lyceum_id: string;
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_rep_delete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lyceum_id: string;
+                post_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {

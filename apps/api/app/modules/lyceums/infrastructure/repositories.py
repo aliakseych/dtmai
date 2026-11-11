@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,10 +12,19 @@ from app.modules.lyceums.domain.models import (
     SourceLyceum,
     SourceSpeciality,
 )
+from app.modules.lyceums.domain.rep import (
+    MembershipStatus,
+    Post,
+    PostKind,
+    PostStatus,
+    RepMembership,
+)
 from app.modules.lyceums.infrastructure.orm import (
     EducationLanguageRow,
     ImportRunRow,
+    LyceumPostRow,
     LyceumRow,
+    RepMembershipRow,
     YearlyStatRow,
 )
 from app.shared.ids import new_id
@@ -193,3 +202,137 @@ class SqlLyceumQueries:
     def _view(r: YearlyStatRow) -> StatView:
         return StatView(r.id, r.lyceum_id, r.language_id, r.speciality_code, r.name, r.year,
                         r.quota, r.applications, r.passing_score)
+
+
+    async def update_profile(self, lyceum_id: UUID, fields: dict[str, object]) -> LyceumRow | None:
+        row = await self._s.get(LyceumRow, lyceum_id)
+        if row is None:
+            return None
+        for key, value in fields.items():
+            setattr(row, key, value)
+        await self._s.flush()
+        return row
+
+
+class SqlLyceumProfiles:
+    def __init__(self, session: AsyncSession) -> None:
+        self._s = session
+
+    async def exists(self, lyceum_id: UUID) -> bool:
+        return await self._s.get(LyceumRow, lyceum_id) is not None
+
+    async def mark_verified_rep(self, lyceum_id: UUID) -> None:
+        await self._s.execute(
+            update(LyceumRow).where(LyceumRow.id == lyceum_id).values(verified_rep=True)
+        )
+
+
+def _membership(r: RepMembershipRow) -> RepMembership:
+    return RepMembership(
+        user_id=r.user_id, lyceum_id=r.lyceum_id, status=MembershipStatus(r.status),
+        note=r.note, created_at=r.created_at, decided_at=r.decided_at,
+    )
+
+
+class SqlMemberships:
+    def __init__(self, session: AsyncSession) -> None:
+        self._s = session
+
+    async def get(self, user_id: UUID, lyceum_id: UUID) -> RepMembership | None:
+        row = await self._s.get(RepMembershipRow, (user_id, lyceum_id))
+        return _membership(row) if row else None
+
+    async def add(self, membership: RepMembership) -> None:
+        self._s.add(RepMembershipRow(
+            user_id=membership.user_id, lyceum_id=membership.lyceum_id,
+            status=membership.status.value, note=membership.note,
+        ))
+        await self._s.flush()
+
+    async def save(self, membership: RepMembership) -> None:
+        row = await self._s.get(RepMembershipRow, (membership.user_id, membership.lyceum_id))
+        if row is None:
+            return
+        row.status, row.note, row.decided_at = (
+            membership.status.value, membership.note, membership.decided_at,
+        )
+        await self._s.flush()
+
+    async def delete(self, user_id: UUID, lyceum_id: UUID) -> None:
+        await self._s.execute(delete(RepMembershipRow).where(
+            RepMembershipRow.user_id == user_id, RepMembershipRow.lyceum_id == lyceum_id))
+
+    async def list_pending(self, limit: int) -> list[RepMembership]:
+        rows = await self._s.scalars(
+            select(RepMembershipRow)
+            .where(RepMembershipRow.status == MembershipStatus.PENDING.value)
+            .order_by(RepMembershipRow.created_at).limit(limit)
+        )
+        return [_membership(r) for r in rows]
+
+
+def _post(r: LyceumPostRow) -> Post:
+    return Post(
+        id=r.id, lyceum_id=r.lyceum_id, author_id=r.author_id, kind=PostKind(r.kind),
+        title=r.title, body=r.body, starts_at=r.starts_at, link=r.link,
+        status=PostStatus(r.status), reject_reason=r.reject_reason, created_at=r.created_at,
+        updated_at=r.updated_at, published_at=r.published_at,
+    )
+
+
+class SqlPosts:
+    def __init__(self, session: AsyncSession) -> None:
+        self._s = session
+
+    async def add(self, post: Post) -> None:
+        row = LyceumPostRow(id=post.id, lyceum_id=post.lyceum_id, author_id=post.author_id)
+        self._fill(row, post)
+        self._s.add(row)
+        await self._s.flush()
+        await self._s.refresh(row)
+        post.created_at, post.updated_at = row.created_at, row.updated_at
+
+    @staticmethod
+    def _fill(row: LyceumPostRow, p: Post) -> None:
+        row.kind, row.title, row.body = p.kind.value, p.title, p.body
+        row.starts_at, row.link, row.status = p.starts_at, p.link, p.status.value
+        row.reject_reason, row.published_at = p.reject_reason, p.published_at
+
+    async def get(self, post_id: UUID) -> Post | None:
+        row = await self._s.get(LyceumPostRow, post_id)
+        return _post(row) if row else None
+
+    async def save(self, post: Post) -> None:
+        row = await self._s.get(LyceumPostRow, post.id)
+        if row is None:
+            return
+        self._fill(row, post)
+        await self._s.flush()
+        await self._s.refresh(row)
+        post.updated_at = row.updated_at
+
+    async def delete(self, post_id: UUID) -> None:
+        await self._s.execute(delete(LyceumPostRow).where(LyceumPostRow.id == post_id))
+
+    async def list_for_lyceum(self, lyceum_id: UUID) -> list[Post]:
+        rows = await self._s.scalars(
+            select(LyceumPostRow).where(LyceumPostRow.lyceum_id == lyceum_id)
+            .order_by(LyceumPostRow.created_at.desc())
+        )
+        return [_post(r) for r in rows]
+
+    async def list_published(self, lyceum_id: UUID, limit: int) -> list[Post]:
+        rows = await self._s.scalars(
+            select(LyceumPostRow).where(
+                LyceumPostRow.lyceum_id == lyceum_id,
+                LyceumPostRow.status == PostStatus.PUBLISHED.value,
+            ).order_by(LyceumPostRow.published_at.desc()).limit(limit)
+        )
+        return [_post(r) for r in rows]
+
+    async def list_by_status(self, status: PostStatus, limit: int) -> list[Post]:
+        rows = await self._s.scalars(
+            select(LyceumPostRow).where(LyceumPostRow.status == status.value)
+            .order_by(LyceumPostRow.created_at).limit(limit)
+        )
+        return [_post(r) for r in rows]

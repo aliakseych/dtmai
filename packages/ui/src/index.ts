@@ -15,3 +15,6 @@ export * from "./components/LeagueBadge";
 export * from "./components/Skeleton";
 export * from "./components/Toast";
 export * from "./components/icons";
+export * from "./components/Logo";
+export * from "./components/LanguageSelector";
+export * from "./components/flags";

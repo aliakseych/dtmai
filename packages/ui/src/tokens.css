@@ -2,25 +2,34 @@
 
 @theme {
   --font-sans: "Nunito Variable", "Nunito", ui-rounded, system-ui, sans-serif;
-  --color-green: #58cc02;
-  --color-green-deep: #58a700;
-  --color-green-soft: #d7ffb8;
-  --color-blue: #1cb0f6;
-  --color-blue-deep: #1899d6;
-  --color-blue-soft: #ddf4ff;
+  /* Brand: #100FA0 primary, #AFF50B accent, rest black/white/grays.
+     Legacy token names are kept so existing classes inherit the brand:
+     green = primary, blue = lighter primary tint, gold = accent, orange = ink. */
   --color-brand: #100fa0;
   --color-brand-deep: #0b0a78;
+  --color-brand-soft: #ececff;
+  --color-accent: #aff50b;
+  --color-accent-deep: #7fb800;
+  --color-accent-soft: #f1fdd0;
+  --color-green: #100fa0;
+  --color-green-deep: #100fa0;
+  --color-green-soft: #ececff;
+  --color-blue: #3a39d4;
+  --color-blue-deep: #100fa0;
+  --color-blue-soft: #ececff;
+  --color-gold: #aff50b;
+  --color-gold-deep: #5f8a00;
+  --color-orange: #1a1a1a;
+  --color-orange-deep: #000000;
+  /* Semantic feedback only. */
   --color-red: #ff4b4b;
   --color-red-deep: #ea2b2b;
   --color-red-soft: #ffdfe0;
-  --color-gold: #ffc800;
-  --color-gold-deep: #e5b400;
-  --color-orange: #ff9600;
-  --color-orange-deep: #e58700;
-  --color-ink: #4b4b4b;
-  --color-ink-soft: #777777;
+  --color-correct: #2f9e0a;
+  --color-ink: #111111;
+  --color-ink-soft: #6b6b6b;
   --color-line: #e5e5e5;
-  --color-snow: #f7f7f7;
+  --color-snow: #f6f6f8;
   --radius-card: 16px;
 }
 
@@ -48,4 +57,23 @@ h1, h2, h3 { font-weight: 800; }
 .pop-in { animation: pop-in 0.45s ease-out both; }
 @media (prefers-reduced-motion: reduce) {
   .sheet-in, .pop-in { animation: none; }
+}
+
+@keyframes menu-in {
+  from { transform: translateY(-6px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.menu-in { animation: menu-in 0.16s ease-out both; }
+@keyframes fade-up {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.fade-up { animation: fade-up 0.5s ease-out both; }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.bob { animation: bob 3.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .menu-in, .fade-up, .bob { animation: none; }
 }

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import StrEnum
 from uuid import UUID
 
@@ -8,12 +8,16 @@ from app.shared.errors import ValidationFailed
 LOCALES = ("uz-Latn", "uz-Cyrl", "ru", "en")
 DEFAULT_LOCALE = "uz-Latn"
 MIN_PASSWORD_LENGTH = 8
+MAX_SUBJECTS = 10
+MAX_CITY_LENGTH = 100
+GUEST_RETENTION_DAYS = 30
 
 
 class Role(StrEnum):
     GUEST = "guest"
     STUDENT = "student"
     EDITOR = "editor"
+    LYCEUM_REP = "lyceum_rep"
     ADMIN = "admin"
 
 
@@ -34,6 +38,38 @@ def validate_password(password: str) -> str:
     if len(password) < MIN_PASSWORD_LENGTH:
         raise ValidationFailed("password too short", code="weak_password")
     return password
+
+
+def validate_city(city: str | None) -> str | None:
+    """Blank clears the city; otherwise a trimmed free-text value."""
+    if city is None:
+        return None
+    value = " ".join(city.split())
+    if len(value) > MAX_CITY_LENGTH:
+        raise ValidationFailed("city too long", code="invalid_city")
+    return value or None
+
+
+def validate_subject_ids(ids: list[UUID]) -> list[UUID]:
+    """Order-preserving dedupe; bounded."""
+    unique = list(dict.fromkeys(ids))
+    if len(unique) > MAX_SUBJECTS:
+        raise ValidationFailed("too many subjects", code="too_many_subjects")
+    return unique
+
+
+def is_guest_expired(
+    roles: set[Role], last_seen_at: datetime | None, *, now: datetime,
+    retention_days: int = GUEST_RETENTION_DAYS,
+) -> bool:
+    """A pure guest (no other role) unseen for more than `retention_days`."""
+    if roles != {Role.GUEST} or last_seen_at is None:
+        return False
+    return now - last_seen_at > timedelta(days=retention_days)
+
+
+def guest_cutoff(now: datetime, retention_days: int = GUEST_RETENTION_DAYS) -> datetime:
+    return now - timedelta(days=retention_days)
 
 
 def locale_from_telegram(language_code: str | None) -> str:
@@ -57,7 +93,10 @@ class User:
     roles: set[Role] = field(default_factory=lambda: {Role.STUDENT})
     target_lyceum_id: UUID | None = None
     education_language_id: UUID | None = None
+    city: str | None = None
+    subject_ids: list[UUID] = field(default_factory=list)
     created_at: datetime | None = None
+    last_seen_at: datetime | None = None
 
     def __post_init__(self) -> None:
         if not self.email and self.telegram_id is None and Role.GUEST not in self.roles:

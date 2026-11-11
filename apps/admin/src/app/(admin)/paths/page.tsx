@@ -8,6 +8,7 @@ import { Drawer } from "@/components/ui/overlay";
 import { NamesEditor, cleanNames } from "@/components/ui/names";
 import { MultiPick } from "@/components/ui/multipick";
 import { LangInput } from "@/components/ui/lang";
+import { TheoryEditor } from "@/components/lessons/TheoryEditor";
 
 export default function PathsPage() {
   const subjects = useSubjects();
@@ -61,7 +62,7 @@ export default function PathsPage() {
         {units.data?.map((u, i) => (
           <UnitCard key={u.id} unit={u} gateBy={gateBy} subjectId={sid!} onEdit={() => setUnitEdit({ id: u.id, names: u.names })} onDelete={() => confirm("Delete unit?") && delUnit.mutate(u.id)}
             onUp={i > 0 ? () => moveUnit.mutate({ id: u.id, dir: -1 }) : undefined} onDown={i < units.data.length - 1 ? () => moveUnit.mutate({ id: u.id, dir: 1 }) : undefined}
-            onLesson={(l, unitId) => setLessonEdit(l ? { id: l.id, form: { unit_id: l.unit_id, names: l.names, topic_ids: l.topic_ids, type_ids: l.type_ids, question_count: l.question_count, legendary: l.legendary, position: l.position } } : { form: { unit_id: unitId, names: {}, topic_ids: [], type_ids: [], question_count: 10, legendary: false, position: 99 } })} />
+            onLesson={(l, unitId) => setLessonEdit(l ? { id: l.id, form: { unit_id: l.unit_id, names: l.names, topic_ids: l.topic_ids, type_ids: l.type_ids, question_count: l.question_count, legendary: l.legendary, theory: l.theory, position: l.position } } : { form: { unit_id: unitId, names: {}, topic_ids: [], type_ids: [], question_count: 10, legendary: false, theory: [], position: 99 } })} />
         ))}
       </div>
 
@@ -103,6 +104,7 @@ function UnitCard({ unit, gateBy, onEdit, onDelete, onUp, onDown, onLesson }: { 
         <button key={l.id} type="button" onClick={() => onLesson(l, unit.id)} className="flex w-full items-center gap-3 border-b border-line px-3 py-1.5 text-left last:border-0 hover:bg-blue-soft/50">
           <span className="flex-1">{nm(l.names)}</span>
           {l.legendary && <Badge tone="gold">legendary</Badge>}
+          {l.theory.length > 0 && <Badge>{l.theory.length} theory</Badge>}
           <span className="text-xs text-ink-soft">{l.question_count} q · {l.topic_ids.length} topics · {l.type_ids.length} types</span>
           <PoolBadge g={gateBy.get(l.id)} />
         </button>
@@ -124,7 +126,7 @@ function LessonDrawer({ edit, close, setEdit, subjectId, gateBy, invalidate }: {
   const f = edit?.form;
   const set = (p: Partial<LessonIn>) => edit && setEdit({ ...edit, form: { ...edit.form, ...p } });
   return (
-    <Drawer open={!!edit} onClose={close} width="max-w-xl" title={edit?.id ? "Edit lesson" : "New lesson"}
+    <Drawer open={!!edit} onClose={close} width="max-w-3xl" title={edit?.id ? "Edit lesson" : "New lesson"}
       footer={<>
         {edit?.id && <Btn variant="danger" className="mr-auto" onClick={() => confirm("Delete lesson?") && del.mutate(edit.id!, { onSuccess: close })}>Delete</Btn>}
         <Btn onClick={close}>Cancel</Btn>
@@ -140,6 +142,7 @@ function LessonDrawer({ edit, close, setEdit, subjectId, gateBy, invalidate }: {
             <div className="flex items-end gap-3"><Check checked={f.legendary ?? false} onChange={(legendary) => set({ legendary })} label="Legendary" />{edit.id && <PoolBadge g={gateBy.get(edit.id)} />}</div>
           </div>
           <p className="text-xs text-ink-soft">The pool badge is the saved lesson’s verified-question count vs the minimum needed (launch gate); it refreshes after save.</p>
+          <TheoryEditor value={f.theory ?? []} onChange={(theory) => set({ theory })} />
         </div>
       )}
     </Drawer>

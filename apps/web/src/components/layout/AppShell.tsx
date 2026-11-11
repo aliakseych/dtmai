@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { buttonClass, cn, Modal } from "@dtmai/ui";
+import { buttonClass, Card, cn, Logo, Mascot, Modal } from "@dtmai/ui";
 import { LocaleSwitcher, useT } from "@dtmai/i18n";
 import { useAuth } from "@/lib/auth";
 import { useBilling } from "@/lib/billing";
@@ -23,10 +23,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const moreActive = moreItems.some((n) => active(n.href));
 
   return (
-    <div className="min-h-dvh">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col gap-2 border-r-2 border-line bg-white p-4 lg:flex">
-        <Link href="/learn/" className="mb-4 px-3 text-3xl font-extrabold text-green">
-          {t("app.name")}
+    <div className="min-h-dvh bg-white">
+      <aside className="fixed inset-y-0 left-0 hidden w-72 flex-col gap-2 border-r-2 border-line bg-white p-4 lg:flex">
+        <Link href="/learn/" aria-label={t("app.name")} className="mb-4 px-3 pt-1">
+          <Logo name={t("app.name")} size={36} />
         </Link>
         <nav className="flex flex-col gap-1" aria-label={t("nav.main")}>
           {MAIN_NAV.filter((n) => visible(n.href)).map((n) => (
@@ -35,8 +35,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               href={n.href}
               aria-current={active(n.href) ? "page" : undefined}
               className={cn(
-                "flex items-center gap-4 rounded-2xl border-2 px-4 py-3 text-[15px] font-extrabold uppercase tracking-wide",
-                active(n.href) ? "border-blue bg-blue-soft text-blue" : "border-transparent text-ink-soft hover:bg-snow",
+                "flex items-center gap-4 rounded-2xl border-2 px-4 py-3 text-[15px] font-extrabold uppercase tracking-wide transition active:scale-[0.98]",
+                active(n.href) ? "border-brand bg-brand-soft text-brand" : "border-transparent text-ink-soft hover:bg-snow hover:text-ink",
               )}
             >
               <NavIcon name={n.icon} />
@@ -44,26 +44,51 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <LocaleSwitcher className="mt-auto px-3" />
+        <LocaleSwitcher className="mt-auto max-w-full" placement="top" align="start" />
       </aside>
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b-2 border-line bg-white px-4 py-3 lg:justify-end">
-          <span className="text-2xl font-extrabold text-green lg:hidden">{t("app.name")}</span>
-          <div className="flex items-center gap-2 sm:gap-3">
+      <div className="lg:pl-72">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b-2 border-line bg-white/95 px-4 py-2 backdrop-blur lg:hidden">
+          <Link href="/learn/" aria-label={t("app.name")}>
+            <Logo name={t("app.name")} size={28} />
+          </Link>
+          <div className="flex items-center gap-2">
             <TopStats />
-            <LocaleSwitcher className="hidden sm:block lg:hidden" />
+            <LocaleSwitcher className="hidden md:block" align="end" />
           </div>
         </header>
         {isGuest && (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-gold bg-snow px-4 py-2 text-sm font-bold text-ink">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-accent bg-accent-soft px-4 py-2 text-sm font-bold text-ink">
             <span>{t("guest.banner")}</span>
             <Link href="/register/" className={buttonClass("primary", false, "px-3 py-1.5 text-xs")}>
               {t("guest.save")}
             </Link>
           </div>
         )}
-        <main className="mx-auto max-w-3xl px-4 py-6 pb-28 lg:pb-10">{children}</main>
+        <div className="mx-auto flex max-w-5xl justify-center gap-8 px-4 py-6 pb-28 lg:pb-10">
+          <main className="min-w-0 max-w-3xl flex-1">{children}</main>
+          <aside className="sticky top-6 hidden h-fit w-80 shrink-0 flex-col gap-4 xl:flex" aria-label={t("nav.more")}>
+            <div className="flex justify-end">
+              <TopStats />
+            </div>
+            <Card className="flex flex-col gap-3">
+              <h2 className="text-lg">{t("nav.quests")}</h2>
+              <Link href="/quests/" className={buttonClass("secondary", true)}>
+                {t("nav.quests")}
+              </Link>
+            </Card>
+            {canBuy && (
+              <div className="flex flex-col items-center gap-3 rounded-card bg-brand p-5 text-center text-white">
+                <Mascot mood="premium" size={96} alt={t("mascot.alt")} className="h-auto w-24" />
+                <h2 className="text-lg">{t("plan.premium.name")}</h2>
+                <p className="text-sm font-bold text-white/80">{t("landing.pricing.subtitle")}</p>
+                <Link href="/premium/" className={buttonClass("super", true)}>
+                  {t("plan.premium.cta")}
+                </Link>
+              </div>
+            )}
+          </aside>
+        </div>
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t-2 border-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label={t("nav.main")}>
@@ -73,9 +98,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             href={n.href}
             aria-label={t(n.label)}
             aria-current={active(n.href) ? "page" : undefined}
-            className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-extrabold", active(n.href) ? "text-blue" : "text-ink-soft")}
+            className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-extrabold", active(n.href) ? "text-brand" : "text-ink-soft")}
           >
-            <NavIcon name={n.icon} size={26} />
+            <span className={cn("grid h-9 w-12 place-items-center rounded-xl transition", active(n.href) && "bg-brand-soft")}>
+              <NavIcon name={n.icon} size={26} />
+            </span>
             <span className="max-w-full truncate px-1">{t(n.label)}</span>
           </Link>
         ))}
@@ -85,9 +112,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-label={t("nav.more")}
             aria-haspopup="dialog"
             onClick={() => setMore(true)}
-            className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-extrabold", moreActive ? "text-blue" : "text-ink-soft")}
+            className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-extrabold", moreActive ? "text-brand" : "text-ink-soft")}
           >
-            <NavIcon name="more" size={26} />
+            <span className={cn("grid h-9 w-12 place-items-center rounded-xl transition", moreActive && "bg-brand-soft")}>
+              <NavIcon name="more" size={26} />
+            </span>
             <span className="max-w-full truncate px-1">{t("nav.more")}</span>
           </button>
         )}

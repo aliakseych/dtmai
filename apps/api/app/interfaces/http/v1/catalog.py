@@ -84,6 +84,12 @@ class UnitOut(_Out):
     position: int
 
 
+class TheoryCard(_Out):
+    title: str = Field(min_length=1)
+    body_md: str
+    example_md: str | None = None
+
+
 class LessonOut(_Out):
     id: UUID
     unit_id: UUID
@@ -92,6 +98,7 @@ class LessonOut(_Out):
     type_ids: list[UUID]
     question_count: int
     legendary: bool
+    theory: list[TheoryCard]
     position: int
 
 
@@ -135,6 +142,8 @@ class LearnerLessonOut(_Out):
     question_count: int
     legendary: bool
     pool: int
+    theory: list[TheoryCard]
+    has_theory: bool
 
 
 class LearnerUnitOut(_Out):
@@ -265,6 +274,7 @@ class LessonIn(BaseModel):
     type_ids: list[UUID] = []
     question_count: int = Field(default=10, ge=1, le=100)
     legendary: bool = False
+    theory: list[TheoryCard] = Field(default=[], max_length=12)
     position: int | None = None
 
 
@@ -274,6 +284,7 @@ class LessonPatch(BaseModel):
     type_ids: list[UUID] | None = None
     question_count: int | None = Field(default=None, ge=1, le=100)
     legendary: bool | None = None
+    theory: list[TheoryCard] | None = Field(default=None, max_length=12)
     position: int | None = None
 
 
@@ -487,6 +498,7 @@ async def get_path(
                 LearnerLessonOut(
                     id=le.id, title=le.title, names=le.names, topic_ids=le.topic_ids, type_ids=le.type_ids,
                     question_count=le.question_count, legendary=le.legendary, pool=le.pool,
+                    theory=[TheoryCard(**c) for c in le.theory], has_theory=bool(le.theory),
                     progress=ProgressOut.model_validate(lesson_prog[ui][li], from_attributes=True),
                 )
                 for li, le in enumerate(u.lessons)

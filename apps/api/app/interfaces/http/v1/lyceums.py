@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,7 +12,20 @@ from app.modules.lyceums.domain.models import (
     validate_passing_score,
     validate_year,
 )
+from app.modules.identity.wiring import build_identity_service
+from app.modules.lyceums.application.rep import PostInput
+from app.modules.lyceums.domain.rep import (
+    MAX_COURSES,
+    MAX_GALLERY,
+    Post,
+    PostStatus,
+    RepMembership,
+    validate_contacts,
+    validate_description,
+    validate_string_list,
+)
 from app.modules.lyceums.infrastructure.orm import EducationLanguageRow, LyceumRow
+from app.modules.lyceums.wiring import build_rep_service
 from app.modules.lyceums.infrastructure.repositories import (
     SqlImportRuns,
     SqlLyceumQueries,
@@ -20,7 +33,9 @@ from app.modules.lyceums.infrastructure.repositories import (
 )
 from app.shared.db import get_session
 from app.shared.deps import CurrentUser, require_role
+from app.shared.audit import audit_admin
 from app.shared.errors import NotFound, ProblemDetails
+from app.shared.security import Principal
 
 router = APIRouter(tags=["lyceums"])
 admin_router = APIRouter(tags=["lyceums-admin"], dependencies=[Depends(require_role("admin"))])
@@ -76,12 +91,49 @@ class YearSummary(BaseModel):
     competition_ratio: float | None
 
 
+class ContactsOut(BaseModel):
+    phone: str | None = None
+    telegram: str | None = None
+    email: str | None = None
+
+
+class ProfileOut(BaseModel):
+    logo_url: str | None
+    campus_photo_url: str | None
+    gallery_urls: list[str]
+    description: dict[str, str]
+    courses: list[str]
+    university_name: str | None
+    city: str | None
+    website: str | None
+    contacts: ContactsOut
+    verified_rep: bool
+
+
+class PostOut(BaseModel):
+    id: UUID
+    lyceum_id: UUID
+    kind: str
+    title: str
+    body: str
+    starts_at: datetime | None
+    link: str | None
+    status: str
+    reject_reason: str | None
+    created_at: datetime | None
+    updated_at: datetime | None
+    published_at: datetime | None
+
+
 class LyceumDetail(BaseModel):
     id: UUID
     code: str
     names: NamesOut
     years: list[YearSummary]
     stats: list[StatOut]
+    profile: ProfileOut
+    posts: list[PostOut]
+    dreamers_count: int
 
 
 class ImportRunOut(BaseModel):
@@ -106,6 +158,30 @@ class PassingScoreIn(BaseModel):
 
 def _names(row: LyceumRow | EducationLanguageRow) -> NamesOut:
     return NamesOut(uz=row.name_uz, ru=row.name_ru or row.name_uz, en=row.name_en or row.name_uz)
+
+
+def _profile(row: LyceumRow) -> ProfileOut:
+    contacts = row.contacts or {}
+    return ProfileOut(
+        logo_url=row.logo_url, campus_photo_url=row.campus_photo_url,
+        gallery_urls=list(row.gallery_urls or []), description=dict(row.description or {}),
+        courses=list(row.courses or []), university_name=row.university_name, city=row.city,
+        website=row.website,
+        contacts=ContactsOut(
+            phone=contacts.get("phone"), telegram=contacts.get("telegram"),
+            email=contacts.get("email"),
+        ),
+        verified_rep=bool(row.verified_rep),
+    )
+
+
+def _post(p: Post) -> PostOut:
+    return PostOut(
+        id=p.id, lyceum_id=p.lyceum_id, kind=p.kind.value, title=p.title, body=p.body,
+        starts_at=p.starts_at, link=p.link, status=p.status.value,
+        reject_reason=p.reject_reason, created_at=p.created_at, updated_at=p.updated_at,
+        published_at=p.published_at,
+    )
 
 
 def _stat(s: StatView) -> StatOut:
@@ -168,8 +244,11 @@ async def lyceum_detail(lyceum_id: UUID, session: SessionDep, _user: CurrentUser
         YearSummary(year=y, quota=q, applications=a, competition_ratio=competition_ratio(a, q))
         for y, (q, a) in sorted(by_year.items(), reverse=True)
     ]
+    posts = await build_rep_service(session).published(lyceum_id)
     return LyceumDetail(
-        id=row.id, code=row.code, names=_names(row), years=years, stats=[_stat(s) for s in stats]
+        id=row.id, code=row.code, names=_names(row), years=years, stats=[_stat(s) for s in stats],
+        profile=_profile(row), posts=[_post(p) for p in posts],
+        dreamers_count=await build_identity_service(session).count_dreamers(lyceum_id),
     )
 
 
@@ -197,3 +276,201 @@ async def set_passing_score(stat_id: UUID, body: PassingScoreIn, session: Sessio
     if stat is None:
         raise NotFound("stat not found", code="stat_not_found")
     return _stat(stat)
+
+
+# --- representatives ----------------------------------------------------------
+class ApplyIn(BaseModel):
+    note: str | None = Field(default=None, max_length=1000)
+
+
+class MembershipOut(BaseModel):
+    user_id: UUID
+    lyceum_id: UUID
+    status: str
+    note: str | None
+    created_at: datetime | None
+    decided_at: datetime | None
+
+
+class PostIn(BaseModel):
+    kind: str
+    title: str = Field(min_length=1, max_length=200)
+    body: str = Field(default="", max_length=5000)
+    starts_at: datetime | None = None
+    link: str | None = Field(default=None, max_length=500)
+
+
+def _membership(m: RepMembership) -> MembershipOut:
+    return MembershipOut(
+        user_id=m.user_id, lyceum_id=m.lyceum_id, status=m.status.value, note=m.note,
+        created_at=m.created_at, decided_at=m.decided_at,
+    )
+
+
+def _post_input(b: PostIn) -> PostInput:
+    return PostInput(kind=b.kind, title=b.title, body=b.body, starts_at=b.starts_at, link=b.link)
+
+
+@router.post("/{lyceum_id}/rep/apply", status_code=201, operation_id="lyceums_rep_apply",
+             responses=ERR)
+async def rep_apply(
+    lyceum_id: UUID, body: ApplyIn, session: SessionDep, user: CurrentUser
+) -> MembershipOut:
+    m = await build_rep_service(session).apply(
+        user.user_id, lyceum_id, body.note, is_guest="guest" in user.roles
+    )
+    return _membership(m)
+
+
+@router.get("/{lyceum_id}/rep/membership", operation_id="lyceums_rep_membership",
+            responses=ERR)
+async def rep_membership(
+    lyceum_id: UUID, session: SessionDep, user: CurrentUser
+) -> MembershipOut:
+    m = await build_rep_service(session).membership(user.user_id, lyceum_id)
+    if m is None:
+        raise NotFound("no application", code="rep_application_not_found")
+    return _membership(m)
+
+
+@router.get("/{lyceum_id}/rep/posts", operation_id="lyceums_rep_list_posts", responses=ERR)
+async def rep_list_posts(lyceum_id: UUID, session: SessionDep, user: CurrentUser) -> list[PostOut]:
+    posts = await build_rep_service(session).list_own(user.user_id, lyceum_id)
+    return [_post(p) for p in posts]
+
+
+@router.post("/{lyceum_id}/rep/posts", status_code=201, operation_id="lyceums_rep_create_post",
+             responses=ERR)
+async def rep_create_post(
+    lyceum_id: UUID, body: PostIn, session: SessionDep, user: CurrentUser
+) -> PostOut:
+    post = await build_rep_service(session).create_post(
+        user.user_id, lyceum_id, _post_input(body)
+    )
+    return _post(post)
+
+
+@router.put("/{lyceum_id}/rep/posts/{post_id}", operation_id="lyceums_rep_update_post",
+            responses=ERR)
+async def rep_update_post(
+    lyceum_id: UUID, post_id: UUID, body: PostIn, session: SessionDep, user: CurrentUser
+) -> PostOut:
+    post = await build_rep_service(session).edit_post(
+        user.user_id, lyceum_id, post_id, _post_input(body)
+    )
+    return _post(post)
+
+
+@router.delete("/{lyceum_id}/rep/posts/{post_id}", status_code=204,
+               operation_id="lyceums_rep_delete_post", responses=ERR)
+async def rep_delete_post(
+    lyceum_id: UUID, post_id: UUID, session: SessionDep, user: CurrentUser
+) -> Response:
+    await build_rep_service(session).delete_post(user.user_id, lyceum_id, post_id)
+    return Response(status_code=204)
+
+
+# --- admin: profile, applications, moderation -----------------------------------
+Admin = Annotated[Principal, Depends(require_role("admin"))]
+
+
+class ContactsIn(BaseModel):
+    phone: str | None = None
+    telegram: str | None = None
+    email: str | None = None
+
+
+class LyceumPatch(BaseModel):
+    logo_url: str | None = Field(default=None, max_length=500)
+    campus_photo_url: str | None = Field(default=None, max_length=500)
+    gallery_urls: list[str] | None = None
+    description: dict[str, str] | None = None
+    courses: list[str] | None = None
+    university_name: str | None = Field(default=None, max_length=300)
+    city: str | None = Field(default=None, max_length=100)
+    website: str | None = Field(default=None, max_length=500)
+    contacts: ContactsIn | None = None
+    verified_rep: bool | None = None
+
+
+class ModerateIn(BaseModel):
+    action: Literal["publish", "reject"]
+    reason: str | None = Field(default=None, max_length=1000)
+
+
+def _clean(value: str | None) -> str | None:
+    return (value or "").strip() or None
+
+
+@admin_router.patch("/{lyceum_id}", operation_id="lyceums_admin_update_profile",
+                    responses=ERR)
+async def update_profile(
+    lyceum_id: UUID, body: LyceumPatch, session: SessionDep, who: Admin
+) -> ProfileOut:
+    sent = body.model_fields_set
+    fields: dict[str, object] = {}
+    for key in ("logo_url", "campus_photo_url", "university_name", "city", "website"):
+        if key in sent:
+            fields[key] = _clean(getattr(body, key))
+    if "gallery_urls" in sent:
+        fields["gallery_urls"] = validate_string_list(
+            body.gallery_urls or [], limit=MAX_GALLERY, code="too_many_gallery_urls")
+    if "courses" in sent:
+        fields["courses"] = validate_string_list(
+            body.courses or [], limit=MAX_COURSES, code="too_many_courses")
+    if "description" in sent:
+        fields["description"] = validate_description(body.description or {})
+    if "contacts" in sent:
+        fields["contacts"] = validate_contacts(
+            body.contacts.model_dump(exclude_none=True) if body.contacts else {})
+    if "verified_rep" in sent and body.verified_rep is not None:
+        fields["verified_rep"] = body.verified_rep
+    row = await SqlLyceumQueries(session).update_profile(lyceum_id, fields)
+    if row is None:
+        raise NotFound("lyceum not found", code="lyceum_not_found")
+    audit_admin(who, "lyceums.update_profile", lyceum_id=str(lyceum_id), fields=sorted(fields))
+    return _profile(row)
+
+
+@admin_router.get("/rep/applications", operation_id="lyceums_admin_list_applications",
+                  responses=ERR)
+async def list_applications(session: SessionDep) -> list[MembershipOut]:
+    return [_membership(m) for m in await build_rep_service(session).list_applications()]
+
+
+@admin_router.post("/{lyceum_id}/rep/{user_id}/approve",
+                   operation_id="lyceums_admin_approve_rep", responses=ERR)
+async def approve_rep(
+    lyceum_id: UUID, user_id: UUID, session: SessionDep, who: Admin
+) -> MembershipOut:
+    m = await build_rep_service(session).approve(user_id, lyceum_id)
+    audit_admin(who, "lyceums.rep_approve", lyceum_id=str(lyceum_id), user_id=str(user_id))
+    return _membership(m)
+
+
+@admin_router.post("/{lyceum_id}/rep/{user_id}/reject", status_code=204,
+                   operation_id="lyceums_admin_reject_rep", responses=ERR)
+async def reject_rep(lyceum_id: UUID, user_id: UUID, session: SessionDep, who: Admin) -> Response:
+    await build_rep_service(session).reject_application(user_id, lyceum_id)
+    audit_admin(who, "lyceums.rep_reject", lyceum_id=str(lyceum_id), user_id=str(user_id))
+    return Response(status_code=204)
+
+
+@admin_router.get("/posts", operation_id="lyceums_admin_list_posts", responses=ERR)
+async def admin_list_posts(
+    session: SessionDep, status: PostStatus = PostStatus.PENDING,
+    limit: Annotated[int, Query(ge=1, le=200)] = 100,
+) -> list[PostOut]:
+    return [_post(p) for p in await build_rep_service(session).moderation_queue(status, limit)]
+
+
+@admin_router.post("/posts/{post_id}/moderate", operation_id="lyceums_admin_moderate_post",
+                   responses=ERR)
+async def moderate_post(
+    post_id: UUID, body: ModerateIn, session: SessionDep, who: Admin
+) -> PostOut:
+    post = await build_rep_service(session).moderate(
+        post_id, publish=body.action == "publish", reason=body.reason
+    )
+    audit_admin(who, "lyceums.moderate_post", post_id=str(post_id), action=body.action)
+    return _post(post)

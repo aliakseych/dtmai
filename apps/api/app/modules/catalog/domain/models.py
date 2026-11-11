@@ -98,6 +98,24 @@ def validate_lesson_selectors(data: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+MAX_THEORY_CARDS = 12
+
+
+def validate_theory(raw: Any) -> list[dict[str, Any]]:
+    """Lesson.theory: up to 12 cards {title, body_md, example_md?}; title non-empty, strings trimmed."""
+    _need(isinstance(raw, list | tuple), "theory must be a list")
+    _need(len(raw) <= MAX_THEORY_CARDS, f"theory allows at most {MAX_THEORY_CARDS} cards")
+    out: list[dict[str, Any]] = []
+    for i, c in enumerate(raw):
+        _need(isinstance(c, Mapping), f"theory[{i}] must be an object")
+        title, body, ex = c.get("title"), c.get("body_md", ""), c.get("example_md")
+        _need(isinstance(title, str) and bool(title.strip()), f"theory[{i}].title must be non-empty")
+        _need(isinstance(body, str), f"theory[{i}].body_md must be a string")
+        _need(ex is None or isinstance(ex, str), f"theory[{i}].example_md must be a string or null")
+        out.append({"title": title.strip(), "body_md": body, "example_md": ex if ex and ex.strip() else None})
+    return out
+
+
 def validate_blueprint_sections(sections: Any) -> list[dict[str, Any]]:
     _need(isinstance(sections, list) and len(sections) > 0, "sections must be a non-empty list")
     out: list[dict[str, Any]] = []
@@ -180,6 +198,7 @@ def validate_entity(entity: str, data: Mapping[str, Any]) -> dict[str, Any]:
         case "lesson":
             d["names"] = validate_names(d.get("names"))
             d.update(validate_lesson_selectors(d))
+            d["theory"] = validate_theory(d.get("theory", []))
         case "blueprint":
             d["code"] = validate_code(d.get("code"))
             d["names"] = validate_names(d.get("names"))

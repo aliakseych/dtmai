@@ -14,18 +14,14 @@ export function TopStats() {
   const [open, setOpen] = useState<"hearts" | "streak" | null>(null);
   const stats = state.status === "ready" ? state.data : null;
   const left = useCountdown(stats?.hearts.next_refill_at);
-  if (!stats) return state.status === "error" ? null : <Skeleton className="h-8 w-40" />;
+  if (!stats) return state.status === "error" ? null : <Skeleton className="h-10 w-48" />;
   const h = stats.hearts;
   return (
     <>
-      <div className="flex items-center gap-3 sm:gap-4">
-        <button type="button" onClick={() => setOpen("streak")} aria-label={`${t("stat.streak")}: ${stats.streak}`} className="rounded-xl p-1">
-          <StreakStat value={stats.streak} label={t("stat.streak")} />
-        </button>
+      <div className="flex h-10 items-center gap-1 sm:gap-2">
+        <StreakStat value={stats.streak} label={t("stat.streak")} onClick={() => setOpen("streak")} />
         <GemsStat value={stats.gems} label={t("stat.gems")} />
-        <button type="button" onClick={() => setOpen("hearts")} aria-label={`${t("stat.hearts")}: ${h.unlimited ? "∞" : h.count}`} className="rounded-xl p-1">
-          <HeartsStat value={h.unlimited ? "∞" : h.count} label={t("stat.hearts")} />
-        </button>
+        <HeartsStat value={h.unlimited ? "∞" : h.count} label={t("stat.hearts")} onClick={() => setOpen("hearts")} />
       </div>
       <Modal open={open === "hearts"} onClose={() => setOpen(null)} title={t("stat.hearts")}>
         <p className="mb-2 text-ink-soft">{h.unlimited ? t("hearts.unlimited") : t("hearts.count", { n: h.count, max: h.max })}</p>

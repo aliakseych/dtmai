@@ -25,7 +25,7 @@ def _flatten(dtos: Sequence[Any]) -> list[Item]:
 
 
 def _bp(b: Any) -> Blueprint:
-    return Blueprint(b.id, b.code, dict(b.names), b.kind, b.version, b.duration_min, list(b.sections))
+    return Blueprint(b.id, b.code, dict(b.names), b.kind, b.version, b.duration_min, list(b.sections), b.source_id)
 
 
 class FacadeContent:

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.png", apple: "/apple-touch-icon.png" },
 };
 export const viewport: Viewport = {
-  themeColor: "#58cc02",
+  themeColor: "#100FA0",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

@@ -1,0 +1,49 @@
+"use client";
+import Link from "next/link";
+import { useLocale, useT } from "@dtmai/i18n";
+import { DREAM_PLACEHOLDER } from "@/components/lyceums/LyceumMedia";
+import { latestCompetition, useLyceumDetail } from "@/components/lyceums/useLyceumDetail";
+import { useAuth } from "@/lib/auth";
+import { mediaUrl } from "@/lib/env";
+import { pick } from "@/lib/localized";
+
+/** Learn-home banner: "Future <lyceum> student" with campus photo, logo and last competition ratio. */
+export function DreamPin() {
+  const t = useT();
+  const { locale } = useLocale();
+  const { me } = useAuth();
+  const { data } = useLyceumDetail(me?.target_lyceum_id);
+  if (!data) return null;
+  const photo = data.profile.campus_photo_url;
+  const ratio = latestCompetition(data);
+  return (
+    <section className="relative isolate flex min-h-32 items-end overflow-hidden rounded-card border-2 border-line bg-brand-soft">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={photo ? mediaUrl(photo) : DREAM_PLACEHOLDER}
+        alt=""
+        className={photo ? "absolute inset-0 -z-10 h-full w-full object-cover" : "absolute right-2 top-1/2 -z-10 h-28 -translate-y-1/2 object-contain"}
+      />
+      {photo && <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/75 via-black/30 to-transparent" aria-hidden="true" />}
+      <div className="flex w-full items-center gap-3 p-4">
+        {data.profile.logo_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={mediaUrl(data.profile.logo_url)} alt="" className="h-12 w-12 shrink-0 rounded-xl border-2 border-line bg-white object-contain p-1" />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className={`break-words font-extrabold ${photo ? "text-white" : "text-ink"}`}>
+            {t("dream.pin.title", { name: pick(data.names, locale) })}
+          </p>
+          {ratio != null && (
+            <p className={`text-sm font-bold ${photo ? "text-white/90" : "text-ink-soft"}`}>
+              {t("dream.pin.competition", { ratio: ratio.toFixed(1) })}
+            </p>
+          )}
+        </div>
+        <Link href="/lyceums/" className="shrink-0 rounded-xl bg-white px-3 py-2 text-sm font-extrabold text-brand">
+          {t("dream.pin.change")}
+        </Link>
+      </div>
+    </section>
+  );
+}

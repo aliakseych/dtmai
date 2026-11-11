@@ -34,11 +34,13 @@ class MockOut(BaseModel):
     version: int
     duration_min: int
     question_count: int
+    source_id: UUID | None = None
 
     @classmethod
     def of(cls, b: Blueprint) -> "MockOut":
         return cls(id=b.id, code=b.code, names=b.names, kind=b.kind, version=b.version,
-                   duration_min=b.duration_min, question_count=sum(int(s.get("count", 0)) for s in b.sections))
+                   duration_min=b.duration_min, question_count=sum(int(s.get("count", 0)) for s in b.sections),
+                   source_id=b.source_id)
 
 
 class ItemOut(BaseModel):

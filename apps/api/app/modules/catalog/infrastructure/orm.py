@@ -88,6 +88,7 @@ class LessonRow(_Common, Base):
     type_ids: Mapped[list[Any]] = mapped_column(JSONB, default=list)
     question_count: Mapped[int] = mapped_column(Integer, default=10)
     legendary: Mapped[bool] = mapped_column(Boolean, default=False)
+    theory: Mapped[list[Any]] = mapped_column(JSONB, default=list, server_default="[]")
     position: Mapped[int] = mapped_column(Integer, default=0)
 
 
