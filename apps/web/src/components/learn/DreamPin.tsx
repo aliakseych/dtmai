@@ -3,7 +3,9 @@ import Link from "next/link";
 import { useLocale, useT } from "@dtmai/i18n";
 import { DREAM_PLACEHOLDER } from "@/components/lyceums/LyceumMedia";
 import { latestCompetition, useLyceumDetail } from "@/components/lyceums/useLyceumDetail";
+import { LyceumName } from "@/components/lyceums/LyceumName";
 import { useAuth } from "@/lib/auth";
+import { dreamIds } from "@/lib/dreams";
 import { mediaUrl } from "@/lib/env";
 import { pick } from "@/lib/localized";
 
@@ -12,11 +14,14 @@ export function DreamPin() {
   const t = useT();
   const { locale } = useLocale();
   const { me } = useAuth();
-  const { data } = useLyceumDetail(me?.target_lyceum_id);
+  const ids = dreamIds(me);
+  const { data } = useLyceumDetail(ids[0]);
   if (!data) return null;
   const photo = data.profile.campus_photo_url;
   const ratio = latestCompetition(data);
+  const rest = ids.slice(1);
   return (
+    <div className="flex flex-col gap-2">
     <section className="relative isolate flex min-h-32 items-end overflow-hidden rounded-card border-2 border-line bg-brand-soft">
       {photo && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -47,5 +52,15 @@ export function DreamPin() {
         </Link>
       </div>
     </section>
+      {rest.length > 0 && (
+        <ol start={2} className="flex flex-wrap gap-2">
+          {rest.map((id, i) => (
+            <li key={id} className="rounded-full border-2 border-line bg-white px-3 py-1 text-sm font-bold text-ink">
+              {i + 2}. <LyceumName id={id} />
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
   );
 }

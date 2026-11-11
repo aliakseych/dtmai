@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 import pytest
 
 from app.modules.lyceums.application.rep import PostInput, RepService
+from app.modules.lyceums.application.profile import ProfileService
 from app.modules.lyceums.domain.rep import (
     MembershipStatus,
     Post,
@@ -23,12 +24,17 @@ L1, L2 = uuid4(), uuid4()
 class Profiles:
     def __init__(self) -> None:
         self.verified: set[UUID] = set()
+        self.updated: dict[UUID, dict] = {}
 
     async def exists(self, lyceum_id: UUID) -> bool:
         return lyceum_id in (L1, L2)
 
     async def mark_verified_rep(self, lyceum_id: UUID) -> None:
         self.verified.add(lyceum_id)
+
+    async def update_fields(self, lyceum_id: UUID, fields: dict) -> bool:
+        self.updated.setdefault(lyceum_id, {}).update(fields)
+        return lyceum_id in (L1, L2)
 
 
 class Members:
@@ -90,9 +96,20 @@ class Clock:
         return NOW
 
 
+class Cities:
+    async def exists(self, code):
+        return code == "tashkent"
+
+    async def list_with_counts(self):
+        return []
+
+
 def make():
     profiles, roles = Profiles(), Roles()
-    return RepService(profiles, Members(), Posts(), roles, Clock()), profiles, roles
+    return (
+        RepService(profiles, Members(), Posts(), roles, ProfileService(profiles, Cities()), Clock()),
+        profiles, roles,
+    )
 
 
 def run(coro):

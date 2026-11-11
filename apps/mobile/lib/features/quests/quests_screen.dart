@@ -38,7 +38,7 @@ class QuestsScreen extends ConsumerWidget {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [
                       Expanded(child: Text(pickName(q.title, tag), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16))),
-                      if (q.completed) const Icon(Icons.check_circle_rounded, color: Tokens.green),
+                      if (q.completed) const Icon(Icons.check_circle_rounded, color: Tokens.greenEdge),
                       if (q.rewardXp > 0) Text(' +${q.rewardXp} ${l.xp}', style: const TextStyle(color: Tokens.goldText, fontWeight: FontWeight.w800)),
                       if (q.rewardGems > 0) ...[
                         const SizedBox(width: 8),

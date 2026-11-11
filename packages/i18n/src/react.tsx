@@ -59,7 +59,7 @@ export function LocaleSwitcher({
 }) {
   const { locale, setLocale } = useLocale();
   const t = useT();
-  const options = useMemo(() => LOCALES.map((l) => ({ value: l, label: LOCALE_LABELS[l], flag: FLAGS[l] })), []);
+  const options = useMemo(() => LOCALES.map((l) => ({ value: l, label: LOCALE_LABELS[l], flag: FLAGS[l], short: l === "uz-Cyrl" ? "ЎЗ" : l.slice(0, 2).toUpperCase() })), []);
   return (
     <LanguageSelector
       value={locale}

@@ -41,12 +41,14 @@ class Api {
 
   Future<Me> me() async => Me.fromJson(await _get<Json>('/v1/identity/me'));
 
-  Future<Me> patchMe({String? name, String? locale, String? targetLyceumId, String? educationLanguageId}) async =>
+  Future<Me> patchMe({String? name, String? locale, List<String>? dreamLyceumIds, List<String>? subjectIds, String? educationLanguageId, String? city, bool clearCity = false}) async =>
       Me.fromJson((await _d.patch<Json>('/v1/identity/me', data: {
         if (name != null) 'name': name,
         if (locale != null) 'locale': locale,
-        if (targetLyceumId != null) 'target_lyceum_id': targetLyceumId,
+        if (dreamLyceumIds != null) 'dream_lyceum_ids': dreamLyceumIds,
+        if (subjectIds != null) 'subject_ids': subjectIds,
         if (educationLanguageId != null) 'education_language_id': educationLanguageId,
+        if (city != null || clearCity) 'city': city,
       }))
           .data!);
 
@@ -185,10 +187,12 @@ class Api {
   Future<List<Friend>> friends() async => (await _getList('/v1/gamification/friends')).map(Friend.fromJson).toList();
 
   // ---- lyceums (public) ----
-  Future<List<Lyceum>> lyceums({String? q}) async =>
-      (await _getList('/v1/lyceums', {'limit': 100, if (q != null && q.isNotEmpty) 'q': q})).map(Lyceum.fromJson).toList();
+  Future<List<Lyceum>> lyceums({String? q, String? city, String? sort}) async =>
+      (await _getList('/v1/lyceums', {'limit': 100, if (q != null && q.isNotEmpty) 'q': q, if (city != null) 'city': city, if (sort != null) 'sort': sort})).map(Lyceum.fromJson).toList();
 
   Future<LyceumDetail> lyceum(String id) async => LyceumDetail.fromJson(await _get<Json>('/v1/lyceums/$id'));
+
+  Future<List<City>> cities() async => (await _getList('/v1/lyceums/cities')).map(City.fromJson).toList();
 
   Future<List<EduLanguage>> languages() async =>
       (await _getList('/v1/lyceums/languages')).map(EduLanguage.fromJson).toList();

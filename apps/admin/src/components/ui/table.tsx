@@ -18,6 +18,7 @@ export function DataTable<T>({ rows, cols, rowKey, onRow, loading, error, empty 
   if (loading) return <div className="grid place-items-center p-8"><Spinner /></div>;
   if (!rows || rows.length === 0) return <Empty>{empty}</Empty>;
   return (
+    <div className="max-h-full overflow-auto">
     <table className="w-full border-collapse text-[13px]">
       <thead className="sticky top-0 z-10 bg-snow text-left text-[11px] uppercase tracking-wide text-ink-soft">
         <tr>{cols.map((c) => <th key={c.key} className={cn("border-b border-line px-3 py-1.5 font-extrabold", c.className)}>{c.head}</th>)}</tr>
@@ -33,5 +34,6 @@ export function DataTable<T>({ rows, cols, rowKey, onRow, loading, error, empty 
         })}
       </tbody>
     </table>
+    </div>
   );
 }

@@ -5,9 +5,10 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.learning.application.service import WeakArea
-from app.modules.learning.wiring import build_learning_service
+from app.modules.learning.domain.stats import UserStats
+from app.modules.learning.wiring import build_learning_service, build_stats_service
 
-__all__ = ["WeakArea", "merge_guest", "path_progress", "weak_areas"]
+__all__ = ["UserStats", "WeakArea", "merge_guest", "path_progress", "user_stats", "weak_areas"]
 
 
 async def weak_areas(session: AsyncSession, user_id: UUID, subject_id: UUID, limit: int = 5) -> list[WeakArea]:
@@ -23,3 +24,8 @@ async def path_progress(
 ) -> tuple[set[UUID], int]:
     """(completed lesson ids among lesson_ids, placement start unit index)."""
     return await build_learning_service(session).path_progress(user_id, subject_id, lesson_ids)
+
+
+async def user_stats(session: AsyncSession, user_id: UUID) -> UserStats:
+    """Per-learner stats: lifetime counters, 30-day series, per-subject mastery, recent mocks."""
+    return await build_stats_service(session).user_stats(user_id)

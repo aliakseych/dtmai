@@ -1,29 +1,46 @@
 "use client";
-import { useT } from "@dtmai/i18n";
-import { Choice } from "./Choice";
+import { useMemo } from "react";
+import { useLocale, useT } from "@dtmai/i18n";
+import { ChoiceList } from "@dtmai/ui";
+import { AsyncView } from "@/components/AsyncView";
+import type { City } from "@/lib/cities";
+import { pick } from "@/lib/localized";
+import type { AsyncState } from "@/lib/useAsync";
 
-/** City options come from the lyceum list; with no city data the learner types it. */
-export function CityStep({ cities, value, onChange }: { cities: string[]; value: string; onChange: (v: string) => void }) {
+const ANY = "__any__";
+
+/** `undefined` = not chosen yet, `null` = "any city", string = city code. */
+export type CityChoice = string | null | undefined;
+
+export function CityStep({ state, onRetry, value, onChange }: { state: AsyncState<City[]>; onRetry: () => void; value: CityChoice; onChange: (v: string | null) => void }) {
   const t = useT();
-  if (cities.length === 0)
-    return (
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={t("onb.city.placeholder")}
-        aria-label={t("onb.city.placeholder")}
-        autoComplete="address-level2"
-        className="w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 font-bold text-ink focus:border-blue focus:bg-white"
-      />
-    );
+  const { locale } = useLocale();
   return (
-    <div role="radiogroup" aria-label={t("onb.city.q")} className="grid gap-2 sm:grid-cols-2">
-      {cities.map((c) => (
-        <Choice key={c} on={value === c} onClick={() => onChange(c)}>
-          {c}
-        </Choice>
-      ))}
-    </div>
+    <>
+      <p className="text-ink-soft">{t("onb.city.hint")}</p>
+      <AsyncView state={state} onRetry={onRetry}>
+        {(cities) => <List cities={cities} locale={locale} value={value} onChange={onChange} />}
+      </AsyncView>
+    </>
+  );
+}
+
+function List({ cities, locale, value, onChange }: { cities: City[]; locale: Parameters<typeof pick>[1]; value: CityChoice; onChange: (v: string | null) => void }) {
+  const t = useT();
+  const items = useMemo(
+    () => cities.map((c) => ({ value: c.code, label: pick(c.names, locale), hint: String(c.lyceum_count) })).sort((a, b) => a.label.localeCompare(b.label, locale)),
+    [cities, locale],
+  );
+  return (
+    <ChoiceList
+      label={t("onb.city.q")}
+      items={items}
+      pinned={[{ value: ANY, label: t("onb.city.any") }]}
+      value={value === undefined ? null : value === null ? ANY : value}
+      onChange={(v) => onChange(v === ANY ? null : v)}
+      searchPlaceholder={t("onb.city.search")}
+      emptyText={t("onb.city.none")}
+      columns
+    />
   );
 }

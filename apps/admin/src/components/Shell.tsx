@@ -1,8 +1,8 @@
 "use client";
-import { cn } from "@dtmai/ui";
+import { Logo, cn } from "@dtmai/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { NAV } from "@/lib/nav";
 import { CommandPalette } from "./CommandPalette";
@@ -10,10 +10,17 @@ import { CommandPalette } from "./CommandPalette";
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
   const { me, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  useEffect(() => setOpen(false), [path]);
   return (
-    <div className="flex h-screen">
-      <nav className="flex w-52 shrink-0 flex-col overflow-y-auto border-r border-line bg-white">
-        <div className="px-4 py-3 text-base font-extrabold text-brand">DTM AI <span className="text-ink-soft">admin</span></div>
+    <div className="flex h-dvh flex-col md:flex-row">
+      <header className="flex items-center gap-3 border-b border-line bg-white px-3 py-2 md:hidden">
+        <button type="button" aria-label="Menu" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="grid size-9 place-items-center rounded-md border border-line text-lg">☰</button>
+        <Logo tone="brand" size={26} />
+        <span className="text-sm font-extrabold text-ink-soft">admin</span>
+      </header>
+      <nav className={cn("min-h-0 shrink-0 flex-col overflow-y-auto border-line bg-white max-md:flex-1 md:flex md:w-52 md:border-r", open ? "flex" : "hidden")}>
+        <div className="hidden items-center gap-2 px-4 py-3 md:flex"><Logo tone="brand" size={28} /><span className="text-sm font-extrabold text-ink-soft">admin</span></div>
         <div className="flex-1 px-2 pb-2">
           {NAV.map((s) => (
             <div key={s.title} className="mb-2">
@@ -32,7 +39,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <button type="button" className="mt-1 text-red-deep hover:underline" onClick={() => void logout()}>Sign out</button>
         </div>
       </nav>
-      <main className="flex min-w-0 flex-1 flex-col overflow-hidden">{children}</main>
+      <main className={cn("min-h-0 min-w-0 flex-1 flex-col overflow-hidden", open ? "hidden md:flex" : "flex")}>{children}</main>
       <CommandPalette />
     </div>
   );

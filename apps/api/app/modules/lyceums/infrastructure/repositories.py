@@ -19,7 +19,9 @@ from app.modules.lyceums.domain.rep import (
     PostStatus,
     RepMembership,
 )
+from app.modules.lyceums.domain.profile import CityView
 from app.modules.lyceums.infrastructure.orm import (
+    CityRow,
     EducationLanguageRow,
     ImportRunRow,
     LyceumPostRow,
@@ -136,8 +138,34 @@ class SqlLyceumQueries:
     def __init__(self, session: AsyncSession) -> None:
         self._s = session
 
-    async def search(self, q: str | None, limit: int, offset: int) -> list[LyceumRow]:
-        stmt = select(LyceumRow).order_by(LyceumRow.name_uz).limit(limit).offset(offset)
+    async def search(
+        self, q: str | None, limit: int, offset: int, sort: str = "competition"
+    ) -> list[LyceumRow]:
+        """`competition`: latest-year applications/quota descending, unknown last; `name`: A-Z."""
+        stmt = select(LyceumRow)
+        if sort == "name":
+            stmt = stmt.order_by(LyceumRow.name_uz)
+        else:
+            latest = (
+                select(YearlyStatRow.lyceum_id, func.max(YearlyStatRow.year).label("y"))
+                .group_by(YearlyStatRow.lyceum_id).subquery()
+            )
+            totals = (
+                select(
+                    YearlyStatRow.lyceum_id.label("lyceum_id"),
+                    func.sum(YearlyStatRow.quota).label("quota"),
+                    func.sum(YearlyStatRow.applications).label("apps"),
+                )
+                .join(latest, (latest.c.lyceum_id == YearlyStatRow.lyceum_id)
+                      & (latest.c.y == YearlyStatRow.year))
+                .group_by(YearlyStatRow.lyceum_id).subquery()
+            )
+            ratio = totals.c.apps / func.nullif(totals.c.quota, 0)
+            stmt = (
+                stmt.outerjoin(totals, totals.c.lyceum_id == LyceumRow.id)
+                .order_by(ratio.desc().nulls_last(), LyceumRow.name_uz)
+            )
+        stmt = stmt.limit(limit).offset(offset)
         if q:
             like = f"%{q.strip()}%"
             stmt = stmt.where(
@@ -204,15 +232,6 @@ class SqlLyceumQueries:
                         r.quota, r.applications, r.passing_score)
 
 
-    async def update_profile(self, lyceum_id: UUID, fields: dict[str, object]) -> LyceumRow | None:
-        row = await self._s.get(LyceumRow, lyceum_id)
-        if row is None:
-            return None
-        for key, value in fields.items():
-            setattr(row, key, value)
-        await self._s.flush()
-        return row
-
 
 class SqlLyceumProfiles:
     def __init__(self, session: AsyncSession) -> None:
@@ -225,6 +244,42 @@ class SqlLyceumProfiles:
         await self._s.execute(
             update(LyceumRow).where(LyceumRow.id == lyceum_id).values(verified_rep=True)
         )
+
+    async def update_fields(self, lyceum_id: UUID, fields: dict[str, object]) -> bool:
+        row = await self._s.get(LyceumRow, lyceum_id)
+        if row is None:
+            return False
+        for key, value in fields.items():
+            setattr(row, key, value)
+        await self._s.flush()
+        return True
+
+
+class SqlCities:
+    def __init__(self, session: AsyncSession) -> None:
+        self._s = session
+
+    async def exists(self, code: str) -> bool:
+        return await self._s.get(CityRow, code) is not None
+
+    async def list_with_counts(self) -> list[CityView]:
+        counts = (
+            select(LyceumRow.city, func.count(LyceumRow.id).label("n"))
+            .where(LyceumRow.city.is_not(None)).group_by(LyceumRow.city).subquery()
+        )
+        stmt = select(CityRow, func.coalesce(counts.c.n, 0)).outerjoin(
+            counts, counts.c.city == CityRow.code
+        )
+        out = [
+            CityView(
+                code=c.code,
+                names={"uz-Latn": c.name_uz_latn, "uz-Cyrl": c.name_uz_cyrl,
+                       "ru": c.name_ru, "en": c.name_en},
+                lyceum_count=int(n),
+            )
+            for c, n in (await self._s.execute(stmt))
+        ]
+        return sorted(out, key=lambda c: c.names["uz-Latn"].casefold())
 
 
 def _membership(r: RepMembershipRow) -> RepMembership:

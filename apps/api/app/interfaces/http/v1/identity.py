@@ -1,14 +1,18 @@
 from datetime import datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Response
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.interfaces.http.v1.learning import StatsOut
 from app.modules.identity.application.service import UNSET, TokenPair
 from app.modules.identity.domain.models import User
 from app.modules.identity.wiring import IdentityServiceDep
+from app.modules.learning import facade as learning_facade
 from app.shared.audit import audit_admin
+from app.shared.db import get_session
 from app.shared.deps import CurrentUser, require_role
 from app.shared.errors import ProblemDetails
 from app.shared.security import Principal
@@ -86,7 +90,7 @@ class MeOut(BaseModel):
     name: str
     locale: str
     roles: list[str]
-    target_lyceum_id: UUID | None
+    dream_lyceum_ids: list[UUID]
     education_language_id: UUID | None
     city: str | None
     subject_ids: list[UUID]
@@ -95,9 +99,9 @@ class MeOut(BaseModel):
 class MePatch(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
     locale: str | None = None
-    target_lyceum_id: UUID | None = None
+    dream_lyceum_ids: list[UUID] | None = Field(default=None, max_length=10)
     education_language_id: UUID | None = None
-    city: str | None = Field(default=None, max_length=100)
+    city: str | None = Field(default=None, max_length=50)
     subject_ids: list[UUID] | None = Field(default=None, max_length=10)
 
 
@@ -116,7 +120,7 @@ def _me(u: User) -> MeOut:
         name=u.name,
         locale=u.locale,
         roles=sorted(r.value for r in u.roles),
-        target_lyceum_id=u.target_lyceum_id,
+        dream_lyceum_ids=list(u.dream_lyceum_ids),
         education_language_id=u.education_language_id,
         city=u.city,
         subject_ids=list(u.subject_ids),
@@ -197,7 +201,7 @@ async def patch_me(body: MePatch, user: CurrentUser, svc: IdentityServiceDep) ->
         user.user_id,
         name=body.name,
         locale=body.locale,
-        target_lyceum_id=body.target_lyceum_id if "target_lyceum_id" in sent else UNSET,
+        dream_lyceum_ids=(body.dream_lyceum_ids or []) if "dream_lyceum_ids" in sent else UNSET,
         education_language_id=(
             body.education_language_id if "education_language_id" in sent else UNSET
         ),
@@ -211,10 +215,13 @@ async def patch_me(body: MePatch, user: CurrentUser, svc: IdentityServiceDep) ->
 class AdminUserOut(BaseModel):
     id: UUID
     email: str | None
-    name: str
+    telegram_username: str | None
+    display_name: str
     roles: list[str]
+    status: Literal["active", "disabled"]
+    is_system: bool
     created_at: datetime | None
-    telegram_id: int | None = None
+    last_seen_at: datetime | None
 
 
 class AdminUsersPage(BaseModel):
@@ -222,18 +229,44 @@ class AdminUsersPage(BaseModel):
     items: list[AdminUserOut]
 
 
-class RolesIn(BaseModel):
+class AdminUserPatch(BaseModel):
+    roles: list[str] | None = Field(default=None, min_length=1)
+    status: Literal["active", "disabled"] | None = None
+    display_name: str | None = Field(default=None, min_length=1, max_length=200)
+
+
+class AdminUserCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    display_name: str = Field(min_length=1, max_length=200)
     roles: list[str] = Field(min_length=1)
+
+
+class AdminPasswordIn(BaseModel):
+    password: str = Field(min_length=8, max_length=128)
+
+
+class LabelerCreate(BaseModel):
+    display_name: str | None = Field(default=None, max_length=200)
+
+
+class LabelerCreated(BaseModel):
+    id: UUID
+    login: str
+    password: str = Field(description="Shown once; not retrievable later")
 
 
 def _admin_user(u: User) -> AdminUserOut:
     return AdminUserOut(
         id=u.id,
         email=u.email,
-        name=u.name,
+        telegram_username=u.telegram_username,
+        display_name=u.name,
         roles=sorted(r.value for r in u.roles),
+        status="disabled" if u.disabled else "active",
+        is_system=u.is_system,
         created_at=u.created_at,
-        telegram_id=u.telegram_id,
+        last_seen_at=u.last_seen_at,
     )
 
 
@@ -242,18 +275,71 @@ async def admin_list_users(
     svc: IdentityServiceDep,
     who: Admin,
     q: str | None = None,
-    limit: Annotated[int, Query(ge=1, le=200)] = 50,
-    offset: Annotated[int, Query(ge=0)] = 0,
+    role: str | None = None,
+    status: Literal["active", "disabled"] | None = None,
+    sort: Literal["created_at", "last_seen_at", "email"] = "created_at",
+    order: Literal["asc", "desc"] = "desc",
+    page: Annotated[int, Query(ge=1)] = 1,
+    size: Annotated[int, Query(ge=1, le=200)] = 50,
 ) -> AdminUsersPage:
-    total, users = await svc.list_users(q, limit, offset)
-    audit_admin(who, "users.list", q=q, limit=limit, offset=offset)
+    total, users = await svc.list_users(q, role, status, sort, order == "desc", page, size)
+    audit_admin(who, "users.list", q=q, role=role, status=status, page=page, size=size)
     return AdminUsersPage(total=total, items=[_admin_user(u) for u in users])
 
 
-@admin_router.put("/{user_id}/roles", operation_id="identity_admin_set_roles", responses=ERR)
-async def admin_set_roles(
-    user_id: UUID, body: RolesIn, svc: IdentityServiceDep, who: Admin
-) -> AdminUserOut:
-    user = await svc.set_roles(who.user_id, user_id, body.roles)
-    audit_admin(who, "users.set_roles", target_id=str(user_id), roles=body.roles)
+@admin_router.post("", status_code=201, operation_id="identity_admin_create_user", responses=ERR)
+async def admin_create_user(body: AdminUserCreate, svc: IdentityServiceDep, who: Admin) -> AdminUserOut:
+    """Create a verified staff account (admin, labeler, editor, lyceum_rep...)."""
+    user = await svc.create_staff(body.email, body.password, body.display_name, body.roles)
+    audit_admin(who, "users.create", target_id=str(user.id), roles=body.roles)
     return _admin_user(user)
+
+
+@admin_router.get("/{user_id}", operation_id="identity_admin_get_user", responses=ERR)
+async def admin_get_user(user_id: UUID, svc: IdentityServiceDep, who: Admin) -> AdminUserOut:
+    audit_admin(who, "users.get", target_id=str(user_id))
+    return _admin_user(await svc.get_me(user_id))
+
+
+@admin_router.patch("/{user_id}", operation_id="identity_admin_update_user", responses=ERR)
+async def admin_update_user(
+    user_id: UUID, body: AdminUserPatch, svc: IdentityServiceDep, who: Admin
+) -> AdminUserOut:
+    user = await svc.update_user(
+        who.user_id, user_id, roles=body.roles, status=body.status, display_name=body.display_name
+    )
+    audit_admin(
+        who, "users.update", target_id=str(user_id), roles=body.roles, status=body.status,
+        display_name=body.display_name,
+    )
+    return _admin_user(user)
+
+
+@admin_router.post("/{user_id}/reset-password", status_code=204, operation_id="identity_admin_reset_password", responses=ERR)
+async def admin_reset_password(
+    user_id: UUID, body: AdminPasswordIn, svc: IdentityServiceDep, who: Admin
+) -> Response:
+    await svc.reset_user_password(user_id, body.password)
+    audit_admin(who, "users.reset_password", target_id=str(user_id))
+    return Response(status_code=204)
+
+
+@admin_router.get("/{user_id}/stats", operation_id="identity_admin_user_stats", responses=ERR)
+async def admin_user_stats(
+    user_id: UUID, svc: IdentityServiceDep, who: Admin,
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> StatsOut:
+    await svc.get_me(user_id)  # 404 for unknown users
+    audit_admin(who, "users.stats", target_id=str(user_id))
+    return StatsOut.of(await learning_facade.user_stats(session, user_id))
+
+
+labelers_router = APIRouter(tags=["identity-admin"])
+
+
+@labelers_router.post("", status_code=201, operation_id="identity_admin_create_labeler", responses=ERR)
+async def admin_create_labeler(body: LabelerCreate, svc: IdentityServiceDep, who: Admin) -> LabelerCreated:
+    """Create a system labeler; the generated login/password are returned once."""
+    user, login, password = await svc.create_labeler(body.display_name)
+    audit_admin(who, "labelers.create", target_id=str(user.id))
+    return LabelerCreated(id=user.id, login=login, password=password)

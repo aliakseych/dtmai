@@ -1,10 +1,10 @@
 # Brand assets
 
-Mascot: **Temur**, Uzbek corsac fox (flat vector, dark navy outline #1b1b2e, grey-sand fur, cream inner ears, black ear and tail tips, doppa in brand blue #100FA0 with white pattern and lime #AFF50B stitching). All files derive from the `straight` master.
+Mascot: **Temur**, Uzbek corsac fox in Duolingo-style flat vector art: no outlines, chunky rounded shapes, 2-3 flat tones, big simple eyes, grey-sand fur (#C8BFA6 / #B3A98C), cream muzzle and inner ears (#F6EFD6), doppa in brand blue #100FA0 with a #AFF50B zigzag band. All files derive from the `straight` master (reference drawings live in dtmai-design/).
 
 > Mascot poses are shipped as `temur-<mood>.webp` (720px max, q82) for web weight; the PNG masters are not kept in the repo.
 
-## Originals (2048px, off-white background; source of truth for the mascot)
+## Head views (transparent)
 - `temur-straight.webp`, `temur-left.webp`, `temur-right.webp`, `temur-top.webp`, `temur-left-bottom.webp`, `temur-right-bottom.webp`: head views for avatars, loaders, favicons.
 
 ## Mascot poses (transparent PNG, ~1024px tall; AI-generated)
@@ -33,4 +33,12 @@ Mascot poses: "Temur the fox mascot <celebrating|sad|thinking|holding a flame|sl
 - `illus-path.webp` Temur on a winding path of lesson nodes; `illus-lyceum-dream.webp` pinning a lyceum photo on a wall; `illus-mocks.webp` exam sheet and timer; `illus-register.webp` stack of subject books. Alt: "Temur the fox mascot <walking a learning path|pinning a lyceum photo|holding an exam sheet and timer|holding subject books>".
 
 ## Prompts (reproducibility)
-Model: openai-codex gpt-image-2. Master `straight`: "Temur, friendly corsac fox mascot, head only, front view, big upright ears with cream inner ear and black tips, grey-sand fur (#C8BFA6), white cheeks, big glossy dark eyes, black nose, gentle smile, rosy cheeks, Uzbek doppa in #100FA0 with white pattern and #AFF50B accents. Duolingo-quality clean flat vector, bold dark outline (#1b1b2e), no gradients/shadows, solid white background." Every other asset: master passed as Image 1, "Image 1 is the master character Temur. <pose/scene description>. identical flat vector style as Image 1, solid pure white background". Poses: left/right 3/4 head turns, top (tilted down), left-bottom/right-bottom (turned + chin lowered); full-body celebrate, sad (broken heart), thinking (lightbulb), streak (flame), sleep (curled, zzz), trophy, premium (crown, stars), wave; hero (books + lyceum building, right-aligned, left empty); illustrations as listed above. White background removed with ImageMagick flood fill from the corner (`-fuzz 9%`), trimmed, resized (heads/poses max 720px WebP q82; illus 800x600 canvas). App icon: `straight` on #100FA0 composited with ImageMagick.
+Model: openai-codex gpt-image-2. Master `straight` (input: dtmai-design/straight.png as reference): "Temur, a corsac fox mascot head only, front view, redrawn in the exact style of Duolingo character art: flat vector shapes, NO outlines, chunky rounded geometry, 2-3 flat tones per area with one soft highlight/shadow shape, big simple oval eyes with white highlight dot, tiny black nose, simple smile, very few details. Grey-sand fur (#C8BFA6 with #B3A98C shade), cream muzzle and inner ears (#F6EFD6). Small doppa on top, solid #100FA0 with a simple #AFF50B zigzag band. Solid pure white background."
+Every other asset: master as Image 1, "Image 1 is the master character Temur. <scene>. Identical flat vector style as Image 1, no outlines. Solid pure white background." Scenes: left/right = head 3/4 turn; top = head tilted down; left-bottom/right-bottom = turned with chin lowered; celebrate = full body flying, arms raised, confetti; sad = sitting slumped, teary, grey broken heart; thinking = paw on chin, question bubble; streak = flying holding flat orange flame; sleep = curled up, closed eyes, "z"s; trophy = flying with gold trophy overhead; premium = flying with gold crown and stars; wave = waving paw; hero = right side Temur flying with open book, gold coins/stars and phone with lime check, left 45% empty (16:9); illus-path = Temur on winding path of lime/white nodes; illus-lyceum-dream = pinning framed lyceum picture to a board; illus-mocks = exam sheet and stopwatch; illus-register = hugging five subject books.
+Post-processing: white background removed by ImageMagick flood fill (fuzz 2%), trimmed, resized (poses 720px tall WebP q82; illus 800x600; hero 1600x900 right-aligned; app icon = master head on #100FA0, 1024). Mobile copies of poses are in apps/mobile/assets/brand/*.png.
+
+## Icon set (256x256 transparent PNG, hand-authored flat SVG rasterised, same palette as Temur)
+`icon-streak`, `icon-xp`, `icon-gem`, `icon-heart`, `icon-lesson`, `icon-mock`, `icon-lyceum`, `icon-trophy`, `icon-lock`, `icon-check` (mobile copies: `apps/mobile/assets/brand/icon_*.png`). `icon-league.png` and `icon-review.png` are legacy 512px icons kept untouched. Decorative (`alt=""`) beside labels.
+
+## App icon
+`app-icon-1024.png`: Temur head on a white circular badge with a #AFF50B ring over #100FA0, so the doppa stays visible; copy at `apps/mobile/assets/brand/app_icon.png`.

@@ -41,11 +41,11 @@ def test_cutoff():
 
 
 def test_city_normalised():
-    assert validate_city("  Tashkent   city ") == "Tashkent city"
+    assert validate_city("  tashkent ") == "tashkent"
     assert validate_city("   ") is None
     assert validate_city(None) is None
     with pytest.raises(ValidationFailed):
-        validate_city("x" * 101)
+        validate_city("x" * 51)
 
 
 def test_subject_ids_dedupe_and_bound():

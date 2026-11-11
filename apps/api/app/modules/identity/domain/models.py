@@ -3,13 +3,14 @@ from datetime import datetime, timedelta
 from enum import StrEnum
 from uuid import UUID
 
-from app.shared.errors import ValidationFailed
+from app.shared.errors import Conflict, ValidationFailed
 
 LOCALES = ("uz-Latn", "uz-Cyrl", "ru", "en")
 DEFAULT_LOCALE = "uz-Latn"
 MIN_PASSWORD_LENGTH = 8
 MAX_SUBJECTS = 10
-MAX_CITY_LENGTH = 100
+MAX_DREAM_LYCEUMS = 3
+MAX_CITY_LENGTH = 50
 GUEST_RETENTION_DAYS = 30
 
 
@@ -19,6 +20,7 @@ class Role(StrEnum):
     EDITOR = "editor"
     LYCEUM_REP = "lyceum_rep"
     ADMIN = "admin"
+    LABELER = "labeler"
 
 
 def normalize_email(email: str) -> str:
@@ -41,10 +43,10 @@ def validate_password(password: str) -> str:
 
 
 def validate_city(city: str | None) -> str | None:
-    """Blank clears the city; otherwise a trimmed free-text value."""
+    """Blank clears the city; otherwise a trimmed city code (existence is checked by the service)."""
     if city is None:
         return None
-    value = " ".join(city.split())
+    value = city.strip()
     if len(value) > MAX_CITY_LENGTH:
         raise ValidationFailed("city too long", code="invalid_city")
     return value or None
@@ -56,6 +58,15 @@ def validate_subject_ids(ids: list[UUID]) -> list[UUID]:
     if len(unique) > MAX_SUBJECTS:
         raise ValidationFailed("too many subjects", code="too_many_subjects")
     return unique
+
+
+def validate_dream_lyceum_ids(ids: list[UUID]) -> list[UUID]:
+    """Ordered priority list (position 1 = first choice): at most 3, no repeats."""
+    if len(ids) > MAX_DREAM_LYCEUMS:
+        raise ValidationFailed("at most 3 dream lyceums", code="too_many_dream_lyceums")
+    if len(set(ids)) != len(ids):
+        raise ValidationFailed("duplicate dream lyceum", code="duplicate_dream_lyceum")
+    return list(ids)
 
 
 def is_guest_expired(
@@ -91,17 +102,25 @@ class User:
     password_hash: str | None = None
     telegram_id: int | None = None
     roles: set[Role] = field(default_factory=lambda: {Role.STUDENT})
-    target_lyceum_id: UUID | None = None
+    dream_lyceum_ids: list[UUID] = field(default_factory=list)
     education_language_id: UUID | None = None
     city: str | None = None
     subject_ids: list[UUID] = field(default_factory=list)
     created_at: datetime | None = None
     last_seen_at: datetime | None = None
+    telegram_username: str | None = None
+    disabled: bool = False
+    is_system: bool = False
 
     def __post_init__(self) -> None:
         if not self.email and self.telegram_id is None and Role.GUEST not in self.roles:
             raise ValidationFailed("user needs an email or a telegram id", code="no_identity")
         validate_locale(self.locale)
+
+    @property
+    def target_lyceum_id(self) -> UUID | None:
+        """The first-priority dream lyceum (what leaderboards and comparisons use)."""
+        return self.dream_lyceum_ids[0] if self.dream_lyceum_ids else None
 
     def rename(self, name: str) -> None:
         name = name.strip()
@@ -110,8 +129,8 @@ class User:
         self.name = name
 
 
-def parse_roles(raw: list[str], *, actor_id: UUID, target_id: UUID) -> set[Role]:
-    """Validate a role assignment coming from an admin. Pure."""
+def parse_role_set(raw: list[str]) -> set[Role]:
+    """Validate a role list. Pure."""
     roles: set[Role] = set()
     for value in raw:
         try:
@@ -122,9 +141,30 @@ def parse_roles(raw: list[str], *, actor_id: UUID, target_id: UUID) -> set[Role]
         raise ValidationFailed("at least one role is required", code="invalid_role")
     if Role.GUEST in roles and len(roles) > 1:
         raise ValidationFailed("guest cannot be combined with other roles", code="invalid_role")
+    return roles
+
+
+def parse_roles(raw: list[str], *, actor_id: UUID, target_id: UUID) -> set[Role]:
+    """Validate a role assignment coming from an admin. Pure."""
+    roles = parse_role_set(raw)
     if actor_id == target_id and Role.ADMIN not in roles:
         raise ValidationFailed("admins cannot remove their own admin role", code="self_demotion")
     return roles
+
+
+def ensure_admin_change_allowed(
+    *, actor_id: UUID, target: User, new_roles: set[Role], disabled: bool, active_admins: int
+) -> None:
+    """Superadmin protection. Pure.
+
+    An admin cannot disable themselves, and the last active admin can be neither demoted nor disabled.
+    """
+    if actor_id == target.id and disabled and not target.disabled:
+        raise ValidationFailed("admins cannot disable themselves", code="self_disable")
+    was_active_admin = Role.ADMIN in target.roles and not target.disabled
+    still_active_admin = Role.ADMIN in new_roles and not disabled
+    if was_active_admin and not still_active_admin and active_admins <= 1:
+        raise Conflict("the last admin cannot be demoted or disabled", code="last_admin")
 
 
 @dataclass(frozen=True, slots=True)

@@ -69,6 +69,11 @@ class Clock:
         return NOW
 
 
+class Cities:
+    async def exists(self, code):
+        return code == "tashkent"
+
+
 def make(user):
     cfg = IdentityConfig(
         access_ttl=60,
@@ -81,7 +86,7 @@ def make(user):
     )
     users, codes, mail = Users(user), Codes(), Mailer()
     return (
-        IdentityService(users, codes, Refresh(), Hasher(), mail, Clock(), cfg),
+        IdentityService(users, codes, Refresh(), Hasher(), mail, Clock(), cfg, Cities()),
         users,
         codes,
         mail,

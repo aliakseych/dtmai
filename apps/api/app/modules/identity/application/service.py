@@ -11,16 +11,20 @@ from app.modules.identity.domain.models import (
     RefreshToken,
     Role,
     User,
+    ensure_admin_change_allowed,
     guest_cutoff,
     locale_from_telegram,
     normalize_email,
+    parse_role_set,
     parse_roles,
     validate_city,
     validate_locale,
     validate_password,
+    validate_dream_lyceum_ids,
     validate_subject_ids,
 )
 from app.modules.identity.ports import (
+    CityCatalog,
     Clock,
     EmailCodeRepository,
     Mailer,
@@ -33,6 +37,7 @@ from app.shared.ids import new_id
 from app.shared.security import encode_access_token
 
 UNSET = object()
+LABELER_DOMAIN = "labelers.dtm-ai.uz"
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,9 +72,11 @@ class IdentityService:
         mailer: Mailer,
         clock: Clock,
         config: IdentityConfig,
+        cities: CityCatalog,
     ) -> None:
         self._users, self._codes, self._refresh = users, codes, refresh
         self._hasher, self._mailer, self._clock, self._cfg = hasher, mailer, clock, config
+        self._cities = cities
 
     async def register_email(self, email: str, password: str, name: str, locale: str) -> None:
         email = normalize_email(email)
@@ -177,15 +184,65 @@ class IdentityService:
         await self._users.add(user)
         return await self._issue(user)
 
-    async def list_users(self, q: str | None, limit: int, offset: int) -> tuple[int, list[User]]:
-        return await self._users.search(q, limit, offset)
+    async def list_users(
+        self, q: str | None, role: str | None, status: str | None, sort: str, descending: bool,
+        page: int, size: int,
+    ) -> tuple[int, list[User]]:
+        disabled = None if status is None else status == "disabled"
+        return await self._users.search(q, role, disabled, sort, descending, size, (page - 1) * size)
 
-    async def set_roles(self, actor_id: UUID, user_id: UUID, raw_roles: list[str]) -> User:
-        roles = parse_roles(raw_roles, actor_id=actor_id, target_id=user_id)
+    async def get_many(self, ids: list[UUID]) -> dict[UUID, User]:
+        return {u.id: u for u in await self._users.get_many(ids)}
+
+    async def update_user(
+        self, actor_id: UUID, user_id: UUID, *, roles: list[str] | None = None,
+        status: str | None = None, display_name: str | None = None,
+    ) -> User:
         user = await self.get_me(user_id)
-        user.roles = roles
+        new_roles = parse_roles(roles, actor_id=actor_id, target_id=user_id) if roles is not None else user.roles
+        disabled = user.disabled if status is None else status == "disabled"
+        ensure_admin_change_allowed(
+            actor_id=actor_id, target=user, new_roles=new_roles, disabled=disabled,
+            active_admins=await self._users.count_active_admins(),
+        )
+        user.roles, user.disabled = new_roles, disabled
+        if display_name is not None:
+            user.rename(display_name)
         await self._users.save(user)
         return user
+
+    async def create_staff(self, email: str, password: str, name: str, raw_roles: list[str]) -> User:
+        email = normalize_email(email)
+        validate_password(password)
+        roles = parse_role_set(raw_roles)
+        if Role.GUEST in roles:
+            raise ValidationFailed("staff cannot be guests", code="invalid_role")
+        if await self._users.by_email(email):
+            raise Conflict("email already registered", code="email_taken")
+        user = User(
+            id=new_id(), name=name.strip() or email, email=email, email_verified=True,
+            password_hash=self._hasher.hash(password), roles=roles,
+        )
+        user.rename(user.name)
+        await self._users.add(user)
+        return user
+
+    async def create_labeler(self, name: str | None) -> tuple[User, str, str]:
+        """A system labeler account; returns (user, login, password) — the password is shown once."""
+        login = f"labeler-{secrets.token_hex(4)}@{LABELER_DOMAIN}"
+        password = secrets.token_urlsafe(12)
+        user = User(
+            id=new_id(), name=(name or "").strip() or login, email=login, email_verified=True,
+            password_hash=self._hasher.hash(password), roles={Role.LABELER}, is_system=True,
+        )
+        await self._users.add(user)
+        return user, login, password
+
+    async def reset_user_password(self, user_id: UUID, password: str) -> None:
+        validate_password(password)
+        user = await self.get_me(user_id)
+        user.password_hash = self._hasher.hash(password)
+        await self._users.save(user)
 
     async def contacts(
         self, after: UUID | None, limit: int, locale: str | None = None, with_email: bool = False
@@ -204,7 +261,7 @@ class IdentityService:
         *,
         name: str | None = None,
         locale: str | None = None,
-        target_lyceum_id: UUID | None | object = UNSET,
+        dream_lyceum_ids: list[UUID] | object = UNSET,
         education_language_id: UUID | None | object = UNSET,
         city: str | None | object = UNSET,
         subject_ids: list[UUID] | object = UNSET,
@@ -214,12 +271,15 @@ class IdentityService:
             user.rename(name)
         if locale is not None:
             user.locale = validate_locale(locale)
-        if target_lyceum_id is not UNSET:
-            user.target_lyceum_id = target_lyceum_id  # type: ignore[assignment]
+        if dream_lyceum_ids is not UNSET:
+            user.dream_lyceum_ids = validate_dream_lyceum_ids(dream_lyceum_ids)  # type: ignore[arg-type]
         if education_language_id is not UNSET:
             user.education_language_id = education_language_id  # type: ignore[assignment]
         if city is not UNSET:
-            user.city = validate_city(city)  # type: ignore[arg-type]
+            code = validate_city(city)  # type: ignore[arg-type]
+            if code is not None and not await self._cities.exists(code):
+                raise ValidationFailed("unknown city", code="unknown_city")
+            user.city = code
         if subject_ids is not UNSET:
             user.subject_ids = validate_subject_ids(subject_ids)  # type: ignore[arg-type]
         await self._users.save(user)
@@ -236,7 +296,7 @@ class IdentityService:
         return user
 
     async def count_dreamers(self, lyceum_id: UUID) -> int:
-        return await self._users.count_by_target_lyceum(lyceum_id)
+        return await self._users.count_by_dream_lyceum(lyceum_id)
 
     async def cleanup_guests(self) -> int:
         """Delete guest accounts inactive for more than the retention window."""
@@ -250,8 +310,12 @@ class IdentityService:
                 name=profile.display_name,
                 locale=locale_from_telegram(profile.language_code),
                 telegram_id=profile.id,
+                telegram_username=profile.username,
             )
             await self._users.add(user)
+        elif profile.username != user.telegram_username:
+            user.telegram_username = profile.username
+            await self._users.save(user)
         return await self._issue(user)
 
     async def _send_code(self, user: User, *, purpose: str = "verification") -> None:
@@ -267,6 +331,8 @@ class IdentityService:
         await self._mailer.send(user.email, "DTM AI: " + code, f"Your DTM AI {purpose} code: {code}")
 
     async def _issue(self, user: User) -> TokenPair:
+        if user.disabled:
+            raise Forbidden("account disabled", code="account_disabled")
         await self._users.touch(user.id, self._clock.now())
         raw = secrets.token_urlsafe(48)
         await self._refresh.add(

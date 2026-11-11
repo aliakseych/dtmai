@@ -931,6 +931,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/labelers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Create Labeler
+         * @description Create a system labeler; the generated login/password are returned once.
+         */
+        post: operations["identity_admin_create_labeler"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/labeling/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin Activity */
+        get: operations["labeling_admin_activity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/labeling/audit/agreement": {
         parameters: {
             query?: never;
@@ -1009,6 +1046,23 @@ export interface paths {
         };
         /** Get Generation */
         get: operations["labeling_get_generation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/labeling/leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin Leaderboard */
+        get: operations["labeling_admin_leaderboard"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1231,14 +1285,36 @@ export interface paths {
         /** Admin List Users */
         get: operations["identity_admin_list_users"];
         put?: never;
-        post?: never;
+        /**
+         * Admin Create User
+         * @description Create a verified staff account (admin, labeler, editor, lyceum_rep...).
+         */
+        post: operations["identity_admin_create_user"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/users/{user_id}/roles": {
+    "/v1/admin/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin Get User */
+        get: operations["identity_admin_get_user"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Admin Update User */
+        patch: operations["identity_admin_update_user"];
+        trace?: never;
+    };
+    "/v1/admin/users/{user_id}/reset-password": {
         parameters: {
             query?: never;
             header?: never;
@@ -1246,8 +1322,25 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Admin Set Roles */
-        put: operations["identity_admin_set_roles"];
+        put?: never;
+        /** Admin Reset Password */
+        post: operations["identity_admin_reset_password"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{user_id}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin User Stats */
+        get: operations["identity_admin_user_stats"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -2182,6 +2275,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/learning/me/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Stats */
+        get: operations["learning_my_stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/learning/merge-guest": {
         parameters: {
             query?: never;
@@ -2372,6 +2482,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/lyceums/cities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Cities */
+        get: operations["lyceums_list_cities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/lyceums/languages": {
         parameters: {
             query?: never;
@@ -2476,6 +2603,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/lyceums/{lyceum_id}/rep/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Rep Update Profile */
+        patch: operations["lyceums_rep_update_profile"];
+        trace?: never;
+    };
     "/v1/me/daily-goal": {
         parameters: {
             query?: never;
@@ -2572,10 +2716,68 @@ export interface components {
             /** Earned */
             earned: string[];
         };
+        /** ActivityOut */
+        ActivityOut: {
+            /** Action */
+            action: string;
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /** Actor Name */
+            actor_name: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Duration Ms */
+            duration_ms: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+            /** Question Id */
+            question_id: string | null;
+        };
+        /** ActivityPage */
+        ActivityPage: {
+            /** Items */
+            items: components["schemas"]["ActivityOut"][];
+            /** Total */
+            total: number;
+        };
+        /** AdminPasswordIn */
+        AdminPasswordIn: {
+            /** Password */
+            password: string;
+        };
+        /** AdminUserCreate */
+        AdminUserCreate: {
+            /** Display Name */
+            display_name: string;
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Password */
+            password: string;
+            /** Roles */
+            roles: string[];
+        };
         /** AdminUserOut */
         AdminUserOut: {
             /** Created At */
             created_at: string | null;
+            /** Display Name */
+            display_name: string;
             /** Email */
             email: string | null;
             /**
@@ -2583,12 +2785,28 @@ export interface components {
              * Format: uuid
              */
             id: string;
-            /** Name */
-            name: string;
+            /** Is System */
+            is_system: boolean;
+            /** Last Seen At */
+            last_seen_at: string | null;
             /** Roles */
             roles: string[];
-            /** Telegram Id */
-            telegram_id?: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "disabled";
+            /** Telegram Username */
+            telegram_username: string | null;
+        };
+        /** AdminUserPatch */
+        AdminUserPatch: {
+            /** Display Name */
+            display_name?: string | null;
+            /** Roles */
+            roles?: string[] | null;
+            /** Status */
+            status?: ("active" | "disabled") | null;
         };
         /** AdminUsersPage */
         AdminUsersPage: {
@@ -3076,6 +3294,25 @@ export interface components {
             /** Pay Url */
             pay_url: string;
         };
+        /** CityNamesOut */
+        CityNamesOut: {
+            /** En */
+            en: string;
+            /** Ru */
+            ru: string;
+            /** Uz-Cyrl */
+            "uz-Cyrl": string;
+            /** Uz-Latn */
+            "uz-Latn": string;
+        };
+        /** CityOut */
+        CityOut: {
+            /** Code */
+            code: string;
+            /** Lyceum Count */
+            lyceum_count: number;
+            names: components["schemas"]["CityNamesOut"];
+        };
         /** ComparisonOut */
         ComparisonOut: {
             /** Competition Ratio */
@@ -3169,6 +3406,20 @@ export interface components {
              * @enum {integer}
              */
             xp: 10 | 20 | 30 | 50;
+        };
+        /** DailyStatOut */
+        DailyStatOut: {
+            /** Answered */
+            answered: number;
+            /** Correct */
+            correct: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Xp */
+            xp: number;
         };
         /** DecideIn */
         DecideIn: {
@@ -3494,6 +3745,26 @@ export interface components {
          * @enum {string}
          */
         Kind: "streak_reminder" | "league_ending" | "daily_question";
+        /** LabelerCreate */
+        LabelerCreate: {
+            /** Display Name */
+            display_name?: string | null;
+        };
+        /** LabelerCreated */
+        LabelerCreated: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Login */
+            login: string;
+            /**
+             * Password
+             * @description Shown once; not retrievable later
+             */
+            password: string;
+        };
         /** LabelingStatsOut */
         LabelingStatsOut: {
             audit: components["schemas"]["AgreementOut"];
@@ -3556,6 +3827,28 @@ export interface components {
             user_id: string;
             /** Xp */
             xp: number;
+        };
+        /** LeaderboardRowOut */
+        LeaderboardRowOut: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /** Actor Name */
+            actor_name: string | null;
+            /** Approved */
+            approved: number;
+            /** Avg Duration Ms */
+            avg_duration_ms: number | null;
+            /** Is System */
+            is_system: boolean;
+            /** Labeled */
+            labeled: number;
+            /** Last Active At */
+            last_active_at: string | null;
+            /** Rejected */
+            rejected: number;
         };
         /** LeagueOut */
         LeagueOut: {
@@ -3828,6 +4121,12 @@ export interface components {
             description?: {
                 [key: string]: string;
             } | null;
+            /** Dormitory Description */
+            dormitory_description?: {
+                [key: string]: string;
+            } | null;
+            /** Dormitory Status */
+            dormitory_status?: ("available" | "limited" | "none" | "unknown") | null;
             /** Gallery Urls */
             gallery_urls?: string[] | null;
             /** Logo Url */
@@ -3843,10 +4142,23 @@ export interface components {
         LyceumSummary: {
             /** Applications */
             applications: number | null;
+            /** Campus Photo Url */
+            campus_photo_url: string | null;
+            /** City */
+            city: string | null;
             /** Code */
             code: string;
+            /** Competition */
+            competition: number | null;
             /** Competition Ratio */
             competition_ratio: number | null;
+            /** Competition Year */
+            competition_year: number | null;
+            /**
+             * Dormitory Status
+             * @enum {string}
+             */
+            dormitory_status: "available" | "limited" | "none" | "unknown";
             /**
              * Id
              * Format: uuid
@@ -3854,6 +4166,8 @@ export interface components {
             id: string;
             /** Latest Year */
             latest_year: number | null;
+            /** Logo Url */
+            logo_url: string | null;
             names: components["schemas"]["NamesOut"];
             /** Quota */
             quota: number | null;
@@ -3862,6 +4176,8 @@ export interface components {
         MeOut: {
             /** City */
             city: string | null;
+            /** Dream Lyceum Ids */
+            dream_lyceum_ids: string[];
             /** Education Language Id */
             education_language_id: string | null;
             /** Email */
@@ -3881,8 +4197,6 @@ export interface components {
             roles: string[];
             /** Subject Ids */
             subject_ids: string[];
-            /** Target Lyceum Id */
-            target_lyceum_id: string | null;
             /** Telegram Id */
             telegram_id: number | null;
         };
@@ -3890,6 +4204,8 @@ export interface components {
         MePatch: {
             /** City */
             city?: string | null;
+            /** Dream Lyceum Ids */
+            dream_lyceum_ids?: string[] | null;
             /** Education Language Id */
             education_language_id?: string | null;
             /** Locale */
@@ -3898,8 +4214,6 @@ export interface components {
             name?: string | null;
             /** Subject Ids */
             subject_ids?: string[] | null;
-            /** Target Lyceum Id */
-            target_lyceum_id?: string | null;
         };
         /** MembershipOut */
         MembershipOut: {
@@ -3950,6 +4264,23 @@ export interface components {
             source_id?: string | null;
             /** Version */
             version: number;
+        };
+        /** MockStatOut */
+        MockStatOut: {
+            /** Max Score */
+            max_score: number;
+            /**
+             * Mock Id
+             * Format: uuid
+             */
+            mock_id: string;
+            /** Score */
+            score: number;
+            /**
+             * Taken At
+             * Format: date-time
+             */
+            taken_at: string;
         };
         /** ModerateIn */
         ModerateIn: {
@@ -4354,6 +4685,15 @@ export interface components {
             description: {
                 [key: string]: string;
             };
+            /** Dormitory Description */
+            dormitory_description: {
+                [key: string]: string;
+            };
+            /**
+             * Dormitory Status
+             * @enum {string}
+             */
+            dormitory_status: "available" | "limited" | "none" | "unknown";
             /** Gallery Urls */
             gallery_urls: string[];
             /** Logo Url */
@@ -4896,6 +5236,22 @@ export interface components {
             /** Ids */
             ids: string[];
         };
+        /** RepProfilePatch */
+        RepProfilePatch: {
+            contacts?: components["schemas"]["ContactsIn"] | null;
+            /** Courses */
+            courses?: string[] | null;
+            /** Description */
+            description?: {
+                [key: string]: string;
+            } | null;
+            /** Dormitory Description */
+            dormitory_description?: {
+                [key: string]: string;
+            } | null;
+            /** Dormitory Status */
+            dormitory_status?: ("available" | "limited" | "none" | "unknown") | null;
+        };
         /** ReportIn */
         ReportIn: {
             /**
@@ -4994,11 +5350,6 @@ export interface components {
         ReviewSummaryOut: {
             /** Due */
             due: number;
-        };
-        /** RolesIn */
-        RolesIn: {
-            /** Roles */
-            roles: string[];
         };
         /** RolloverOut */
         RolloverOut: {
@@ -5174,38 +5525,6 @@ export interface components {
             /** Year */
             year: number;
         };
-        /** StatsOut */
-        StatsOut: {
-            /** Daily Goal Xp */
-            daily_goal_xp: number;
-            /** Gems */
-            gems: number;
-            hearts: components["schemas"]["HeartsOut"];
-            league_tier: components["schemas"]["TierOut"] | null;
-            /** Lessons Completed */
-            lessons_completed: number;
-            /** Streak */
-            streak: number;
-            /** Streak Active Today */
-            streak_active_today: boolean;
-            /** Streak At Risk */
-            streak_at_risk: boolean;
-            /** Streak Freezes */
-            streak_freezes: number;
-            /** Streak Longest */
-            streak_longest: number;
-            /** Today Xp */
-            today_xp: number;
-            /**
-             * User Id
-             * Format: uuid
-             */
-            user_id: string;
-            /** Xp Today */
-            xp_today: number;
-            /** Xp Total */
-            xp_total: number;
-        };
         /** StatusIn */
         StatusIn: {
             /**
@@ -5274,6 +5593,23 @@ export interface components {
             position?: number | null;
             /** Weight */
             weight?: number | null;
+        };
+        /** SubjectStatOut */
+        SubjectStatOut: {
+            /** Answered */
+            answered: number;
+            /** Correct */
+            correct: number;
+            /**
+             * Mastery
+             * @description 0..1, attempts-weighted over topics/types; null when unknown
+             */
+            mastery: number | null;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
         };
         /** SubscriptionOut */
         SubscriptionOut: {
@@ -5654,6 +5990,38 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
+        /** StatsOut */
+        app__interfaces__http__v1__gamification__StatsOut: {
+            /** Daily Goal Xp */
+            daily_goal_xp: number;
+            /** Gems */
+            gems: number;
+            hearts: components["schemas"]["HeartsOut"];
+            league_tier: components["schemas"]["TierOut"] | null;
+            /** Lessons Completed */
+            lessons_completed: number;
+            /** Streak */
+            streak: number;
+            /** Streak Active Today */
+            streak_active_today: boolean;
+            /** Streak At Risk */
+            streak_at_risk: boolean;
+            /** Streak Freezes */
+            streak_freezes: number;
+            /** Streak Longest */
+            streak_longest: number;
+            /** Today Xp */
+            today_xp: number;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Xp Today */
+            xp_today: number;
+            /** Xp Total */
+            xp_total: number;
+        };
         /** ReviewOut */
         app__interfaces__http__v1__labeling__ReviewOut: {
             /** Audit Sample Id */
@@ -5722,6 +6090,34 @@ export interface components {
              * Format: uuid
              */
             type_id: string;
+        };
+        /** StatsOut */
+        app__interfaces__http__v1__learning__StatsOut: {
+            /**
+             * Accuracy
+             * @description correct / answered over all time, 0..1
+             */
+            accuracy: number;
+            /** By Subject */
+            by_subject: components["schemas"]["SubjectStatOut"][];
+            /**
+             * Daily
+             * @description Last 30 Tashkent days, oldest first, zero-filled
+             */
+            daily: components["schemas"]["DailyStatOut"][];
+            /** Lessons Completed */
+            lessons_completed: number;
+            /**
+             * Mocks
+             * @description Recent submitted mocks, newest first
+             */
+            mocks: components["schemas"]["MockStatOut"][];
+            /** Streak Best */
+            streak_best: number;
+            /** Streak Current */
+            streak_current: number;
+            /** Xp Total */
+            xp_total: number;
         };
         /** ImportIn */
         app__interfaces__http__v1__lyceums__ImportIn: {
@@ -11899,6 +12295,140 @@ export interface operations {
             };
         };
     };
+    identity_admin_create_labeler: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabelerCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabelerCreated"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    labeling_admin_activity: {
+        parameters: {
+            query?: {
+                actor_id?: string | null;
+                action?: string | null;
+                from?: string | null;
+                to?: string | null;
+                sort?: "created_at" | "duration_ms" | "action";
+                order?: "asc" | "desc";
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityPage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     labeling_audit_agreement: {
         parameters: {
             query?: {
@@ -12262,6 +12792,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenerationOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    labeling_admin_leaderboard: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                sort?: "labeled" | "approved" | "rejected" | "avg_duration";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaderboardRowOut"][];
                 };
             };
             /** @description Unauthorized */
@@ -13021,8 +13621,12 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string | null;
-                limit?: number;
-                offset?: number;
+                role?: string | null;
+                status?: ("active" | "disabled") | null;
+                sort?: "created_at" | "last_seen_at" | "email";
+                order?: "asc" | "desc";
+                page?: number;
+                size?: number;
             };
             header?: never;
             path?: never;
@@ -13077,7 +13681,125 @@ export interface operations {
             };
         };
     };
-    identity_admin_set_roles: {
+    identity_admin_create_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUserCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    identity_admin_get_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    identity_admin_update_user: {
         parameters: {
             query?: never;
             header?: never;
@@ -13088,7 +13810,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RolesIn"];
+                "application/json": components["schemas"]["AdminUserPatch"];
             };
         };
         responses: {
@@ -13099,6 +13821,124 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminUserOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    identity_admin_reset_password: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminPasswordIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    identity_admin_user_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__interfaces__http__v1__learning__StatsOut"];
                 };
             };
             /** @description Unauthorized */
@@ -15380,7 +16220,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StatsOut"];
+                    "application/json": components["schemas"]["app__interfaces__http__v1__gamification__StatsOut"];
                 };
             };
             /** @description Unauthorized */
@@ -16769,6 +17609,71 @@ export interface operations {
             };
         };
     };
+    learning_my_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__interfaces__http__v1__learning__StatsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     learning_merge_guest: {
         parameters: {
             query?: never;
@@ -17459,6 +18364,7 @@ export interface operations {
                 q?: string | null;
                 limit?: number;
                 offset?: number;
+                sort?: "competition" | "name";
             };
             header?: never;
             path?: never;
@@ -17509,6 +18415,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_list_cities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CityOut"][];
                 };
             };
         };
@@ -17987,6 +18913,68 @@ export interface operations {
             };
         };
     };
+    lyceums_rep_update_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lyceum_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RepProfilePatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     gamification_set_daily_goal: {
         parameters: {
             query?: never;
@@ -18006,7 +18994,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StatsOut"];
+                    "application/json": components["schemas"]["app__interfaces__http__v1__gamification__StatsOut"];
                 };
             };
             /** @description Unauthorized */
@@ -18071,7 +19059,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StatsOut"];
+                    "application/json": components["schemas"]["app__interfaces__http__v1__gamification__StatsOut"];
                 };
             };
             /** @description Unauthorized */

@@ -241,5 +241,24 @@
         "type": "int"
       }
     }
-  }
+  },
+  "chooseCity": "City",
+  "cityHint": "Or the city where you plan to study. Don't pick one if you're open to studying in different cities.",
+  "anyCity": "Any city",
+  "chooseSubjects": "Subjects (pick one or more)",
+  "dormitory": "Dormitory",
+  "dormitoryAvailable": "Dormitory available",
+  "dormitoryLimited": "Limited dormitory places",
+  "dormitoryNone": "No dormitory",
+  "dormitoryUnknown": "Dormitory info unknown",
+  "dreamLyceums": "My dream lyceums",
+  "dreamRules": "You can choose up to 3 lyceums in order of priority. Your score is checked against your 1st choice first. If it's enough, you're admitted there and the 2nd and 3rd aren't considered. If not, your 2nd choice is checked, then the 3rd. If none fits, your result is shown under your 1st choice. Put your real dream first and a safer option third.",
+  "moveUp": "Move up",
+  "moveDown": "Move down",
+  "removeItem": "Remove",
+  "emptySlot": "Empty slot",
+  "addToDreams": "Add to my dreams",
+  "removeFromDreams": "Remove from my dreams",
+  "addLyceum": "Add a lyceum",
+  "tooManyDreams": "You can pick up to 3 lyceums."
 }

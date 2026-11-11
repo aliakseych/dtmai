@@ -40,7 +40,7 @@ final homeSyncProvider = Provider<void>((ref) {
     // Ask for notification permission only after onboarding (not on the first launch).
     final me = ref.read(meProvider).value;
     final onboarded = me != null &&
-        (me.educationLanguageId != null || me.targetLyceumId != null || ref.read(onboardingSkippedProvider));
+        (me.educationLanguageId != null || me.dreamLyceumIds.isNotEmpty || ref.read(onboardingSkippedProvider));
     if (!onboarded) return;
     final notifications = ref.read(notificationServiceProvider);
     await notifications.requestPermission();

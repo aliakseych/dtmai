@@ -7,9 +7,11 @@ ThemeData buildAppTheme() {
   final base = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: Tokens.green,
-      primary: Tokens.green,
-      secondary: Tokens.blue,
+      seedColor: Tokens.brand,
+      primary: Tokens.brand,
+      onPrimary: Colors.white,
+      secondary: Tokens.accent,
+      onSecondary: Colors.black,
       error: Tokens.red,
       surface: Tokens.surface,
     ),
@@ -60,7 +62,7 @@ ThemeData buildAppTheme() {
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Tokens.surface,
-      indicatorColor: Tokens.blueSoft,
+      indicatorColor: Tokens.accent,
       surfaceTintColor: Colors.transparent,
       labelTextStyle: WidgetStatePropertyAll(
         GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: Tokens.text),

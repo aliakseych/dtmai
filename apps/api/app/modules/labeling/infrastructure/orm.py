@@ -14,7 +14,7 @@ from sqlalchemy import (
     Text,
     func,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.db import Base
@@ -118,6 +118,25 @@ class AuditSampleRow(Base):
     matched: Mapped[bool | None] = mapped_column(Boolean)
     sampled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ActivityRow(Base):
+    """Append-only log of everything a labeler does in the cockpit."""
+
+    __tablename__ = "activity"
+    __table_args__ = (
+        Index("ix_activity_actor", "actor_user_id", "created_at"),
+        Index("ix_activity_action", "action", "created_at"),
+        {"schema": SCHEMA},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(_UUID, primary_key=True)
+    actor_user_id: Mapped[uuid.UUID] = mapped_column(_UUID)
+    action: Mapped[str] = mapped_column(String(10))  # claim|label|approve|reject|edit|skip|release
+    question_id: Mapped[uuid.UUID | None] = mapped_column(_UUID)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, server_default="{}")
+    duration_ms: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class GenerationRunRow(Base):

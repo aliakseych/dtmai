@@ -241,5 +241,24 @@
         "type": "int"
       }
     }
-  }
+  },
+  "chooseCity": "Shahar",
+  "cityHint": "Yoki o'qishni rejalashtirgan shahringiz. Turli shaharlarda o'qishga tayyor bo'lsangiz, tanlamang.",
+  "anyCity": "Istalgan shahar",
+  "chooseSubjects": "Fanlar (bir yoki bir nechta)",
+  "dormitory": "Yotoqxona",
+  "dormitoryAvailable": "Yotoqxona bor",
+  "dormitoryLimited": "Yotoqxona o'rinlari cheklangan",
+  "dormitoryNone": "Yotoqxona yo'q",
+  "dormitoryUnknown": "Yotoqxona haqida ma'lumot yo'q",
+  "dreamLyceums": "Orzudagi litseylarim",
+  "dreamRules": "3 tagacha litseyni ustuvorlik tartibida tanlash mumkin. Balingiz avval 1-tanlov bilan solishtiriladi. Yetarli bo'lsa, o'sha yerga qabul qilinasiz, 2- va 3-tanlov ko'rib chiqilmaydi. Yetmasa, 2-tanlov, keyin 3-tanlov tekshiriladi. Birortasi ham to'g'ri kelmasa, natijangiz 1-tanlov bo'yicha ko'rsatiladi. Haqiqiy orzuingizni birinchi, ishonchliroq variantni uchinchi qo'ying.",
+  "moveUp": "Yuqoriga",
+  "moveDown": "Pastga",
+  "removeItem": "Olib tashlash",
+  "emptySlot": "Bo'sh o'rin",
+  "addToDreams": "Orzularimga qo'shish",
+  "removeFromDreams": "Orzularimdan olib tashlash",
+  "addLyceum": "Litsey qo'shish",
+  "tooManyDreams": "3 tagacha litsey tanlash mumkin."
 }

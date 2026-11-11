@@ -1,6 +1,9 @@
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Any, Protocol, Sequence
 from uuid import UUID
+
+from app.modules.learning.domain.stats import MockResult, Progress, SubjectAnswers
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,4 +62,24 @@ class HeartsPort(Protocol):
 
     async def lose(self, user_id: UUID) -> int:
         """Deduct one heart; returns hearts left. Never blocks."""
+        ...
+
+
+class AnswerStatsPort(Protocol):
+    async def daily(self, user_id: UUID, since: date) -> dict[date, tuple[int, int]]:
+        """Tashkent day -> (answered, correct) from `since` on."""
+        ...
+
+    async def by_subject(self, user_id: UUID) -> list[SubjectAnswers]: ...
+
+
+class ProgressPort(Protocol):
+    async def progress(self, user_id: UUID, since: date) -> Progress:
+        """Lifetime counters and xp per Tashkent day from `since` on."""
+        ...
+
+
+class MockResultsPort(Protocol):
+    async def recent(self, user_id: UUID, limit: int) -> list[MockResult]:
+        """Submitted mocks, newest first."""
         ...

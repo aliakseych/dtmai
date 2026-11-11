@@ -2,18 +2,21 @@
 import { useMemo, useState } from "react";
 import { useLocale, useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
+import type { LyceumRow } from "@/lib/api";
 import { pick } from "@/lib/localized";
 import type { AsyncState } from "@/lib/useAsync";
+import { PriorityList } from "@/components/lyceums/PriorityList";
+import { MAX_DREAMS } from "@/lib/dreams";
 import { Choice } from "./Choice";
-import { normCity, type OnbLyceum } from "./types";
 
-/** Lyceums of the chosen city (all of them when the city matches none), with logo/campus photo when the API has them. */
-export function LyceumStep({ state, onRetry, city, value, onChange }: { state: AsyncState<OnbLyceum[]>; onRetry: () => void; city: string; value: string | null; onChange: (id: string) => void }) {
+/** Lyceums of the chosen city code (all when "any city"), with logo/campus photo. */
+export function LyceumStep({ state, onRetry, city, value, onChange }: { state: AsyncState<LyceumRow[]>; onRetry: () => void; city: string | null; value: string[]; onChange: (ids: string[]) => void }) {
   const t = useT();
   const { locale } = useLocale();
   const [q, setQ] = useState("");
   return (
     <>
+      <PriorityList ids={value} onChange={onChange} />
       <input
         type="search"
         value={q}
@@ -29,18 +32,16 @@ export function LyceumStep({ state, onRetry, city, value, onChange }: { state: A
   );
 }
 
-function List({ all, city, q, value, onChange, locale }: { all: OnbLyceum[]; city: string; q: string; value: string | null; onChange: (id: string) => void; locale: Parameters<typeof pick>[1] }) {
+function List({ all, city, q, value, onChange, locale }: { all: LyceumRow[]; city: string | null; q: string; value: string[]; onChange: (ids: string[]) => void; locale: Parameters<typeof pick>[1] }) {
   const items = useMemo(() => {
-    const c = normCity(city);
-    const inCity = c ? all.filter((l) => l.city && normCity(l.city) === c) : [];
-    const base = inCity.length > 0 ? inCity : all;
+    const base = city ? all.filter((l) => l.city === city) : all;
     const needle = q.trim().toLowerCase();
     return needle ? base.filter((l) => pick(l.names, locale).toLowerCase().includes(needle)) : base;
   }, [all, city, q, locale]);
   return (
-    <div role="radiogroup" className="flex flex-col gap-2">
+    <div role="group" className="flex max-h-[45vh] flex-col gap-2 overflow-y-auto pr-1">
       {items.map((l) => (
-        <Choice key={l.id} on={value === l.id} onClick={() => onChange(l.id)}>
+        <Choice key={l.id} multi on={value.includes(l.id)} onClick={() => onChange(value.includes(l.id) ? value.filter((x) => x !== l.id) : value.length < MAX_DREAMS ? [...value, l.id] : value)}>
           {l.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={l.logo_url} alt="" className="size-10 shrink-0 rounded-lg object-contain" />

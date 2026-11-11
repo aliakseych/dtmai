@@ -53,22 +53,3 @@ export function latestCompetition(d: LyceumDetailData): number | null {
   const apps = rows.reduce((a, r) => a + r.applications, 0);
   return quota > 0 ? apps / quota : null;
 }
-
-/** Loads details for many lyceums at once (list cards need logo/photo/city, which the summary lacks). */
-export function useLyceumDetails(ids: string[]) {
-  const [map, setMap] = useState<Record<string, LyceumDetailData>>({});
-  const key = ids.join(",");
-  useEffect(() => {
-    let live = true;
-    for (const id of ids)
-      load(id).then(
-        (d) => live && setMap((m) => (m[id] === d ? m : { ...m, [id]: d })),
-        () => {},
-      );
-    return () => {
-      live = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
-  return map;
-}

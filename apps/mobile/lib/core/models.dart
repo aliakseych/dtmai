@@ -28,8 +28,10 @@ class Me {
     this.email,
     this.emailVerified = false,
     this.locale = 'uz-Latn',
-    this.targetLyceumId,
+    this.dreamLyceumIds = const [],
+    this.subjectIds = const [],
     this.educationLanguageId,
+    this.city,
   });
   factory Me.fromJson(Json j) => Me(
         id: j['id'] as String,
@@ -37,16 +39,23 @@ class Me {
         email: j['email'] as String?,
         emailVerified: j['email_verified'] as bool? ?? false,
         locale: (j['locale'] as String?) ?? 'uz-Latn',
-        targetLyceumId: j['target_lyceum_id'] as String?,
+        dreamLyceumIds: _strs(j['dream_lyceum_ids']),
+        subjectIds: _strs(j['subject_ids']),
         educationLanguageId: j['education_language_id'] as String?,
+        city: j['city'] as String?,
       );
   final String id;
   final String name;
   final String? email;
   final bool emailVerified;
   final String locale;
-  final String? targetLyceumId;
+  /// Up to 3 lyceum ids, order = priority 1..3.
+  final List<String> dreamLyceumIds;
+  final List<String> subjectIds;
   final String? educationLanguageId;
+
+  /// City code; null = any city.
+  final String? city;
 }
 
 class Hearts {
@@ -667,7 +676,7 @@ class Friend {
 }
 
 class Lyceum {
-  const Lyceum({required this.id, required this.names, required this.quota, required this.applications, this.competitionRatio, this.latestYear});
+  const Lyceum({required this.id, required this.names, required this.quota, required this.applications, this.competitionRatio, this.latestYear, this.competition, this.competitionYear, this.city, this.logoUrl, this.campusPhotoUrl, this.dormitoryStatus = DormitoryStatus.unknown});
   factory Lyceum.fromJson(Json j) => Lyceum(
         id: j['id'] as String,
         names: _names(j['names']),
@@ -675,6 +684,12 @@ class Lyceum {
         applications: _int(j['applications']),
         competitionRatio: (j['competition_ratio'] as num?)?.toDouble(),
         latestYear: j['latest_year'] as int?,
+        competition: (j['competition'] as num?)?.toDouble(),
+        competitionYear: (j['competition_year'] as num?)?.toInt(),
+        city: j['city'] as String?,
+        logoUrl: j['logo_url'] as String?,
+        campusPhotoUrl: j['campus_photo_url'] as String?,
+        dormitoryStatus: DormitoryStatus.parse(j['dormitory_status']),
       );
   final String id;
   final Map<String, String> names;
@@ -682,6 +697,32 @@ class Lyceum {
   final int applications;
   final double? competitionRatio;
   final int? latestYear;
+
+  /// Applications / quota for [competitionYear]; null when unknown.
+  final double? competition;
+  final int? competitionYear;
+  final String? city;
+  final String? logoUrl;
+  final String? campusPhotoUrl;
+  final DormitoryStatus dormitoryStatus;
+}
+
+enum DormitoryStatus {
+  available,
+  limited,
+  none,
+  unknown;
+
+  static DormitoryStatus parse(Object? v) => DormitoryStatus.values.firstWhere((e) => e.name == v, orElse: () => DormitoryStatus.unknown);
+}
+
+/// `GET /v1/lyceums/cities`.
+class City {
+  const City({required this.code, required this.names, required this.lyceumCount});
+  factory City.fromJson(Json j) => City(code: '${j['code']}', names: _names(j['names']), lyceumCount: _int(j['lyceum_count']));
+  final String code;
+  final Map<String, String> names;
+  final int lyceumCount;
 }
 
 class SpecialityStat {
@@ -705,15 +746,41 @@ class SpecialityStat {
 }
 
 class LyceumDetail {
-  const LyceumDetail({required this.id, required this.names, required this.stats});
+  const LyceumDetail({
+    required this.id,
+    required this.names,
+    required this.stats,
+    this.city,
+    this.logoUrl,
+    this.campusPhotoUrl,
+    this.dormitoryStatus = DormitoryStatus.unknown,
+    this.dormitoryDescription = const {},
+  });
   factory LyceumDetail.fromJson(Json j) => LyceumDetail(
         id: j['id'] as String,
         names: _names(j['names']),
         stats: _list(j['stats']).map(SpecialityStat.fromJson).toList(),
+        city: _profileField(j, 'city') as String?,
+        logoUrl: _profileField(j, 'logo_url') as String?,
+        campusPhotoUrl: _profileField(j, 'campus_photo_url') as String?,
+        dormitoryStatus: DormitoryStatus.parse(_profileField(j, 'dormitory_status')),
+        dormitoryDescription: _names(_profileField(j, 'dormitory_description')),
       );
   final String id;
   final Map<String, String> names;
   final List<SpecialityStat> stats;
+  final String? city;
+  final String? logoUrl;
+  final String? campusPhotoUrl;
+  final DormitoryStatus dormitoryStatus;
+  final Map<String, String> dormitoryDescription;
+}
+
+/// Reads a field from the top level or the nested `profile` object.
+Object? _profileField(Json j, String key) {
+  if (j[key] != null) return j[key];
+  final p = j['profile'];
+  return p is Map ? p[key] : null;
 }
 
 class EduLanguage {

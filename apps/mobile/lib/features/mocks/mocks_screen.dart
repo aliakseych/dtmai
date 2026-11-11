@@ -10,7 +10,7 @@ import '../../widgets/async_view.dart';
 import '../../widgets/chunky_button.dart';
 import 'mock_providers.dart';
 
-/// Previous-year official papers (Bluebook-style timed runs). Mocks are free.
+/// Previous-year official papers (timed practice papers). Mocks are free.
 class MocksScreen extends ConsumerWidget {
   const MocksScreen({super.key});
 
@@ -99,7 +99,7 @@ class MocksScreen extends ConsumerWidget {
                           ),
                         ),
                         Text('${h.score.toStringAsFixed(h.score.truncateToDouble() == h.score ? 0 : 1)} / ${h.maxTotal.toStringAsFixed(0)}',
-                            style: const TextStyle(fontWeight: FontWeight.w800, color: Tokens.green)),
+                            style: const TextStyle(fontWeight: FontWeight.w800, color: Tokens.greenText)),
                       ]),
                     ),
                   ),

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { cn } from "../cn";
 
-export type LanguageOption = { value: string; label: string; flag: ReactNode };
+export type LanguageOption = { value: string; label: string; flag: ReactNode; /** Compact label (e.g. "UZ") shown below `sm`. */ short?: string };
 
 /**
  * Duolingo-style language picker: an uppercase "SITE LANGUAGE: NAME ⌄" trigger
@@ -109,7 +109,8 @@ export function LanguageSelector({
         className="inline-flex h-10 items-center gap-2 rounded-xl px-2 text-[13px] font-extrabold uppercase tracking-wide text-ink-soft transition hover:bg-snow hover:text-ink"
       >
         <span className="shrink-0 overflow-hidden rounded-[3px] [&>svg]:block [&>svg]:h-4 [&>svg]:w-6">{current?.flag}</span>
-        <span className="whitespace-nowrap">
+        <span className="whitespace-nowrap sm:hidden">{current?.short ?? current?.label}</span>
+        <span className="hidden whitespace-nowrap sm:inline">
           {label}: {current?.label}
         </span>
         <svg

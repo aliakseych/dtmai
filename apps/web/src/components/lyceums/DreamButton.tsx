@@ -3,10 +3,10 @@ import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Button } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
-import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { MAX_DREAMS, dreamIds, saveDreams } from "@/lib/dreams";
 
-/** "This is my dream lyceum": PATCH /me target_lyceum_id, then a floating-hearts burst. */
+/** Add/remove this lyceum in the dream priority list: PATCH /me dream_lyceum_ids, then a floating-hearts burst. */
 export function DreamButton({ lyceumId, onChanged }: { lyceumId: string; onChanged?: () => void }) {
   const t = useT();
   const { me, reloadMe } = useAuth();
@@ -14,15 +14,18 @@ export function DreamButton({ lyceumId, onChanged }: { lyceumId: string; onChang
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [burst, setBurst] = useState(0);
-  const mine = me?.target_lyceum_id === lyceumId;
+  const ids = dreamIds(me);
+  const pos = ids.indexOf(lyceumId);
+  const mine = pos >= 0;
+  const full = !mine && ids.length >= MAX_DREAMS;
 
   const choose = async () => {
     setBusy(true);
     setError(false);
     try {
-      await api.unwrap(api.client.PATCH("/v1/identity/me", { body: { target_lyceum_id: lyceumId } }));
+      await saveDreams(mine ? ids.filter((x) => x !== lyceumId) : [...ids, lyceumId]);
       await reloadMe();
-      setBurst((n) => n + 1);
+      if (!mine) setBurst((n) => n + 1);
       onChanged?.();
     } catch {
       setError(true);
@@ -33,7 +36,7 @@ export function DreamButton({ lyceumId, onChanged }: { lyceumId: string; onChang
 
   return (
     <div className="relative inline-flex flex-col items-start gap-2">
-      <Button variant={mine ? "secondary" : "super"} disabled={busy || mine} onClick={choose} aria-live="polite">
+      <Button variant={mine ? "secondary" : "super"} disabled={busy || full} onClick={choose} aria-live="polite">
         <motion.img
           src="/brand/icon-heart.png"
           alt=""
@@ -44,8 +47,9 @@ export function DreamButton({ lyceumId, onChanged }: { lyceumId: string; onChang
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 500, damping: 12 }}
         />
-        {mine ? t("lyceums.dream.mine") : t("lyceums.dream.cta")}
+        {mine ? t("lyceums.dream.inList", { n: pos + 1 }) : t("lyceums.dream.cta")}
       </Button>
+      {full && <p className="text-sm font-bold text-ink-soft">{t("lyceums.dream.full")}</p>}
       {error && <p role="alert" className="text-sm font-bold text-red">{t("common.error")}</p>}
       <AnimatePresence>
         {!reduce &&

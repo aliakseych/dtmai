@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       me,
       loading,
       isGuest: !!me?.roles.includes("guest"),
-      onboarded: !!me?.target_lyceum_id && !!me?.education_language_id,
+      onboarded: !!me?.dream_lyceum_ids.length && !!me?.education_language_id,
       mergePending: !!pendingGuest && !!me && !me.roles.includes("guest"),
       retryMerge,
       dismissMerge: () => setPending(null),
@@ -156,7 +156,7 @@ export function useAuth(): Ctx {
 }
 
 /** Where to go after a session is established. */
-export const homeFor = (me: Me) => (me.target_lyceum_id && me.education_language_id ? "/learn/" : "/onboarding/");
+export const homeFor = (me: Me) => (me.dream_lyceum_ids.length > 0 && me.education_language_id ? "/learn/" : "/onboarding/");
 
 function MergeBanner() {
   const t = useT();

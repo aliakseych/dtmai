@@ -7,9 +7,11 @@ import '../../core/api/api_client.dart';
 import '../../core/l10n_ext.dart';
 import '../../core/locale_controller.dart';
 import '../../core/models.dart';
+import '../../theme/tokens.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/chunky_button.dart';
 import '../../widgets/mascot.dart';
+import '../../widgets/priority_picker.dart';
 import '../auth/auth_providers.dart';
 import '../learn/learn_providers.dart';
 import '../lyceums/lyceum_providers.dart';
@@ -26,7 +28,9 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
-  String? _lyceumId;
+  List<String> _dreams = [];
+  String? _city; // null = any city
+  final Set<String> _subjects = {};
   String? _languageId;
   int _goal = 30;
   bool _busy = false;
@@ -39,11 +43,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
     try {
       final api = ref.read(apiProvider);
-      final subjectId = await ref.read(currentSubjectIdProvider.future);
+      final chosen = _subjects.isNotEmpty ? _subjects.first : null;
+      if (chosen != null) ref.read(selectedSubjectProvider.notifier).set(chosen);
+      final subjectId = chosen ?? await ref.read(currentSubjectIdProvider.future);
       await api.patchMe(
         locale: AppLocales.toTag(ref.read(localeProvider)),
-        targetLyceumId: _lyceumId,
+        dreamLyceumIds: _dreams,
+        subjectIds: _subjects.toList(),
         educationLanguageId: _languageId,
+        city: _city,
+        clearCity: _city == null,
       );
       await api.setDailyGoal(_goal);
       if (!placement && subjectId != null) await api.skipPlacement(subjectId);
@@ -70,14 +79,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final l = context.l10n;
     final tag = context.localeTag;
     final lyceums = ref.watch(lyceumsProvider);
+    final cities = ref.watch(citiesProvider);
     final languages = ref.watch(languagesProvider);
     final subjects = ref.watch(subjectsProvider);
     final locale = ref.watch(localeProvider);
-    final subjectId = ref.watch(currentSubjectIdProvider).value;
     final titleStyle = Theme.of(context).textTheme.titleMedium;
     return Scaffold(
       body: SafeArea(
-        child: ListView(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
             const Center(child: Mascot(pose: MascotPose.top, size: 120)),
@@ -94,7 +106,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
             ]),
             const SizedBox(height: 16),
-            Text(l.chooseSubject, style: titleStyle),
+            Text(l.chooseSubjects, style: titleStyle),
             const SizedBox(height: 8),
             AsyncView<List<Subject>>(
               value: subjects,
@@ -103,8 +115,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 for (final s in list)
                   ChoiceChip(
                     label: Text(pickName(s.names, tag)),
-                    selected: s.id == subjectId,
-                    onSelected: (_) => ref.read(selectedSubjectProvider.notifier).set(s.id),
+                    selected: _subjects.contains(s.id),
+                    onSelected: (v) => setState(() => v ? _subjects.add(s.id) : _subjects.remove(s.id)),
                   ),
               ]),
             ),
@@ -124,19 +136,64 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ]),
             ),
             const SizedBox(height: 16),
-            Text(l.chooseLyceum, style: titleStyle),
+            Text(l.chooseCity, style: titleStyle),
+            const SizedBox(height: 4),
+            Text(l.cityHint, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Tokens.textMuted)),
+            const SizedBox(height: 8),
+            AsyncView<List<City>>(
+              value: cities,
+              onRetry: () => ref.invalidate(citiesProvider),
+              builder: (list) => ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 180),
+                child: SingleChildScrollView(
+                  child: Wrap(spacing: 8, children: [
+                ChoiceChip(
+                  label: Text(l.anyCity),
+                  selected: _city == null,
+                  onSelected: (_) => setState(() => _city = null),
+                ),
+                for (final c in list)
+                  ChoiceChip(
+                    label: Text(pickName(c.names, tag)),
+                    selected: _city == c.code,
+                    onSelected: (_) => setState(() => _city = c.code),
+                  ),
+              ]),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(l.dreamLyceums, style: titleStyle),
             const SizedBox(height: 8),
             AsyncView<List<Lyceum>>(
               value: lyceums,
               onRetry: () => ref.invalidate(lyceumsProvider),
-              builder: (list) => DropdownButtonFormField<String>(
-                initialValue: _lyceumId,
-                isExpanded: true,
-                items: [
-                  for (final x in list) DropdownMenuItem(value: x.id, child: Text(pickName(x.names, tag), overflow: TextOverflow.ellipsis)),
-                ],
-                onChanged: (v) => setState(() => _lyceumId = v),
-              ),
+              builder: (all) {
+                final names = {for (final x in all) x.id: pickName(x.names, tag)};
+                final list = (_city == null ? all : all.where((x) => x.city == _city).toList())
+                    .where((x) => !_dreams.contains(x.id))
+                    .toList();
+                return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  PriorityPicker(ids: _dreams, nameOf: (id) => names[id] ?? '', onChanged: (v) => setState(() => _dreams = v)),
+                  if (_dreams.length < maxDreamLyceums) ...[
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      key: ValueKey('${_city}_${_dreams.length}'),
+                      initialValue: null,
+                      isExpanded: true,
+                      hint: Text(l.addLyceum),
+                      menuMaxHeight: 320,
+                      items: [
+                        for (final x in list)
+                          DropdownMenuItem(value: x.id, child: Text(pickName(x.names, tag), overflow: TextOverflow.ellipsis)),
+                      ],
+                      onChanged: (v) => setState(() {
+                        if (v != null && _dreams.length < maxDreamLyceums) _dreams = [..._dreams, v];
+                      }),
+                    ),
+                  ],
+                ]);
+              },
             ),
             const SizedBox(height: 16),
             Text(l.dailyGoal, style: titleStyle),
@@ -157,6 +214,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             TextButton(onPressed: _busy || _languageId == null ? null : () => _save(placement: false), child: Text(l.skipPlacement)),
             TextButton(onPressed: _busy ? null : _notNow, child: Text(l.notNow)),
           ],
+        ),
+          ),
         ),
       ),
     );

@@ -23,7 +23,7 @@ export function StatsTable({ detail: d }: { detail: LyceumDetailData }) {
   return (
     <>
       {/* Mobile: one card per row; desktop: fixed-layout table. */}
-      <ul className="flex flex-col gap-3 md:hidden">
+      <ul className="flex max-h-96 flex-col gap-3 overflow-y-auto md:hidden">
         {d.stats.map((r) => (
           <li key={r.id} className="rounded-2xl border-2 border-line p-3">
             <p className="text-sm font-bold text-ink-soft">{academicYear(r.year)}</p>

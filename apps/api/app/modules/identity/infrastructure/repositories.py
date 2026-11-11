@@ -9,15 +9,18 @@ from app.modules.identity.domain.models import EmailCode, RefreshToken, Role, Us
 from app.modules.identity.infrastructure.orm import EmailCodeRow, RefreshTokenRow, UserRow
 from app.shared.errors import Conflict
 
+ACTIVE, DISABLED = "active", "disabled"
+
 
 def _to_domain(r: UserRow) -> User:
     return User(
         id=r.id, name=r.name, locale=r.locale, email=r.email, email_verified=r.email_verified,
         password_hash=r.password_hash, telegram_id=r.telegram_id,
-        roles={Role(x) for x in r.roles}, target_lyceum_id=r.target_lyceum_id,
+        roles={Role(x) for x in r.roles}, dream_lyceum_ids=list(r.dream_lyceum_ids or []),
         education_language_id=r.education_language_id, city=r.city,
         subject_ids=list(r.subject_ids or []), created_at=r.created_at,
-        last_seen_at=r.last_seen_at,
+        last_seen_at=r.last_seen_at, telegram_username=r.telegram_username,
+        disabled=r.status == DISABLED, is_system=r.is_system,
     )
 
 
@@ -25,8 +28,10 @@ def _fill(r: UserRow, u: User) -> None:
     r.email, r.email_verified, r.password_hash = u.email, u.email_verified, u.password_hash
     r.telegram_id, r.name, r.locale = u.telegram_id, u.name, u.locale
     r.roles = sorted(x.value for x in u.roles)
-    r.target_lyceum_id, r.education_language_id = u.target_lyceum_id, u.education_language_id
+    r.dream_lyceum_ids, r.education_language_id = list(u.dream_lyceum_ids), u.education_language_id
     r.city, r.subject_ids = u.city, list(u.subject_ids)
+    r.telegram_username, r.is_system = u.telegram_username, u.is_system
+    r.status = DISABLED if u.disabled else ACTIVE
 
 
 class SqlUserRepository:
@@ -62,22 +67,47 @@ class SqlUserRepository:
         _fill(row, user)
         await self._s.flush()
 
-    async def search(self, q: str | None, limit: int, offset: int) -> tuple[int, list[User]]:
+    async def search(
+        self, q: str | None, role: str | None, disabled: bool | None, sort: str, descending: bool,
+        limit: int, offset: int,
+    ) -> tuple[int, list[User]]:
         conds = []
         if q and q.strip():
             term = q.strip()
             like = "%" + term.replace("%", r"\%").replace("_", r"\_") + "%"
-            parts = [UserRow.email.ilike(like, escape="\\"), UserRow.name.ilike(like, escape="\\")]
+            parts = [
+                UserRow.email.ilike(like, escape="\\"), UserRow.name.ilike(like, escape="\\"),
+                UserRow.telegram_username.ilike(like, escape="\\"),
+            ]
             if term.isdigit():
                 parts.append(UserRow.telegram_id == int(term))
             conds.append(or_(*parts))
+        if role:
+            conds.append(UserRow.roles.contains([role]))
+        if disabled is not None:
+            conds.append(UserRow.status == (DISABLED if disabled else ACTIVE))
+        column = {"created_at": UserRow.created_at, "last_seen_at": UserRow.last_seen_at, "email": UserRow.email}[sort]
         total = (await self._s.execute(select(func.count()).select_from(UserRow).where(*conds))).scalar_one()
         rows = (
             await self._s.execute(
-                select(UserRow).where(*conds).order_by(UserRow.created_at.desc(), UserRow.id).limit(limit).offset(offset)
+                select(UserRow).where(*conds)
+                .order_by(column.desc() if descending else column.asc(), UserRow.id)
+                .limit(limit).offset(offset)
             )
         ).scalars().all()
         return total, [_to_domain(r) for r in rows]
+
+    async def get_many(self, ids: list[UUID]) -> list[User]:
+        if not ids:
+            return []
+        rows = (await self._s.execute(select(UserRow).where(UserRow.id.in_(ids)))).scalars().all()
+        return [_to_domain(r) for r in rows]
+
+    async def count_active_admins(self) -> int:
+        stmt = select(func.count()).select_from(UserRow).where(
+            UserRow.roles.contains(["admin"]), UserRow.status == ACTIVE
+        )
+        return int((await self._s.execute(stmt)).scalar_one())
 
     async def contacts(
         self, after: UUID | None, limit: int, locale: str | None, with_email: bool
@@ -106,12 +136,12 @@ class SqlUserRepository:
         )
         return int(result.rowcount or 0)  # type: ignore[attr-defined]
 
-    async def count_by_target_lyceum(self, lyceum_id: UUID) -> int:
+    async def count_by_dream_lyceum(self, lyceum_id: UUID) -> int:
         return int(
             (
                 await self._s.execute(
                     select(func.count()).select_from(UserRow).where(
-                        UserRow.target_lyceum_id == lyceum_id
+                        UserRow.dream_lyceum_ids.contains([lyceum_id])
                     )
                 )
             ).scalar_one()

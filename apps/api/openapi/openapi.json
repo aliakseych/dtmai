@@ -17,6 +17,153 @@
         "title": "AchievementsOut",
         "type": "object"
       },
+      "ActivityOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "actor_id": {
+            "format": "uuid",
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "actor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Name"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "question_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question Id"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "actor_name",
+          "action",
+          "question_id",
+          "payload",
+          "duration_ms",
+          "created_at"
+        ],
+        "title": "ActivityOut",
+        "type": "object"
+      },
+      "ActivityPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ],
+        "title": "ActivityPage",
+        "type": "object"
+      },
+      "AdminPasswordIn": {
+        "properties": {
+          "password": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "password"
+        ],
+        "title": "AdminPasswordIn",
+        "type": "object"
+      },
+      "AdminUserCreate": {
+        "properties": {
+          "display_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "type": "string"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Roles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "display_name",
+          "roles"
+        ],
+        "title": "AdminUserCreate",
+        "type": "object"
+      },
       "AdminUserOut": {
         "properties": {
           "created_at": {
@@ -30,6 +177,10 @@
               }
             ],
             "title": "Created At"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
           },
           "email": {
             "anyOf": [
@@ -47,9 +198,21 @@
             "title": "Id",
             "type": "string"
           },
-          "name": {
-            "title": "Name",
-            "type": "string"
+          "is_system": {
+            "title": "Is System",
+            "type": "boolean"
+          },
+          "last_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen At"
           },
           "roles": {
             "items": {
@@ -58,26 +221,87 @@
             "title": "Roles",
             "type": "array"
           },
-          "telegram_id": {
+          "status": {
+            "enum": [
+              "active",
+              "disabled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "telegram_username": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Telegram Id"
+            "title": "Telegram Username"
           }
         },
         "required": [
           "id",
           "email",
-          "name",
+          "telegram_username",
+          "display_name",
           "roles",
-          "created_at"
+          "status",
+          "is_system",
+          "created_at",
+          "last_seen_at"
         ],
         "title": "AdminUserOut",
+        "type": "object"
+      },
+      "AdminUserPatch": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "roles": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roles"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "active",
+                  "disabled"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "AdminUserPatch",
         "type": "object"
       },
       "AdminUsersPage": {
@@ -1416,6 +1640,56 @@
         "title": "CheckoutOut",
         "type": "object"
       },
+      "CityNamesOut": {
+        "properties": {
+          "en": {
+            "title": "En",
+            "type": "string"
+          },
+          "ru": {
+            "title": "Ru",
+            "type": "string"
+          },
+          "uz-Cyrl": {
+            "title": "Uz-Cyrl",
+            "type": "string"
+          },
+          "uz-Latn": {
+            "title": "Uz-Latn",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uz-Latn",
+          "uz-Cyrl",
+          "ru",
+          "en"
+        ],
+        "title": "CityNamesOut",
+        "type": "object"
+      },
+      "CityOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "lyceum_count": {
+            "title": "Lyceum Count",
+            "type": "integer"
+          },
+          "names": {
+            "$ref": "#/components/schemas/CityNamesOut"
+          }
+        },
+        "required": [
+          "code",
+          "names",
+          "lyceum_count"
+        ],
+        "title": "CityOut",
+        "type": "object"
+      },
       "ComparisonOut": {
         "properties": {
           "competition_ratio": {
@@ -1701,6 +1975,35 @@
           "xp"
         ],
         "title": "DailyGoalIn",
+        "type": "object"
+      },
+      "DailyStatOut": {
+        "properties": {
+          "answered": {
+            "title": "Answered",
+            "type": "integer"
+          },
+          "correct": {
+            "title": "Correct",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "xp": {
+            "title": "Xp",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "xp",
+          "answered",
+          "correct"
+        ],
+        "title": "DailyStatOut",
         "type": "object"
       },
       "DecideIn": {
@@ -2550,6 +2853,49 @@
         "title": "Kind",
         "type": "string"
       },
+      "LabelerCreate": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          }
+        },
+        "title": "LabelerCreate",
+        "type": "object"
+      },
+      "LabelerCreated": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "login": {
+            "title": "Login",
+            "type": "string"
+          },
+          "password": {
+            "description": "Shown once; not retrievable later",
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "login",
+          "password"
+        ],
+        "title": "LabelerCreated",
+        "type": "object"
+      },
       "LabelingStatsOut": {
         "properties": {
           "audit": {
@@ -2675,6 +3021,77 @@
           "xp"
         ],
         "title": "LeaderRowOut",
+        "type": "object"
+      },
+      "LeaderboardRowOut": {
+        "properties": {
+          "actor_id": {
+            "format": "uuid",
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "actor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Name"
+          },
+          "approved": {
+            "title": "Approved",
+            "type": "integer"
+          },
+          "avg_duration_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Duration Ms"
+          },
+          "is_system": {
+            "title": "Is System",
+            "type": "boolean"
+          },
+          "labeled": {
+            "title": "Labeled",
+            "type": "integer"
+          },
+          "last_active_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Active At"
+          },
+          "rejected": {
+            "title": "Rejected",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "actor_id",
+          "actor_name",
+          "is_system",
+          "labeled",
+          "approved",
+          "rejected",
+          "avg_duration_ms",
+          "last_active_at"
+        ],
+        "title": "LeaderboardRowOut",
         "type": "object"
       },
       "LeagueOut": {
@@ -3362,6 +3779,37 @@
             ],
             "title": "Description"
           },
+          "dormitory_description": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dormitory Description"
+          },
+          "dormitory_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "available",
+                  "limited",
+                  "none",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dormitory Status"
+          },
           "gallery_urls": {
             "anyOf": [
               {
@@ -3440,9 +3888,42 @@
             ],
             "title": "Applications"
           },
+          "campus_photo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Campus Photo Url"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
           "code": {
             "title": "Code",
             "type": "string"
+          },
+          "competition": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Competition"
           },
           "competition_ratio": {
             "anyOf": [
@@ -3454,6 +3935,27 @@
               }
             ],
             "title": "Competition Ratio"
+          },
+          "competition_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Competition Year"
+          },
+          "dormitory_status": {
+            "enum": [
+              "available",
+              "limited",
+              "none",
+              "unknown"
+            ],
+            "title": "Dormitory Status",
+            "type": "string"
           },
           "id": {
             "format": "uuid",
@@ -3470,6 +3972,17 @@
               }
             ],
             "title": "Latest Year"
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url"
           },
           "names": {
             "$ref": "#/components/schemas/NamesOut"
@@ -3490,10 +4003,16 @@
           "id",
           "code",
           "names",
+          "city",
+          "logo_url",
+          "campus_photo_url",
+          "dormitory_status",
           "latest_year",
           "quota",
           "applications",
-          "competition_ratio"
+          "competition_ratio",
+          "competition",
+          "competition_year"
         ],
         "title": "LyceumSummary",
         "type": "object"
@@ -3510,6 +4029,14 @@
               }
             ],
             "title": "City"
+          },
+          "dream_lyceum_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Dream Lyceum Ids",
+            "type": "array"
           },
           "education_language_id": {
             "anyOf": [
@@ -3566,18 +4093,6 @@
             "title": "Subject Ids",
             "type": "array"
           },
-          "target_lyceum_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Lyceum Id"
-          },
           "telegram_id": {
             "anyOf": [
               {
@@ -3598,7 +4113,7 @@
           "name",
           "locale",
           "roles",
-          "target_lyceum_id",
+          "dream_lyceum_ids",
           "education_language_id",
           "city",
           "subject_ids"
@@ -3611,7 +4126,7 @@
           "city": {
             "anyOf": [
               {
-                "maxLength": 100,
+                "maxLength": 50,
                 "type": "string"
               },
               {
@@ -3619,6 +4134,22 @@
               }
             ],
             "title": "City"
+          },
+          "dream_lyceum_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dream Lyceum Ids"
           },
           "education_language_id": {
             "anyOf": [
@@ -3671,18 +4202,6 @@
               }
             ],
             "title": "Subject Ids"
-          },
-          "target_lyceum_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Lyceum Id"
           }
         },
         "title": "MePatch",
@@ -3821,6 +4340,36 @@
           "question_count"
         ],
         "title": "MockOut",
+        "type": "object"
+      },
+      "MockStatOut": {
+        "properties": {
+          "max_score": {
+            "title": "Max Score",
+            "type": "number"
+          },
+          "mock_id": {
+            "format": "uuid",
+            "title": "Mock Id",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "taken_at": {
+            "format": "date-time",
+            "title": "Taken At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mock_id",
+          "taken_at",
+          "score",
+          "max_score"
+        ],
+        "title": "MockStatOut",
         "type": "object"
       },
       "ModerateIn": {
@@ -4939,6 +5488,23 @@
             "title": "Description",
             "type": "object"
           },
+          "dormitory_description": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Dormitory Description",
+            "type": "object"
+          },
+          "dormitory_status": {
+            "enum": [
+              "available",
+              "limited",
+              "none",
+              "unknown"
+            ],
+            "title": "Dormitory Status",
+            "type": "string"
+          },
           "gallery_urls": {
             "items": {
               "type": "string"
@@ -4994,7 +5560,9 @@
           "city",
           "website",
           "contacts",
-          "verified_rep"
+          "verified_rep",
+          "dormitory_status",
+          "dormitory_description"
         ],
         "title": "ProfileOut",
         "type": "object"
@@ -6321,6 +6889,81 @@
         "title": "ReorderIn",
         "type": "object"
       },
+      "RepProfilePatch": {
+        "properties": {
+          "contacts": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ContactsIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "courses": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Courses"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "dormitory_description": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dormitory Description"
+          },
+          "dormitory_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "available",
+                  "limited",
+                  "none",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dormitory Status"
+          }
+        },
+        "title": "RepProfilePatch",
+        "type": "object"
+      },
       "ReportIn": {
         "properties": {
           "reason": {
@@ -6563,23 +7206,6 @@
           "due"
         ],
         "title": "ReviewSummaryOut",
-        "type": "object"
-      },
-      "RolesIn": {
-        "properties": {
-          "roles": {
-            "items": {
-              "type": "string"
-            },
-            "minItems": 1,
-            "title": "Roles",
-            "type": "array"
-          }
-        },
-        "required": [
-          "roles"
-        ],
-        "title": "RolesIn",
         "type": "object"
       },
       "RolloverOut": {
@@ -7000,90 +7626,6 @@
         "title": "StatOut",
         "type": "object"
       },
-      "StatsOut": {
-        "properties": {
-          "daily_goal_xp": {
-            "title": "Daily Goal Xp",
-            "type": "integer"
-          },
-          "gems": {
-            "title": "Gems",
-            "type": "integer"
-          },
-          "hearts": {
-            "$ref": "#/components/schemas/HeartsOut"
-          },
-          "league_tier": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/TierOut"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "lessons_completed": {
-            "title": "Lessons Completed",
-            "type": "integer"
-          },
-          "streak": {
-            "title": "Streak",
-            "type": "integer"
-          },
-          "streak_active_today": {
-            "title": "Streak Active Today",
-            "type": "boolean"
-          },
-          "streak_at_risk": {
-            "title": "Streak At Risk",
-            "type": "boolean"
-          },
-          "streak_freezes": {
-            "title": "Streak Freezes",
-            "type": "integer"
-          },
-          "streak_longest": {
-            "title": "Streak Longest",
-            "type": "integer"
-          },
-          "today_xp": {
-            "title": "Today Xp",
-            "type": "integer"
-          },
-          "user_id": {
-            "format": "uuid",
-            "title": "User Id",
-            "type": "string"
-          },
-          "xp_today": {
-            "title": "Xp Today",
-            "type": "integer"
-          },
-          "xp_total": {
-            "title": "Xp Total",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "user_id",
-          "xp_total",
-          "xp_today",
-          "gems",
-          "streak",
-          "streak_longest",
-          "streak_active_today",
-          "streak_at_risk",
-          "streak_freezes",
-          "lessons_completed",
-          "hearts",
-          "league_tier",
-          "today_xp",
-          "daily_goal_xp"
-        ],
-        "title": "StatsOut",
-        "type": "object"
-      },
       "StatusIn": {
         "properties": {
           "reason": {
@@ -7258,6 +7800,43 @@
           }
         },
         "title": "SubjectPatch",
+        "type": "object"
+      },
+      "SubjectStatOut": {
+        "properties": {
+          "answered": {
+            "title": "Answered",
+            "type": "integer"
+          },
+          "correct": {
+            "title": "Correct",
+            "type": "integer"
+          },
+          "mastery": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "0..1, attempts-weighted over topics/types; null when unknown",
+            "title": "Mastery"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_id",
+          "answered",
+          "correct",
+          "mastery"
+        ],
+        "title": "SubjectStatOut",
         "type": "object"
       },
       "SubscriptionOut": {
@@ -8246,6 +8825,90 @@
         "title": "ImportIn",
         "type": "object"
       },
+      "app__interfaces__http__v1__gamification__StatsOut": {
+        "properties": {
+          "daily_goal_xp": {
+            "title": "Daily Goal Xp",
+            "type": "integer"
+          },
+          "gems": {
+            "title": "Gems",
+            "type": "integer"
+          },
+          "hearts": {
+            "$ref": "#/components/schemas/HeartsOut"
+          },
+          "league_tier": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TierOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lessons_completed": {
+            "title": "Lessons Completed",
+            "type": "integer"
+          },
+          "streak": {
+            "title": "Streak",
+            "type": "integer"
+          },
+          "streak_active_today": {
+            "title": "Streak Active Today",
+            "type": "boolean"
+          },
+          "streak_at_risk": {
+            "title": "Streak At Risk",
+            "type": "boolean"
+          },
+          "streak_freezes": {
+            "title": "Streak Freezes",
+            "type": "integer"
+          },
+          "streak_longest": {
+            "title": "Streak Longest",
+            "type": "integer"
+          },
+          "today_xp": {
+            "title": "Today Xp",
+            "type": "integer"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          },
+          "xp_today": {
+            "title": "Xp Today",
+            "type": "integer"
+          },
+          "xp_total": {
+            "title": "Xp Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "user_id",
+          "xp_total",
+          "xp_today",
+          "gems",
+          "streak",
+          "streak_longest",
+          "streak_active_today",
+          "streak_at_risk",
+          "streak_freezes",
+          "lessons_completed",
+          "hearts",
+          "league_tier",
+          "today_xp",
+          "daily_goal_xp"
+        ],
+        "title": "StatsOut",
+        "type": "object"
+      },
       "app__interfaces__http__v1__labeling__ReviewOut": {
         "properties": {
           "audit_sample_id": {
@@ -8396,6 +9059,66 @@
           "passage_id"
         ],
         "title": "ItemOut",
+        "type": "object"
+      },
+      "app__interfaces__http__v1__learning__StatsOut": {
+        "properties": {
+          "accuracy": {
+            "description": "correct / answered over all time, 0..1",
+            "title": "Accuracy",
+            "type": "number"
+          },
+          "by_subject": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectStatOut"
+            },
+            "title": "By Subject",
+            "type": "array"
+          },
+          "daily": {
+            "description": "Last 30 Tashkent days, oldest first, zero-filled",
+            "items": {
+              "$ref": "#/components/schemas/DailyStatOut"
+            },
+            "title": "Daily",
+            "type": "array"
+          },
+          "lessons_completed": {
+            "title": "Lessons Completed",
+            "type": "integer"
+          },
+          "mocks": {
+            "description": "Recent submitted mocks, newest first",
+            "items": {
+              "$ref": "#/components/schemas/MockStatOut"
+            },
+            "title": "Mocks",
+            "type": "array"
+          },
+          "streak_best": {
+            "title": "Streak Best",
+            "type": "integer"
+          },
+          "streak_current": {
+            "title": "Streak Current",
+            "type": "integer"
+          },
+          "xp_total": {
+            "title": "Xp Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "xp_total",
+          "streak_current",
+          "streak_best",
+          "lessons_completed",
+          "accuracy",
+          "daily",
+          "by_subject",
+          "mocks"
+        ],
+        "title": "StatsOut",
         "type": "object"
       },
       "app__interfaces__http__v1__lyceums__ImportIn": {
@@ -16607,6 +17330,280 @@
         ]
       }
     },
+    "/v1/admin/labelers": {
+      "post": {
+        "description": "Create a system labeler; the generated login/password are returned once.",
+        "operationId": "identity_admin_create_labeler",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelerCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabelerCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Admin Create Labeler",
+        "tags": [
+          "identity-admin"
+        ]
+      }
+    },
+    "/v1/admin/labeling/activity": {
+      "get": {
+        "operationId": "labeling_admin_activity",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "actor_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Actor Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "action",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Action"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "created_at",
+              "enum": [
+                "created_at",
+                "duration_ms",
+                "action"
+              ],
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "title": "Order",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Admin Activity",
+        "tags": [
+          "labeling-admin"
+        ]
+      }
+    },
     "/v1/admin/labeling/audit/agreement": {
       "get": {
         "operationId": "labeling_audit_agreement",
@@ -17206,6 +18203,152 @@
           }
         ],
         "summary": "Get Generation",
+        "tags": [
+          "labeling-admin"
+        ]
+      }
+    },
+    "/v1/admin/labeling/leaderboard": {
+      "get": {
+        "operationId": "labeling_admin_leaderboard",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "labeled",
+              "enum": [
+                "labeled",
+                "approved",
+                "rejected",
+                "avg_duration"
+              ],
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "title": "Order",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LeaderboardRowOut"
+                  },
+                  "title": "Response Labeling Admin Leaderboard",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Admin Leaderboard",
         "tags": [
           "labeling-admin"
         ]
@@ -18207,24 +19350,89 @@
           },
           {
             "in": "query",
-            "name": "limit",
+            "name": "role",
             "required": false,
             "schema": {
-              "default": 50,
-              "maximum": 200,
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "active",
+                    "disabled"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "created_at",
+              "enum": [
+                "created_at",
+                "last_seen_at",
+                "email"
+              ],
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "title": "Order",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
               "minimum": 1,
-              "title": "Limit",
+              "title": "Page",
               "type": "integer"
             }
           },
           {
             "in": "query",
-            "name": "offset",
+            "name": "size",
             "required": false,
             "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Size",
               "type": "integer"
             }
           }
@@ -18290,11 +19498,162 @@
         "tags": [
           "identity-admin"
         ]
+      },
+      "post": {
+        "description": "Create a verified staff account (admin, labeler, editor, lyceum_rep...).",
+        "operationId": "identity_admin_create_user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Admin Create User",
+        "tags": [
+          "identity-admin"
+        ]
       }
     },
-    "/v1/admin/users/{user_id}/roles": {
-      "put": {
-        "operationId": "identity_admin_set_roles",
+    "/v1/admin/users/{user_id}": {
+      "get": {
+        "operationId": "identity_admin_get_user",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Admin Get User",
+        "tags": [
+          "identity-admin"
+        ]
+      },
+      "patch": {
+        "operationId": "identity_admin_update_user",
         "parameters": [
           {
             "in": "path",
@@ -18311,7 +19670,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RolesIn"
+                "$ref": "#/components/schemas/AdminUserPatch"
               }
             }
           },
@@ -18374,7 +19733,166 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "Admin Set Roles",
+        "summary": "Admin Update User",
+        "tags": [
+          "identity-admin"
+        ]
+      }
+    },
+    "/v1/admin/users/{user_id}/reset-password": {
+      "post": {
+        "operationId": "identity_admin_reset_password",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminPasswordIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Admin Reset Password",
+        "tags": [
+          "identity-admin"
+        ]
+      }
+    },
+    "/v1/admin/users/{user_id}/stats": {
+      "get": {
+        "operationId": "identity_admin_user_stats",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__interfaces__http__v1__learning__StatsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Admin User Stats",
         "tags": [
           "identity-admin"
         ]
@@ -21236,7 +22754,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StatsOut"
+                  "$ref": "#/components/schemas/app__interfaces__http__v1__gamification__StatsOut"
                 }
               }
             },
@@ -23141,6 +24659,82 @@
         ]
       }
     },
+    "/v1/learning/me/stats": {
+      "get": {
+        "operationId": "learning_my_stats",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__interfaces__http__v1__learning__StatsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "My Stats",
+        "tags": [
+          "learning"
+        ]
+      }
+    },
     "/v1/learning/merge-guest": {
       "post": {
         "description": "Merge a guest's progress into the signed-in account (needs the guest's own access token).",
@@ -24114,6 +25708,20 @@
               "title": "Offset",
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "competition",
+              "enum": [
+                "competition",
+                "name"
+              ],
+              "title": "Sort",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -24178,6 +25786,31 @@
           }
         ],
         "summary": "Search Lyceums",
+        "tags": [
+          "lyceums"
+        ]
+      }
+    },
+    "/v1/lyceums/cities": {
+      "get": {
+        "operationId": "lyceums_list_cities",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CityOut"
+                  },
+                  "title": "Response Lyceums List Cities",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Cities",
         "tags": [
           "lyceums"
         ]
@@ -24842,6 +26475,94 @@
         ]
       }
     },
+    "/v1/lyceums/{lyceum_id}/rep/profile": {
+      "patch": {
+        "operationId": "lyceums_rep_update_profile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lyceum_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Lyceum Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RepProfilePatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Rep Update Profile",
+        "tags": [
+          "lyceums"
+        ]
+      }
+    },
     "/v1/me/daily-goal": {
       "put": {
         "operationId": "gamification_set_daily_goal",
@@ -24860,7 +26581,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StatsOut"
+                  "$ref": "#/components/schemas/app__interfaces__http__v1__gamification__StatsOut"
                 }
               }
             },
@@ -24936,7 +26657,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StatsOut"
+                  "$ref": "#/components/schemas/app__interfaces__http__v1__gamification__StatsOut"
                 }
               }
             },

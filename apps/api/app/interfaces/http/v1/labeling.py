@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
@@ -6,10 +7,13 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.identity.domain.models import User
+from app.modules.identity.wiring import IdentityServiceDep
 from app.modules.labeling.application.review import Filters, Review
 from app.modules.labeling.infrastructure.config import get_labeling_settings
 from app.modules.labeling.infrastructure.orm import GenerationRunRow
-from app.modules.labeling.wiring import GenerationDep, ReviewDep
+from app.modules.labeling.wiring import ActivityDep, GenerationDep, ReviewDep
+from app.shared.audit import audit_admin
 from app.shared.db import get_session
 from app.shared.deps import require_role
 from app.shared.errors import NotFound, ProblemDetails
@@ -26,7 +30,7 @@ ERR: dict[int | str, dict[str, Any]] = {
     422: {"model": ProblemDetails, "description": "Validation failed"},
 }
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
-Labeler = Annotated[Principal, Depends(require_role("editor", "admin"))]
+Labeler = Annotated[Principal, Depends(require_role("editor", "labeler", "admin"))]
 Admin = Annotated[Principal, Depends(require_role("admin"))]
 
 
@@ -318,3 +322,88 @@ async def enqueue_solve(body: SolveIn, _: Admin) -> SolveQueuedOut:
 
     await solve_questions.kiq([str(q) for q in body.question_ids], "manual")
     return SolveQueuedOut(queued=len(body.question_ids))
+
+
+class ActivityOut(BaseModel):
+    id: UUID
+    actor_id: UUID
+    actor_name: str | None
+    action: str
+    question_id: UUID | None
+    payload: dict[str, Any]
+    duration_ms: int | None
+    created_at: datetime
+
+
+class ActivityPage(BaseModel):
+    total: int
+    items: list[ActivityOut]
+
+
+class LeaderboardRowOut(BaseModel):
+    actor_id: UUID
+    actor_name: str | None
+    is_system: bool
+    labeled: int
+    approved: int
+    rejected: int
+    avg_duration_ms: float | None
+    last_active_at: datetime | None
+
+
+@admin_router.get("/activity", operation_id="labeling_admin_activity", response_model=ActivityPage, responses=ERR)
+async def admin_activity(
+    svc: ActivityDep, ids: IdentityServiceDep, who: Admin,
+    actor_id: UUID | None = None,
+    action: str | None = None,
+    date_from: Annotated[datetime | None, Query(alias="from")] = None,
+    date_to: Annotated[datetime | None, Query(alias="to")] = None,
+    sort: Literal["created_at", "duration_ms", "action"] = "created_at",
+    order: Literal["asc", "desc"] = "desc",
+    page: int = Query(1, ge=1),
+    size: int = Query(50, ge=1, le=200),
+) -> ActivityPage:
+    total, rows = await svc.list_activity(
+        actor_id=actor_id, action=action, start=date_from, end=date_to, sort=sort,
+        descending=order == "desc", page=page, size=size,
+    )
+    names = await ids.get_many({r.actor_user_id for r in rows})
+    audit_admin(who, "labeling.activity", actor_id=str(actor_id) if actor_id else None, action=action, page=page)
+    return ActivityPage(
+        total=total,
+        items=[
+            ActivityOut(
+                id=r.id, actor_id=r.actor_user_id, actor_name=_name(names.get(r.actor_user_id)), action=r.action,
+                question_id=r.question_id, payload=r.payload, duration_ms=r.duration_ms, created_at=r.created_at,
+            )
+            for r in rows
+        ],
+    )
+
+
+@admin_router.get(
+    "/leaderboard", operation_id="labeling_admin_leaderboard", response_model=list[LeaderboardRowOut], responses=ERR
+)
+async def admin_leaderboard(
+    svc: ActivityDep, ids: IdentityServiceDep, who: Admin,
+    date_from: Annotated[datetime | None, Query(alias="from")] = None,
+    date_to: Annotated[datetime | None, Query(alias="to")] = None,
+    sort: Literal["labeled", "approved", "rejected", "avg_duration"] = "labeled",
+    order: Literal["asc", "desc"] = "desc",
+) -> list[LeaderboardRowOut]:
+    entries = await svc.leaderboard(start=date_from, end=date_to, sort=sort, descending=order == "desc")
+    users = await ids.get_many({e.actor_id for e in entries})
+    audit_admin(who, "labeling.leaderboard", sort=sort)
+    return [
+        LeaderboardRowOut(
+            actor_id=e.actor_id, actor_name=_name(users.get(e.actor_id)),
+            is_system=bool(users.get(e.actor_id) and users[e.actor_id].is_system),
+            labeled=e.labeled, approved=e.approved, rejected=e.rejected,
+            avg_duration_ms=e.avg_duration_ms, last_active_at=e.last_active_at,
+        )
+        for e in entries
+    ]
+
+
+def _name(user: User | None) -> str | None:
+    return None if user is None else user.name

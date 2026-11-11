@@ -1,19 +1,19 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useLocale, useT } from "@dtmai/i18n";
 import { LessonPlayer } from "@/components/lesson/LessonPlayer";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { pick } from "@/lib/localized";
 import { useAsync } from "@/lib/useAsync";
-import { CityStep } from "./CityStep";
 import { LanguageStep } from "./LanguageStep";
 import { LyceumStep } from "./LyceumStep";
 import { OnboardingFrame } from "./OnboardingFrame";
 import { PlacementStep } from "./PlacementStep";
+import { CityStep, type CityChoice } from "./CityStep";
+import { fetchCities } from "@/lib/cities";
 import { SubjectsStep } from "./SubjectsStep";
-import { normCity, type OnbLyceum } from "./types";
 
 const STEPS = ["city", "language", "lyceum", "subjects", "placement"] as const;
 
@@ -24,24 +24,19 @@ export function Onboarding() {
   const router = useRouter();
   const { isGuest, reloadMe } = useAuth();
   const [i, setI] = useState(0);
-  const [city, setCity] = useState("");
-  const [lyceumId, setLyceumId] = useState<string | null>(null);
+  const [city, setCity] = useState<CityChoice>(undefined);
+  const [lyceumIds, setLyceumIds] = useState<string[]>([]);
   const [languageId, setLanguageId] = useState<string | null>(null);
   const [subjectIds, setSubjectIds] = useState<string[]>([]);
   const [placing, setPlacing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [saveError, setSaveError] = useState(false);
 
-  const lyceums = useAsync(() => api.unwrap(api.client.GET("/v1/lyceums", { params: { query: { limit: 200 } } })) as Promise<OnbLyceum[]>, []);
+  const lyceums = useAsync(() => api.unwrap(api.client.GET("/v1/lyceums", { params: { query: { limit: 200 } } })), []);
   const languages = useAsync(() => api.unwrap(api.client.GET("/v1/lyceums/languages")), []);
   const subjects = useAsync(() => api.unwrap(api.client.GET("/v1/catalog/subjects")), []);
 
-  const cities = useMemo(() => {
-    if (lyceums.state.status !== "ready") return [];
-    const seen = new Map<string, string>();
-    for (const l of lyceums.state.data) if (l.city?.trim()) seen.set(normCity(l.city), l.city.trim());
-    return [...seen.values()].sort((a, b) => a.localeCompare(b));
-  }, [lyceums.state]);
+  const cities = useAsync(fetchCities, []);
 
   const subjectList = subjects.state.status === "ready" ? subjects.state.data : [];
   // First subject in catalog order among those chosen.
@@ -52,13 +47,13 @@ export function Onboarding() {
   };
 
   async function save(): Promise<boolean> {
-    if (!lyceumId || !languageId) return false;
+    if (lyceumIds.length === 0 || !languageId) return false;
     setBusy(true);
     setSaveError(false);
     try {
       await api.unwrap(
         api.client.PATCH("/v1/identity/me", {
-          body: { city: city.trim() || null, subject_ids: subjectIds, target_lyceum_id: lyceumId, education_language_id: languageId },
+          body: { city: city ?? null, subject_ids: subjectIds, dream_lyceum_ids: lyceumIds, education_language_id: languageId },
         }),
       );
       await reloadMe();
@@ -107,8 +102,8 @@ export function Onboarding() {
   return (
     <>
       {step === "city" && (
-        <OnboardingFrame {...frame} speech={t("onb.city.q")} canContinue={city.trim().length > 0 || (lyceums.state.status === "error")}>
-          <CityStep cities={cities} value={city} onChange={setCity} />
+        <OnboardingFrame {...frame} speech={t("onb.city.q")} canContinue={city !== undefined || cities.state.status === "error"}>
+          <CityStep state={cities.state} onRetry={cities.reload} value={city} onChange={setCity} />
         </OnboardingFrame>
       )}
       {step === "language" && (
@@ -117,8 +112,8 @@ export function Onboarding() {
         </OnboardingFrame>
       )}
       {step === "lyceum" && (
-        <OnboardingFrame {...frame} speech={t("onb.title.target")} canContinue={!!lyceumId}>
-          <LyceumStep state={lyceums.state} onRetry={lyceums.reload} city={city} value={lyceumId} onChange={setLyceumId} />
+        <OnboardingFrame {...frame} speech={t("onb.title.target")} canContinue={lyceumIds.length > 0}>
+          <LyceumStep state={lyceums.state} onRetry={lyceums.reload} city={city ?? null} value={lyceumIds} onChange={setLyceumIds} />
         </OnboardingFrame>
       )}
       {step === "subjects" && (

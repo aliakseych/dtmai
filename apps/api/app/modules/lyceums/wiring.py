@@ -5,8 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.identity.domain.models import Role
 from app.modules.identity.wiring import build_identity_service
+from app.modules.lyceums.application.profile import ProfileService
 from app.modules.lyceums.application.rep import RepService
 from app.modules.lyceums.infrastructure.repositories import (
+    SqlCities,
     SqlLyceumProfiles,
     SqlMemberships,
     SqlPosts,
@@ -26,8 +28,12 @@ class _IdentityRoleGranter:
         await build_identity_service(self._session).grant_role(user_id, Role.LYCEUM_REP)
 
 
+def build_profile_service(session: AsyncSession) -> ProfileService:
+    return ProfileService(SqlLyceumProfiles(session), SqlCities(session))
+
+
 def build_rep_service(session: AsyncSession) -> RepService:
     return RepService(
         SqlLyceumProfiles(session), SqlMemberships(session), SqlPosts(session),
-        _IdentityRoleGranter(session), _SystemClock(),
+        _IdentityRoleGranter(session), build_profile_service(session), _SystemClock(),
     )

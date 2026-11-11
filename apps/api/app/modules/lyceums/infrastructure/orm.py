@@ -23,6 +23,17 @@ from app.shared.db import Base
 SCHEMA = "lyceums"
 
 
+class CityRow(Base):
+    __tablename__ = "cities"
+    __table_args__ = {"schema": SCHEMA}
+
+    code: Mapped[str] = mapped_column(String(50), primary_key=True)
+    name_uz_latn: Mapped[str] = mapped_column(Text)
+    name_uz_cyrl: Mapped[str] = mapped_column(Text)
+    name_ru: Mapped[str] = mapped_column(Text)
+    name_en: Mapped[str] = mapped_column(Text)
+
+
 class LyceumRow(Base):
     __tablename__ = "lyceums"
     __table_args__ = {"schema": SCHEMA}
@@ -39,10 +50,18 @@ class LyceumRow(Base):
     description: Mapped[dict[str, str]] = mapped_column(JSON, default=dict, server_default="{}")
     courses: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list, server_default="{}")
     university_name: Mapped[str | None] = mapped_column(Text)
-    city: Mapped[str | None] = mapped_column(String(100))
+    city: Mapped[str | None] = mapped_column(
+        String(50), ForeignKey(f"{SCHEMA}.cities.code", ondelete="SET NULL"), index=True
+    )
     website: Mapped[str | None] = mapped_column(Text)
     contacts: Mapped[dict[str, str]] = mapped_column(JSON, default=dict, server_default="{}")
     verified_rep: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    dormitory_status: Mapped[str] = mapped_column(
+        String(10), default="unknown", server_default="unknown"
+    )
+    dormitory_description: Mapped[dict[str, str]] = mapped_column(
+        JSON, default=dict, server_default="{}"
+    )
 
 
 class EducationLanguageRow(Base):

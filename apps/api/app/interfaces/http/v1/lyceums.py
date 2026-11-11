@@ -3,7 +3,7 @@ from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.lyceums.domain.models import (
@@ -15,17 +15,12 @@ from app.modules.lyceums.domain.models import (
 from app.modules.identity.wiring import build_identity_service
 from app.modules.lyceums.application.rep import PostInput
 from app.modules.lyceums.domain.rep import (
-    MAX_COURSES,
-    MAX_GALLERY,
     Post,
     PostStatus,
     RepMembership,
-    validate_contacts,
-    validate_description,
-    validate_string_list,
 )
 from app.modules.lyceums.infrastructure.orm import EducationLanguageRow, LyceumRow
-from app.modules.lyceums.wiring import build_rep_service
+from app.modules.lyceums.wiring import build_profile_service, build_rep_service
 from app.modules.lyceums.infrastructure.repositories import (
     SqlImportRuns,
     SqlLyceumQueries,
@@ -50,6 +45,24 @@ ERR: dict[int | str, dict[str, Any]] = {
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
+DormitoryStatusLiteral = Literal["available", "limited", "none", "unknown"]
+
+
+class CityNamesOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    uz_latn: str = Field(alias="uz-Latn")
+    uz_cyrl: str = Field(alias="uz-Cyrl")
+    ru: str
+    en: str
+
+
+class CityOut(BaseModel):
+    code: str
+    names: CityNamesOut
+    lyceum_count: int
+
+
 class NamesOut(BaseModel):
     uz: str
     ru: str
@@ -60,10 +73,16 @@ class LyceumSummary(BaseModel):
     id: UUID
     code: str
     names: NamesOut
+    city: str | None
+    logo_url: str | None
+    campus_photo_url: str | None
+    dormitory_status: DormitoryStatusLiteral
     latest_year: int | None
     quota: int | None
     applications: int | None
     competition_ratio: float | None
+    competition: float | None
+    competition_year: int | None
 
 
 class LanguageOut(BaseModel):
@@ -108,6 +127,8 @@ class ProfileOut(BaseModel):
     website: str | None
     contacts: ContactsOut
     verified_rep: bool
+    dormitory_status: DormitoryStatusLiteral
+    dormitory_description: dict[str, str]
 
 
 class PostOut(BaseModel):
@@ -172,6 +193,8 @@ def _profile(row: LyceumRow) -> ProfileOut:
             email=contacts.get("email"),
         ),
         verified_rep=bool(row.verified_rep),
+        dormitory_status=row.dormitory_status or "unknown",  # type: ignore[arg-type]
+        dormitory_description=dict(row.dormitory_description or {}),
     )
 
 
@@ -207,19 +230,32 @@ async def search_lyceums(
     q: Annotated[str | None, Query(max_length=100)] = None,
     limit: Annotated[int, Query(ge=1, le=500)] = 30,
     offset: Annotated[int, Query(ge=0)] = 0,
+    sort: Annotated[Literal["competition", "name"], Query()] = "competition",
 ) -> list[LyceumSummary]:
     queries = SqlLyceumQueries(session)
-    rows = await queries.search(q, limit, offset)
+    rows = await queries.search(q, limit, offset, sort)
     totals = await queries.latest_year_totals([r.id for r in rows])
     out: list[LyceumSummary] = []
     for r in rows:
         year, quota, apps = totals.get(r.id, (None, None, None))
         ratio = competition_ratio(apps, quota) if quota is not None and apps is not None else None
         out.append(LyceumSummary(
-            id=r.id, code=r.code, names=_names(r), latest_year=year, quota=quota,
-            applications=apps, competition_ratio=ratio,
+            id=r.id, code=r.code, names=_names(r), city=r.city, logo_url=r.logo_url,
+            campus_photo_url=r.campus_photo_url,
+            dormitory_status=r.dormitory_status or "unknown",  # type: ignore[arg-type]
+            latest_year=year, quota=quota, applications=apps, competition_ratio=ratio,
+            competition=ratio, competition_year=year if ratio is not None else None,
         ))
     return out
+
+
+@router.get("/cities", response_model=list[CityOut], operation_id="lyceums_list_cities")
+async def list_cities(session: SessionDep) -> list[CityOut]:
+    cities = await build_profile_service(session).cities()
+    return [
+        CityOut(code=c.code, names=CityNamesOut.model_validate(c.names), lyceum_count=c.lyceum_count)
+        for c in cities
+    ]
 
 
 @router.get("/languages", response_model=list[LanguageOut], responses=ERR)
@@ -370,14 +406,45 @@ async def rep_delete_post(
     return Response(status_code=204)
 
 
-# --- admin: profile, applications, moderation -----------------------------------
-Admin = Annotated[Principal, Depends(require_role("admin"))]
-
-
 class ContactsIn(BaseModel):
     phone: str | None = None
     telegram: str | None = None
     email: str | None = None
+
+
+def _sent_changes(body: BaseModel) -> dict[str, Any]:
+    """Only the keys the client sent; nested contacts dropped of unset members."""
+    changes: dict[str, Any] = {}
+    for key in body.model_fields_set:
+        value = getattr(body, key)
+        if isinstance(value, BaseModel):
+            value = value.model_dump(exclude_none=True)
+        changes[key] = value
+    return changes
+
+
+class RepProfilePatch(BaseModel):
+    description: dict[str, str] | None = None
+    courses: list[str] | None = None
+    contacts: ContactsIn | None = None
+    dormitory_status: DormitoryStatusLiteral | None = None
+    dormitory_description: dict[str, str] | None = None
+
+@router.patch("/{lyceum_id}/rep/profile", operation_id="lyceums_rep_update_profile",
+              responses=ERR)
+async def rep_update_profile(
+    lyceum_id: UUID, body: RepProfilePatch, session: SessionDep, user: CurrentUser
+) -> ProfileOut:
+    await build_rep_service(session).update_profile(
+        user.user_id, lyceum_id, _sent_changes(body))
+    row = await SqlLyceumQueries(session).get(lyceum_id)
+    if row is None:
+        raise NotFound("lyceum not found", code="lyceum_not_found")
+    return _profile(row)
+
+
+# --- admin: profile, applications, moderation -----------------------------------
+Admin = Annotated[Principal, Depends(require_role("admin"))]
 
 
 class LyceumPatch(BaseModel):
@@ -391,6 +458,8 @@ class LyceumPatch(BaseModel):
     website: str | None = Field(default=None, max_length=500)
     contacts: ContactsIn | None = None
     verified_rep: bool | None = None
+    dormitory_status: DormitoryStatusLiteral | None = None
+    dormitory_description: dict[str, str] | None = None
 
 
 class ModerateIn(BaseModel):
@@ -398,37 +467,18 @@ class ModerateIn(BaseModel):
     reason: str | None = Field(default=None, max_length=1000)
 
 
-def _clean(value: str | None) -> str | None:
-    return (value or "").strip() or None
-
 
 @admin_router.patch("/{lyceum_id}", operation_id="lyceums_admin_update_profile",
                     responses=ERR)
 async def update_profile(
     lyceum_id: UUID, body: LyceumPatch, session: SessionDep, who: Admin
 ) -> ProfileOut:
-    sent = body.model_fields_set
-    fields: dict[str, object] = {}
-    for key in ("logo_url", "campus_photo_url", "university_name", "city", "website"):
-        if key in sent:
-            fields[key] = _clean(getattr(body, key))
-    if "gallery_urls" in sent:
-        fields["gallery_urls"] = validate_string_list(
-            body.gallery_urls or [], limit=MAX_GALLERY, code="too_many_gallery_urls")
-    if "courses" in sent:
-        fields["courses"] = validate_string_list(
-            body.courses or [], limit=MAX_COURSES, code="too_many_courses")
-    if "description" in sent:
-        fields["description"] = validate_description(body.description or {})
-    if "contacts" in sent:
-        fields["contacts"] = validate_contacts(
-            body.contacts.model_dump(exclude_none=True) if body.contacts else {})
-    if "verified_rep" in sent and body.verified_rep is not None:
-        fields["verified_rep"] = body.verified_rep
-    row = await SqlLyceumQueries(session).update_profile(lyceum_id, fields)
+    changes = _sent_changes(body)
+    changed = await build_profile_service(session).update(lyceum_id, changes)
+    row = await SqlLyceumQueries(session).get(lyceum_id)
     if row is None:
         raise NotFound("lyceum not found", code="lyceum_not_found")
-    audit_admin(who, "lyceums.update_profile", lyceum_id=str(lyceum_id), fields=sorted(fields))
+    audit_admin(who, "lyceums.update_profile", lyceum_id=str(lyceum_id), fields=changed)
     return _profile(row)
 
 

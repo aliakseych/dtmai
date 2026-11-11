@@ -26,6 +26,8 @@ from app.modules.labeling.infrastructure.orm import (
     SolveRunRow,
     SolverVoteRow,
 )
+from app.modules.labeling.application.activity import record_activity
+from app.modules.labeling.domain.activity import activity_action
 from app.shared.errors import Forbidden, NotFound
 from app.shared.ids import new_id
 
@@ -106,6 +108,7 @@ class ReviewService:
         if self._audit_ratio > 0 and self._rng.random() < self._audit_ratio:
             audit = await self._claim_audit(f)
             if audit is not None:
+                record_activity(self._s, labeler, "claim", audit.question_id, {"audit": True})
                 (q,) = await bank.get_questions(self._s, [audit.question_id])
                 return Review(q, "audit", "blind_audit", None, None, audit.id)
         row = (
@@ -129,6 +132,7 @@ class ReviewService:
         row.claimed_by = labeler
         row.claimed_until = now + CLAIM_TTL
         await self._s.flush()
+        record_activity(self._s, labeler, "claim", row.question_id)
         (q,) = await bank.get_questions(self._s, [row.question_id])
         return Review(q, row.state, row.reason, row.suggested, row.confidence, None, await self._votes(q.id))
 
@@ -217,6 +221,10 @@ class ReviewService:
             self._s.add(d)
         else:
             raise ValidationFailed(f"unknown action {action}", code="bad_action")
+        record_activity(
+            self._s, labeler, activity_action(action), question_id,
+            {"decision_id": str(d.id), **({"reason": reason} if reason else {})}, d.time_ms,
+        )
         await self._s.flush()
         return d
 
@@ -243,6 +251,7 @@ class ReviewService:
             time_ms=max(0, time_ms), prev_status=q.status, new_status=q.status, audit_sample_id=sample_id,
             reason="audit",
         )
+        record_activity(self._s, labeler, "label", question_id, {"audit_sample_id": str(sample_id), "matched": match}, d.time_ms)
         self._s.add(d)
         if not match:
             await bank.set_answer(self._s, question_id, response, str(labeler))
@@ -344,6 +353,7 @@ class ReviewService:
                             prev_response=prev, prev_queue_state=item.state, reason=f"conf>={min_confidence}",
                         )
                     )
+                    record_activity(self._s, labeler, "approve", item.question_id, {"bulk": True})
                     item.resolved_at = _now()
                 approved += 1
             except Exception:  # noqa: BLE001 - one bad item must not abort the batch

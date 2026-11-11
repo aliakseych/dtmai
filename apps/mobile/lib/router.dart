@@ -23,6 +23,7 @@ import 'features/premium/premium_screen.dart';
 import 'features/profile/profile_providers.dart';
 import 'features/profile/profile_screen.dart';
 import 'features/quests/quests_screen.dart';
+import 'theme/tokens.dart';
 import 'widgets/mascot.dart';
 
 /// Guest-first: on first launch (no stored tokens) a guest account is created.
@@ -80,7 +81,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return loc == '/splash' ? null : '/splash';
         }
         final needsOnboarding =
-            m.educationLanguageId == null && m.targetLyceumId == null && !ref.read(onboardingSkippedProvider);
+            m.educationLanguageId == null && m.dreamLyceumIds.isEmpty && !ref.read(onboardingSkippedProvider);
         if (needsOnboarding) {
           return (loc == '/onboarding' || loc == '/login' || loc.startsWith('/session/')) ? null : '/onboarding';
         }
@@ -178,22 +179,51 @@ class _Shell extends StatelessWidget {
   const _Shell({required this.shell});
   final StatefulNavigationShell shell;
 
+  static const _maxContentWidth = 720.0;
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final items = [
+      (Icons.home_rounded, l.learn),
+      (Icons.fitness_center_rounded, l.practice),
+      (Icons.assignment_rounded, l.mocks),
+      (Icons.emoji_events_rounded, l.leagues),
+      (Icons.person_rounded, l.profile),
+    ];
+    void select(int i) => shell.goBranch(i, initialLocation: i == shell.currentIndex);
+    final wide = MediaQuery.sizeOf(context).width >= 600;
+    final body = Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: _maxContentWidth), child: shell),
+    );
+    if (!wide) {
+      return Scaffold(
+        body: body,
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: shell.currentIndex,
+          onDestinationSelected: select,
+          destinations: [for (final (icon, label) in items) NavigationDestination(icon: Icon(icon), label: label)],
+        ),
+      );
+    }
     return Scaffold(
-      body: shell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: shell.currentIndex,
-        onDestinationSelected: (i) => shell.goBranch(i, initialLocation: i == shell.currentIndex),
-        destinations: [
-          NavigationDestination(icon: const Icon(Icons.home_rounded), label: l.learn),
-          NavigationDestination(icon: const Icon(Icons.fitness_center_rounded), label: l.practice),
-          NavigationDestination(icon: const Icon(Icons.assignment_rounded), label: l.mocks),
-          NavigationDestination(icon: const Icon(Icons.emoji_events_rounded), label: l.leagues),
-          NavigationDestination(icon: const Icon(Icons.person_rounded), label: l.profile),
-        ],
-      ),
+      body: Row(children: [
+        NavigationRail(
+          selectedIndex: shell.currentIndex,
+          onDestinationSelected: select,
+          labelType: NavigationRailLabelType.all,
+          backgroundColor: Tokens.surface,
+          indicatorColor: Tokens.accent,
+          selectedIconTheme: const IconThemeData(color: Tokens.brand),
+          leading: const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Mascot(size: 48)),
+          destinations: [
+            for (final (icon, label) in items) NavigationRailDestination(icon: Icon(icon), label: Text(label)),
+          ],
+        ),
+        const VerticalDivider(width: 2),
+        Expanded(child: body),
+      ]),
     );
   }
 }

@@ -19,8 +19,8 @@ class PathNode extends StatelessWidget {
   Widget build(BuildContext context) {
     final (face, edge, icon) = switch (state) {
       NodeState.done => (Tokens.gold, Tokens.goldEdge, Icons.check_rounded),
-      NodeState.current => (Tokens.green, Tokens.greenEdge, Icons.star_rounded),
-      NodeState.open => (Tokens.green, Tokens.greenEdge, lesson.legendary ? Icons.workspace_premium_rounded : Icons.play_arrow_rounded),
+      NodeState.current => (Tokens.brand, Tokens.brandEdge, Icons.star_rounded),
+      NodeState.open => (Tokens.brand, Tokens.brandEdge, lesson.legendary ? Icons.workspace_premium_rounded : Icons.play_arrow_rounded),
       NodeState.locked => (Tokens.border, Tokens.lockedEdge, Icons.lock_rounded),
     };
     final iconColor = switch (state) {

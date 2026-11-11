@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useLocale, useT } from "@dtmai/i18n";
 import { mediaUrl } from "@/lib/env";
 import { pick } from "@/lib/localized";
@@ -7,6 +8,8 @@ import { LyceumCover } from "./LyceumMedia";
 import { PostsByKind } from "./PostsByKind";
 import { StatsTable } from "./StatsTable";
 import { VerifiedBadge } from "./VerifiedBadge";
+import type { Names } from "@/lib/api";
+import { DormitoryBadge } from "./DormitoryBadge";
 import type { LyceumDetailData } from "./useLyceumDetail";
 
 const safeHttp = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`);
@@ -16,6 +19,8 @@ export function LyceumDetailView({ detail: d, onDreamChanged }: { detail: Lyceum
   const { locale } = useLocale();
   const p = d.profile;
   const description = pick(p.description, locale);
+  const dorm = d.profile;
+  const dormDescription = pick(dorm.dormitory_description as Names | undefined, locale);
   const c = p.contacts;
   const tg = c.telegram ? (c.telegram.startsWith("http") ? c.telegram : `https://t.me/${c.telegram.replace(/^@/, "")}`) : null;
   const hasContacts = !!(c.phone || c.telegram || c.email || p.website);
@@ -25,9 +30,10 @@ export function LyceumDetailView({ detail: d, onDreamChanged }: { detail: Lyceum
         <LyceumCover photo={p.campus_photo_url} logo={p.logo_url} className="h-40 sm:h-56" />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="flex flex-wrap items-center gap-2">
+          {p.verified_rep && <VerifiedBadge />}
           <p className="font-bold text-ink-soft">
-            {t("lyceums.dreamers", { count: d.dreamers_count })}
+            {[p.university_name, t("lyceums.dreamers", { count: d.dreamers_count })].filter(Boolean).join(" · ")}
           </p>
         </div>
         <DreamButton lyceumId={d.id} onChanged={onDreamChanged} />
@@ -35,10 +41,18 @@ export function LyceumDetailView({ detail: d, onDreamChanged }: { detail: Lyceum
 
       {description && <p className="whitespace-pre-line break-words text-ink">{description}</p>}
 
+      {(dorm.dormitory_status ?? "unknown") !== "unknown" && (
+        <section>
+          <h3 className="mb-2 text-lg font-extrabold text-ink">{t("lyceums.dorm.title")}</h3>
+          <DormitoryBadge status={dorm.dormitory_status} />
+          {dormDescription && <p className="mt-2 whitespace-pre-line break-words text-ink">{dormDescription}</p>}
+        </section>
+      )}
+
       {p.gallery_urls.length > 0 && (
         <section aria-label={t("lyceums.gallery")}>
           <h3 className="mb-2 text-lg font-extrabold text-ink">{t("lyceums.gallery")}</h3>
-          <ul className="flex snap-x gap-2 overflow-x-auto pb-2">
+          <ul className="flex max-w-full snap-x gap-2 overflow-x-auto pb-2">
             {p.gallery_urls.map((u) => (
               <li key={u} className="h-32 w-48 shrink-0 snap-start overflow-hidden rounded-2xl bg-snow sm:h-40 sm:w-60">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -104,21 +118,12 @@ export function LyceumDetailView({ detail: d, onDreamChanged }: { detail: Lyceum
         <h3 className="mb-2 text-lg font-extrabold text-ink">{t("lyceums.stats")}</h3>
         <StatsTable detail={d} />
       </section>
-    </div>
-  );
-}
 
-/** Heading block reused by the card header: name, university, city, verified. */
-export function LyceumHeading({ d }: { d: LyceumDetailData }) {
-  const { locale } = useLocale();
-  const p = d.profile;
-  return (
-    <div className="min-w-0">
-      <div className="flex flex-wrap items-center gap-2">
-        <h2 className="break-words text-lg text-ink">{pick(d.names, locale)}</h2>
-        {p.verified_rep && <VerifiedBadge />}
-      </div>
-      {(p.university_name || p.city) && <p className="break-words text-sm text-ink-soft">{[p.university_name, p.city].filter(Boolean).join(" · ")}</p>}
+      <p className="text-center text-sm text-ink-soft">
+        <Link href="/rep/" className="underline hover:text-ink">
+          {t("lyceums.representLink")}
+        </Link>
+      </p>
     </div>
   );
 }

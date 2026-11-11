@@ -9,6 +9,7 @@ from app.modules.lyceums.domain.models import (
     SourceSpeciality,
 )
 from app.modules.lyceums.domain.rep import Post, PostStatus, RepMembership
+from app.modules.lyceums.domain.profile import CityView
 
 
 class LyceumStatsSource(Protocol):
@@ -41,6 +42,14 @@ class ImportRunRepository(Protocol):
 class LyceumProfiles(Protocol):
     async def exists(self, lyceum_id: UUID) -> bool: ...
     async def mark_verified_rep(self, lyceum_id: UUID) -> None: ...
+    async def update_fields(self, lyceum_id: UUID, fields: dict[str, object]) -> bool:
+        """Set profile columns; False when the lyceum does not exist."""
+        ...
+
+
+class CityRepository(Protocol):
+    async def exists(self, code: str) -> bool: ...
+    async def list_with_counts(self) -> list[CityView]: ...
 
 
 class MembershipRepository(Protocol):

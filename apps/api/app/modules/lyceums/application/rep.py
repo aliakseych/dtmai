@@ -1,7 +1,11 @@
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
+from app.modules.lyceums.application.profile import ProfileService
+from app.modules.lyceums.domain.profile import REP_PROFILE_FIELDS
 from app.modules.lyceums.domain.rep import (
     MembershipStatus,
     Post,
@@ -38,10 +42,11 @@ class RepService:
         members: MembershipRepository,
         posts: PostRepository,
         roles: RepRoleGranter,
+        profile: ProfileService,
         clock: Clock,
     ) -> None:
         self._profiles, self._members, self._posts = profiles, members, posts
-        self._roles, self._clock = roles, clock
+        self._roles, self._clock, self._profile = roles, clock, profile
 
     # --- membership -------------------------------------------------------
     async def _require_lyceum(self, lyceum_id: UUID) -> None:
@@ -89,6 +94,17 @@ class RepService:
             raise Forbidden("not a representative of this lyceum", code="rep_forbidden")
         m.ensure_manages(lyceum_id)
         return m
+
+    # --- rep profile ------------------------------------------------------
+    async def update_profile(
+        self, user_id: UUID, lyceum_id: UUID, changes: Mapping[str, Any]
+    ) -> None:
+        """Approved reps edit only their own lyceum's rep-editable profile fields."""
+        await self._scoped(user_id, lyceum_id)
+        forbidden = set(changes) - REP_PROFILE_FIELDS
+        if forbidden:
+            raise Forbidden("field is not editable by representatives", code="rep_forbidden")
+        await self._profile.update(lyceum_id, changes)
 
     # --- rep posts --------------------------------------------------------
     async def list_own(self, user_id: UUID, lyceum_id: UUID) -> list[Post]:

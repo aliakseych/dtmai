@@ -24,6 +24,9 @@ export const NEEDS_START: readonly string[] = ["free_mock", "visit", "event"];
 /** Kinds that are a link; the API rejects them without `link`. */
 export const NEEDS_LINK: readonly string[] = ["chat_link"];
 
+/** Body of `PATCH /v1/lyceums/{id}/rep/profile` (all fields optional). */
+export type RepProfileIn = components["schemas"]["RepProfilePatch"];
+
 const A = api.client;
 const u = api.unwrap;
 const path = (lyceum_id: string) => ({ params: { path: { lyceum_id } } });
@@ -37,4 +40,6 @@ export const rep = {
     u(A.PUT("/v1/lyceums/{lyceum_id}/rep/posts/{post_id}", { params: { path: { lyceum_id: id, post_id } }, body })),
   remove: (id: string, post_id: string) =>
     u(A.DELETE("/v1/lyceums/{lyceum_id}/rep/posts/{post_id}", { params: { path: { lyceum_id: id, post_id } } })),
+  updateProfile: (id: string, body: RepProfileIn) =>
+    u(A.PATCH("/v1/lyceums/{lyceum_id}/rep/profile", { ...path(id), body })),
 };

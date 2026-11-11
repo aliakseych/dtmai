@@ -11,6 +11,7 @@ import { pick } from "@/lib/localized";
 import { useAsync } from "@/lib/useAsync";
 import { ApplyForm } from "./ApplyForm";
 import { PostsManager } from "./PostsManager";
+import { RepProfileForm } from "./RepProfileForm";
 import { rep, type Membership } from "./repApi";
 
 /** `null` = the user has never applied to this lyceum (API answers 404). */
@@ -29,7 +30,13 @@ function LyceumRep({ lyceumId }: { lyceumId: string }) {
   return (
     <AsyncView state={state} onRetry={reload}>
       {(m) => {
-        if (m?.status === "approved") return <PostsManager lyceumId={lyceumId} />;
+        if (m?.status === "approved")
+          return (
+            <div className="flex flex-col gap-6">
+              <RepProfileForm lyceumId={lyceumId} />
+              <PostsManager lyceumId={lyceumId} />
+            </div>
+          );
         if (m?.status === "pending")
           return (
             <Card>
@@ -75,7 +82,7 @@ export function RepPortal() {
           />
           <AsyncView state={state} onRetry={reload} isEmpty={(d) => d.length === 0} emptyText={t("lyceums.none")}>
             {(list) => (
-              <ul className="flex flex-col gap-2">
+              <ul className="flex max-h-[50vh] flex-col gap-2 overflow-y-auto">
                 {list.map((l) => (
                   <li key={l.id}>
                     <button

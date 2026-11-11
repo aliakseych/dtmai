@@ -14,7 +14,7 @@ import '../../widgets/chunky_button.dart';
 import '../lesson/question_view.dart';
 import 'mock_providers.dart';
 
-/// Timed Bluebook-like runner: countdown, navigator, mark-for-review, autosave.
+/// Timed practice-paper runner: countdown, navigator, mark-for-review, autosave.
 /// [blueprintId] is a blueprint id, [personalMockId] or [resumeMockId].
 class MockRunnerScreen extends ConsumerWidget {
   const MockRunnerScreen({super.key, required this.blueprintId});

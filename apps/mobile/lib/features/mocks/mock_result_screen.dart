@@ -94,7 +94,7 @@ class _Body extends ConsumerWidget {
                 Text(l.score, textAlign: TextAlign.center, style: muted),
                 Text('${_f(result.total)} / ${_f(result.maxTotal)}',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w800, color: Tokens.green)),
+                    style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w800, color: Tokens.greenText)),
                 Text('${result.correct} / ${result.questions}', textAlign: TextAlign.center, style: muted),
                 const SizedBox(height: 16),
                 for (final e in result.subjectScores.entries)

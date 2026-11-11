@@ -34,7 +34,7 @@ class ChunkyButton extends StatelessWidget {
       case ChunkyTone.white:
         return (Colors.white, Tokens.border, Tokens.blueText);
       case ChunkyTone.green:
-        return (Tokens.green, Tokens.greenEdge, Colors.white);
+        return (Tokens.brand, Tokens.brandEdge, Colors.white);
     }
   }
 

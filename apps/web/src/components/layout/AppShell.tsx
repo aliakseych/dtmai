@@ -23,7 +23,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const moreActive = moreItems.some((n) => active(n.href));
 
   return (
-    <div className="min-h-dvh bg-white">
+    <div className="min-h-dvh overflow-x-clip bg-white">
       <aside className="fixed inset-y-0 left-0 hidden w-72 flex-col gap-2 border-r-2 border-line bg-white p-4 lg:flex">
         <Link href="/learn/" aria-label={t("app.name")} className="mb-4 px-3 pt-1">
           <Logo name={t("app.name")} size={36} />

@@ -22,6 +22,7 @@ MODULES: list[tuple[APIRouter, str]] = [
     (gamification.me_router, "/me"),
     (gamification.admin_router, "/admin/gamification"),
     (identity.admin_router, "/admin/users"),
+    (identity.labelers_router, "/admin/labelers"),
     (media.admin_router, "/admin/media"),
     (notify.admin_router, "/admin/notifications"),
     (ai.router, "/ai"),

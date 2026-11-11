@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import Annotated, Any
 from uuid import UUID
 
@@ -17,6 +18,7 @@ from app.modules.learning.application.service import (
     SessionView,
     WeakArea,
 )
+from app.modules.learning.domain.stats import UserStats
 from app.modules.learning.ports import Item
 from app.modules.learning.wiring import LearningServiceDep
 from app.shared.db import get_session
@@ -197,6 +199,59 @@ class MergeGuestIn(BaseModel):
 
 class OkOut(BaseModel):
     ok: bool = True
+
+
+class DailyStatOut(BaseModel):
+    date: date
+    xp: int
+    answered: int
+    correct: int
+
+
+class SubjectStatOut(BaseModel):
+    subject_id: UUID
+    answered: int
+    correct: int
+    mastery: float | None = Field(description="0..1, attempts-weighted over topics/types; null when unknown")
+
+
+class MockStatOut(BaseModel):
+    mock_id: UUID
+    taken_at: datetime
+    score: float
+    max_score: float
+
+
+class StatsOut(BaseModel):
+    xp_total: int
+    streak_current: int
+    streak_best: int
+    lessons_completed: int
+    accuracy: float = Field(description="correct / answered over all time, 0..1")
+    daily: list[DailyStatOut] = Field(description="Last 30 Tashkent days, oldest first, zero-filled")
+    by_subject: list[SubjectStatOut]
+    mocks: list[MockStatOut] = Field(description="Recent submitted mocks, newest first")
+
+    @classmethod
+    def of(cls, s: UserStats) -> "StatsOut":
+        return cls(
+            xp_total=s.xp_total, streak_current=s.streak_current, streak_best=s.streak_best,
+            lessons_completed=s.lessons_completed, accuracy=s.accuracy,
+            daily=[DailyStatOut(date=d.date, xp=d.xp, answered=d.answered, correct=d.correct) for d in s.daily],
+            by_subject=[
+                SubjectStatOut(subject_id=x.subject_id, answered=x.answered, correct=x.correct, mastery=x.mastery)
+                for x in s.by_subject
+            ],
+            mocks=[
+                MockStatOut(mock_id=m.mock_id, taken_at=m.taken_at, score=m.score, max_score=m.max_score)
+                for m in s.mocks
+            ],
+        )
+
+
+@router.get("/me/stats", response_model=StatsOut, responses=ERR, operation_id="learning_my_stats")
+async def my_stats(user: CurrentUser, session: Session) -> StatsOut:
+    return StatsOut.of(await learning_facade.user_stats(session, user.user_id))
 
 
 @router.post("/lessons/start", response_model=SessionOut, responses=ERR, operation_id="learning_start_lesson")

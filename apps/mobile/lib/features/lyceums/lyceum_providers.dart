@@ -6,6 +6,12 @@ import '../../core/models.dart';
 /// Education languages (public).
 final languagesProvider = FutureProvider<List<EduLanguage>>((ref) => ref.watch(apiProvider).languages());
 
+/// Cities (public).
+final citiesProvider = FutureProvider<List<City>>((ref) => ref.watch(apiProvider).cities());
+
+/// All lyceums (default competition order), used to resolve names of the priority list.
+final allLyceumsProvider = FutureProvider<List<Lyceum>>((ref) => ref.watch(apiProvider).lyceums());
+
 class LyceumQuery extends Notifier<String> {
   @override
   String build() => '';
