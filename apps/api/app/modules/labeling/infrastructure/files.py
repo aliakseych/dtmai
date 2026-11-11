@@ -1,0 +1,119 @@
+import asyncio
+import io
+import mimetypes
+import re
+from pathlib import Path
+from typing import Any
+
+from app.modules.labeling.ports import Page
+from app.settings import get_settings
+
+IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp"}
+SUPPORTED_EXT = IMAGE_EXT | {".pdf", ".docx"}
+
+
+def natural_key(s: str) -> list[Any]:
+    return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", s)]
+
+
+class LocalFileStore:
+    def __init__(self, media_dir: Path | None = None) -> None:
+        self._media = media_dir
+
+    async def list(self, root: str) -> list[str]:
+        p = Path(root)
+        if p.is_file():
+            return [str(p)]
+        files = [str(f) for f in p.rglob("*") if f.is_file() and f.suffix.lower() in SUPPORTED_EXT]
+        return sorted(files, key=natural_key)
+
+    async def read(self, path: str) -> bytes:
+        return await asyncio.to_thread(Path(path).read_bytes)
+
+    async def put_public(self, key: str, data: bytes, mime: str) -> str | None:
+        return None
+
+
+class S3FileStore:
+    def __init__(self) -> None:
+        import boto3
+
+        s = get_settings()
+        self._bucket = s.s3_bucket
+        self._c = boto3.client(
+            "s3", endpoint_url=s.s3_endpoint, aws_access_key_id=s.s3_access_key, aws_secret_access_key=s.s3_secret_key
+        )
+
+    @staticmethod
+    def split(uri: str) -> tuple[str, str]:
+        rest = uri.removeprefix("s3://")
+        bucket, _, prefix = rest.partition("/")
+        return bucket, prefix
+
+    async def list(self, root: str) -> list[str]:
+        bucket, prefix = self.split(root)
+
+        def run() -> list[str]:
+            out: list[str] = []
+            for page in self._c.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix=prefix):
+                for o in page.get("Contents", []):
+                    if Path(o["Key"]).suffix.lower() in SUPPORTED_EXT:
+                        out.append(f"s3://{bucket}/{o['Key']}")
+            return out
+
+        return sorted(await asyncio.to_thread(run), key=natural_key)
+
+    async def read(self, path: str) -> bytes:
+        bucket, key = self.split(path)
+        obj = await asyncio.to_thread(self._c.get_object, Bucket=bucket, Key=key)
+        return await asyncio.to_thread(obj["Body"].read)
+
+    async def put_public(self, key: str, data: bytes, mime: str) -> str | None:
+        await asyncio.to_thread(self._c.put_object, Bucket=self._bucket, Key=key, Body=data, ContentType=mime)
+        return key
+
+
+def store_for(root: str) -> LocalFileStore | S3FileStore:
+    return S3FileStore() if root.startswith("s3://") else LocalFileStore()
+
+
+class DefaultRenderer:
+    """Images pass through; PDFs render per page (PyMuPDF); docx yields text + embedded images."""
+
+    def pages(self, filename: str, data: bytes) -> list[Page]:
+        ext = Path(filename).suffix.lower()
+        if ext in IMAGE_EXT:
+            return [Page(1, data, mimetypes.guess_type(filename)[0] or "image/png")]
+        if ext == ".pdf":
+            return self._pdf(data)
+        if ext == ".docx":
+            return self._docx(data)
+        raise ValueError(f"unsupported file type: {ext}")
+
+    @staticmethod
+    def _pdf(data: bytes) -> list[Page]:
+        try:
+            import pymupdf
+        except ImportError as e:  # pragma: no cover
+            raise RuntimeError("PDF ingestion needs the 'pymupdf' package") from e
+        doc = pymupdf.open(stream=data, filetype="pdf")
+        out = []
+        for i, page in enumerate(doc, start=1):
+            pix = page.get_pixmap(dpi=150)
+            out.append(Page(i, pix.tobytes("png"), "image/png", page.get_text() or None))
+        return out
+
+    @staticmethod
+    def _docx(data: bytes) -> list[Page]:
+        try:
+            import docx
+        except ImportError as e:  # pragma: no cover
+            raise RuntimeError("docx ingestion needs the 'python-docx' package") from e
+        d = docx.Document(io.BytesIO(data))
+        text = "\n".join(p.text for p in d.paragraphs if p.text.strip())
+        pages = [Page(1, None, "image/png", text)] if text else []
+        for i, rel in enumerate(
+            (r for r in d.part.rels.values() if "image" in r.reltype), start=len(pages) + 1
+        ):
+            pages.append(Page(i, rel.target_part.blob, rel.target_part.content_type))
+        return pages

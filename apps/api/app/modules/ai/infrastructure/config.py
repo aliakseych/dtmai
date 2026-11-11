@@ -1,0 +1,24 @@
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class AISettings(BaseSettings):
+    """Module-local settings until merged into app.settings (same env names)."""
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    openrouter_api_key: str = ""
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openrouter_referer: str = "https://dtm-ai.uz"
+    openrouter_title: str = "DTM AI"
+    ai_http_timeout_seconds: float = 90.0
+    ai_max_retries: int = 3
+    ai_retry_base_delay_seconds: float = 2.0
+    ai_tutor_messages_per_day_default: int = 50  # fair-use cap when plan has no limit key
+    ai_explanations_per_day_default: int = 3
+
+
+@lru_cache
+def get_ai_settings() -> AISettings:
+    return AISettings()
