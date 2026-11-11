@@ -8,11 +8,16 @@ export interface Col<T> {
   head: ReactNode;
   cell: (row: T, i: number) => ReactNode;
   className?: string;
+  /** Server sort key; makes the header clickable when the table has `sort` + `onSort`. */
+  sortKey?: string;
 }
 
-export function DataTable<T>({ rows, cols, rowKey, onRow, loading, error, empty = "Nothing here yet.", selected, rowClass }: {
+export interface SortState { key: string; order: "asc" | "desc" }
+
+export function DataTable<T>({ rows, cols, rowKey, onRow, loading, error, empty = "Nothing here yet.", selected, rowClass, sort, onSort }: {
   rows: T[] | undefined; cols: Col<T>[]; rowKey: (r: T) => string; onRow?: (r: T) => void;
   loading?: boolean; error?: unknown; empty?: ReactNode; selected?: string | null; rowClass?: (r: T) => string | undefined;
+  sort?: SortState; onSort?: (key: string) => void;
 }) {
   if (error) return <ErrorBox error={error} />;
   if (loading) return <div className="grid place-items-center p-8"><Spinner /></div>;
@@ -21,7 +26,13 @@ export function DataTable<T>({ rows, cols, rowKey, onRow, loading, error, empty 
     <div className="max-h-full overflow-auto">
     <table className="w-full border-collapse text-[13px]">
       <thead className="sticky top-0 z-10 bg-snow text-left text-[11px] uppercase tracking-wide text-ink-soft">
-        <tr>{cols.map((c) => <th key={c.key} className={cn("border-b border-line px-3 py-1.5 font-extrabold", c.className)}>{c.head}</th>)}</tr>
+        <tr>{cols.map((c) => <th key={c.key} aria-sort={c.sortKey && sort?.key === c.sortKey ? (sort.order === "asc" ? "ascending" : "descending") : undefined} className={cn("border-b border-line px-3 py-1.5 font-extrabold", c.className)}>
+          {c.sortKey && onSort ? (
+            <button type="button" onClick={() => onSort(c.sortKey!)} className="inline-flex items-center gap-1 uppercase hover:text-ink">
+              {c.head}<span aria-hidden>{sort?.key === c.sortKey ? (sort.order === "asc" ? "▲" : "▼") : "↕"}</span>
+            </button>
+          ) : c.head}
+        </th>)}</tr>
       </thead>
       <tbody>
         {rows.map((r, i) => {

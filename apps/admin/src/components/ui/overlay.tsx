@@ -28,11 +28,11 @@ export function Drawer({ open, onClose, title, children, footer, width = "max-w-
   );
 }
 
-export function Dialog({ open, onClose, title, children, footer }: { open: boolean; onClose: () => void; title: ReactNode; children: ReactNode; footer?: ReactNode }) {
-  useEsc(open, onClose);
+export function Dialog({ open, onClose, title, children, footer, dismissable = true }: { open: boolean; onClose: () => void; title: ReactNode; children: ReactNode; footer?: ReactNode; dismissable?: boolean }) {
+  useEsc(open && dismissable, onClose);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4" onMouseDown={(e) => dismissable && e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" className="w-full max-w-lg rounded-lg bg-white shadow-2xl">
         <header className="border-b border-line px-4 py-2.5"><h2 className="text-base">{title}</h2></header>
         <div className="p-4">{children}</div>

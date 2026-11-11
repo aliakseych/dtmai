@@ -25,6 +25,9 @@ class Users:
     async def touch(self, user_id, at=None):
         return None
 
+    async def get(self, user_id):
+        return self.u if self.u and self.u.id == user_id else None
+
 
 class Codes:
     def __init__(self):
@@ -44,8 +47,14 @@ class Codes:
 
 
 class Refresh:
+    def __init__(self):
+        self.revoked_for: list = []
+
     async def add(self, t):
         pass
+
+    async def revoke_all(self, user_id):
+        self.revoked_for.append(user_id)
 
 
 class Hasher:
@@ -137,3 +146,11 @@ def test_reset_rejects_wrong_expired_unknown_and_weak():
     with pytest.raises(Unauthorized):
         asyncio.run(svc.reset_password("a@b.uz", "123456", "newpassword"))
     assert users.u.password_hash == "h:oldpassword"
+
+
+def test_admin_reset_password_revokes_refresh_tokens():
+    user = _user()
+    svc, users, _, _ = make(user)
+    refresh = svc._refresh
+    asyncio.run(svc.reset_user_password(user.id, "brand-new-pass"))
+    assert users.u.password_hash == "h:brand-new-pass" and refresh.revoked_for == [user.id]

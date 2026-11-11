@@ -522,5 +522,5 @@ async def moderate_post(
     post = await build_rep_service(session).moderate(
         post_id, publish=body.action == "publish", reason=body.reason
     )
-    audit_admin(who, "lyceums.moderate_post", post_id=str(post_id), action=body.action)
+    audit_admin(who, "lyceums.moderate_post", post_id=str(post_id), decision=body.action)
     return _post(post)

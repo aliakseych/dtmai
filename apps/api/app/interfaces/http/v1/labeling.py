@@ -368,7 +368,9 @@ async def admin_activity(
         descending=order == "desc", page=page, size=size,
     )
     names = await ids.get_many({r.actor_user_id for r in rows})
-    audit_admin(who, "labeling.activity", actor_id=str(actor_id) if actor_id else None, action=action, page=page)
+    audit_admin(
+        who, "labeling.activity", filter_actor_id=str(actor_id) if actor_id else None, filter_action=action, page=page
+    )
     return ActivityPage(
         total=total,
         items=[

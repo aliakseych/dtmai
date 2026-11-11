@@ -216,3 +216,10 @@ class SqlRefreshTokenRepository:
         await self._s.execute(
             update(RefreshTokenRow).where(RefreshTokenRow.id == token_id).values(revoked=True)
         )
+
+    async def revoke_all(self, user_id: UUID) -> None:
+        await self._s.execute(
+            update(RefreshTokenRow)
+            .where(RefreshTokenRow.user_id == user_id, RefreshTokenRow.revoked.is_(False))
+            .values(revoked=True)
+        )

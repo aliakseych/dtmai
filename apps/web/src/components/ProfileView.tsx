@@ -8,6 +8,8 @@ import { buttonClass } from "@dtmai/ui";
 import { AsyncView } from "@/components/AsyncView";
 import { GoalRing } from "@/components/GoalRing";
 import { PageTitle } from "@/components/PageTitle";
+import { StatsSection } from "@/components/profile/StatsSection";
+import { Reveal } from "@/components/motion/Reveal";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useBilling } from "@/lib/billing";
@@ -54,15 +56,17 @@ export function ProfileView() {
       <PageTitle>{t("profile.title")}</PageTitle>
       <AsyncView state={state} onRetry={reload}>
         {(s) => (
-          <div className="flex flex-col gap-4">
-            <Card className="flex items-center gap-4">
-              <Avatar name={me?.name ?? "?"} size={72} />
-              <div className="min-w-0 flex-1">
-                <h2 className="truncate text-2xl">{isGuest ? t("profile.guest") : me?.name}</h2>
-                {me?.email && <p className="truncate text-ink-soft">{me.email}</p>}
-              </div>
-              <StreakFlame days={s.streak} />
-            </Card>
+          <div className="mx-auto flex w-full min-w-0 max-w-5xl flex-col gap-4">
+            <Reveal y={12}>
+              <Card className="flex items-center gap-4 bg-brand-soft">
+                <Avatar name={me?.name ?? "?"} size={72} />
+                <div className="min-w-0 flex-1">
+                  <h2 className="truncate text-2xl">{isGuest ? t("profile.guest") : me?.name}</h2>
+                  {me?.email && <p className="truncate text-ink-soft">{me.email}</p>}
+                </div>
+                <StreakFlame days={s.streak} />
+              </Card>
+            </Reveal>
             {isGuest && (
               <Card className="flex flex-col gap-2">
                 <p className="text-ink">{t("guest.banner")}</p>
@@ -71,6 +75,7 @@ export function ProfileView() {
                 </Link>
               </Card>
             )}
+            <StatsSection />
             <Card className="flex flex-wrap justify-around gap-4">
               <XpStat value={s.xp_total} label={t("stat.xp")} />
               <GemsStat value={s.gems} label={t("stat.gems")} />

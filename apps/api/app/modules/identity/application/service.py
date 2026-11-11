@@ -243,6 +243,7 @@ class IdentityService:
         user = await self.get_me(user_id)
         user.password_hash = self._hasher.hash(password)
         await self._users.save(user)
+        await self._refresh.revoke_all(user_id)
 
     async def contacts(
         self, after: UUID | None, limit: int, locale: str | None = None, with_email: bool = False
