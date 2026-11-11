@@ -2331,6 +2331,56 @@
         "title": "ExplanationOut",
         "type": "object"
       },
+      "FieldOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "mapped": {
+            "title": "Mapped",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "subject_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Subject Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "subject_ids",
+          "mapped"
+        ],
+        "title": "FieldOut",
+        "type": "object"
+      },
+      "FieldSubjectsIn": {
+        "properties": {
+          "subject_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Subject Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "subject_ids"
+        ],
+        "title": "FieldSubjectsIn",
+        "type": "object"
+      },
       "FileOut": {
         "properties": {
           "error": {
@@ -3669,6 +3719,13 @@
             "title": "Dreamers Count",
             "type": "integer"
           },
+          "field_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Field Codes",
+            "type": "array"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -3710,7 +3767,8 @@
           "stats",
           "profile",
           "posts",
-          "dreamers_count"
+          "dreamers_count",
+          "field_codes"
         ],
         "title": "LyceumDetail",
         "type": "object"
@@ -3957,6 +4015,13 @@
             "title": "Dormitory Status",
             "type": "string"
           },
+          "field_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Field Codes",
+            "type": "array"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -4012,7 +4077,8 @@
           "applications",
           "competition_ratio",
           "competition",
-          "competition_year"
+          "competition_year",
+          "field_codes"
         ],
         "title": "LyceumSummary",
         "type": "object"
@@ -4029,6 +4095,14 @@
               }
             ],
             "title": "City"
+          },
+          "dream_field_mismatch": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Dream Field Mismatch",
+            "type": "array"
           },
           "dream_lyceum_ids": {
             "items": {
@@ -4064,6 +4138,17 @@
           "email_verified": {
             "title": "Email Verified",
             "type": "boolean"
+          },
+          "field_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field Code"
           },
           "id": {
             "format": "uuid",
@@ -4116,7 +4201,9 @@
           "dream_lyceum_ids",
           "education_language_id",
           "city",
-          "subject_ids"
+          "field_code",
+          "subject_ids",
+          "dream_field_mismatch"
         ],
         "title": "MeOut",
         "type": "object"
@@ -4162,6 +4249,18 @@
               }
             ],
             "title": "Education Language Id"
+          },
+          "field_code": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field Code"
           },
           "locale": {
             "anyOf": [
@@ -5624,6 +5723,17 @@
       },
       "QuestOut": {
         "properties": {
+          "action": {
+            "enum": [
+              "lesson",
+              "drill",
+              "review",
+              "mock",
+              "any"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
           "code": {
             "title": "Code",
             "type": "string"
@@ -5674,7 +5784,8 @@
           "target",
           "reward_gems",
           "reward_xp",
-          "completed"
+          "completed",
+          "action"
         ],
         "title": "QuestOut",
         "type": "object"
@@ -18440,6 +18551,162 @@
         ]
       }
     },
+    "/v1/admin/lyceums/fields/{code}": {
+      "delete": {
+        "operationId": "lyceums_admin_clear_field_subjects",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "title": "Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Clear Field Subjects",
+        "tags": [
+          "lyceums-admin"
+        ]
+      },
+      "put": {
+        "description": "Set the ordered required subjects of a field; an empty list clears the mapping.",
+        "operationId": "lyceums_admin_set_field_subjects",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "title": "Code",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldSubjectsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Field Subjects",
+        "tags": [
+          "lyceums-admin"
+        ]
+      }
+    },
     "/v1/admin/lyceums/import": {
       "post": {
         "operationId": "start_import_v1_admin_lyceums_import_post",
@@ -25793,7 +26060,44 @@
     },
     "/v1/lyceums/cities": {
       "get": {
+        "description": "Cities sorted by their name in the request locale.",
         "operationId": "lyceums_list_cities",
+        "parameters": [
+          {
+            "description": "UI locale; overrides Accept-Language",
+            "in": "query",
+            "name": "locale",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "UI locale; overrides Accept-Language",
+              "title": "Locale"
+            }
+          },
+          {
+            "in": "header",
+            "name": "accept-language",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Accept-Language"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -25808,9 +26112,45 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "List Cities",
+        "tags": [
+          "lyceums"
+        ]
+      }
+    },
+    "/v1/lyceums/fields": {
+      "get": {
+        "description": "Distinct fields of study (edu.uz specialities) with their required subject ids.",
+        "operationId": "lyceums_list_fields",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FieldOut"
+                  },
+                  "title": "Response Lyceums List Fields",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Fields",
         "tags": [
           "lyceums"
         ]

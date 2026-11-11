@@ -17,7 +17,9 @@ from app.modules.identity.domain.models import (
     normalize_email,
     parse_role_set,
     parse_roles,
+    dream_field_mismatch,
     validate_city,
+    validate_field_code,
     validate_locale,
     validate_password,
     validate_dream_lyceum_ids,
@@ -27,6 +29,7 @@ from app.modules.identity.ports import (
     CityCatalog,
     Clock,
     EmailCodeRepository,
+    FieldCatalog,
     Mailer,
     PasswordHasher,
     RefreshTokenRepository,
@@ -73,10 +76,11 @@ class IdentityService:
         clock: Clock,
         config: IdentityConfig,
         cities: CityCatalog,
+        fields: FieldCatalog,
     ) -> None:
         self._users, self._codes, self._refresh = users, codes, refresh
         self._hasher, self._mailer, self._clock, self._cfg = hasher, mailer, clock, config
-        self._cities = cities
+        self._cities, self._fields = cities, fields
 
     async def register_email(self, email: str, password: str, name: str, locale: str) -> None:
         email = normalize_email(email)
@@ -265,6 +269,7 @@ class IdentityService:
         dream_lyceum_ids: list[UUID] | object = UNSET,
         education_language_id: UUID | None | object = UNSET,
         city: str | None | object = UNSET,
+        field_code: str | None | object = UNSET,
         subject_ids: list[UUID] | object = UNSET,
     ) -> User:
         user = await self.get_me(user_id)
@@ -283,8 +288,22 @@ class IdentityService:
             user.city = code
         if subject_ids is not UNSET:
             user.subject_ids = validate_subject_ids(subject_ids)  # type: ignore[arg-type]
+        if field_code is not UNSET:
+            user.field_code = validate_field_code(field_code)  # type: ignore[arg-type]
+        if user.field_code is not None and (field_code is not UNSET or subject_ids is not UNSET):
+            # The field decides the subjects; explicit ones stay only when it has no mapping.
+            mapped = await self._fields.subjects_for(user.field_code)
+            if mapped:
+                user.subject_ids = validate_subject_ids(mapped)
         await self._users.save(user)
         return user
+
+    async def dream_field_mismatch(self, user: User) -> list[UUID]:
+        """Dream lyceums that do not offer the user's field (informational, never rejected)."""
+        if user.field_code is None or not user.dream_lyceum_ids:
+            return []
+        offered = await self._fields.offered_fields(user.dream_lyceum_ids)
+        return dream_field_mismatch(user.field_code, user.dream_lyceum_ids, offered)
 
     async def grant_role(self, user_id: UUID, role: Role) -> User:
         """Add a role (idempotent). Guests cannot hold other roles."""

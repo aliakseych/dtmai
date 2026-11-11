@@ -5,13 +5,46 @@ import { MAX_DREAMS, moveItem } from "@/lib/dreams";
 import { LyceumName } from "./LyceumName";
 
 /** Controlled 1-2-3 lyceum priority editor with the admission rules note. */
-export function PriorityList({ ids, onChange, disabled, showRules = true }: { ids: string[]; onChange: (ids: string[]) => void; disabled?: boolean; showRules?: boolean }) {
+export function PriorityList({
+  ids,
+  onChange,
+  disabled,
+  showRules = true,
+  mismatch = [],
+  onReplace,
+}: {
+  ids: string[];
+  onChange: (ids: string[]) => void;
+  disabled?: boolean;
+  showRules?: boolean;
+  /** Lyceums that do not offer the chosen field: flagged with a Replace/Remove warning. */
+  mismatch?: string[];
+  onReplace?: (id: string) => void;
+}) {
   const t = useT();
   return (
     <section aria-label={t("dream.priority.title")} className="flex flex-col gap-3">
       <h3 className="text-lg font-extrabold text-ink">{t("dream.priority.title")}</h3>
       <PrioritySlots
-        items={ids.map((id) => ({ id, label: <LyceumName id={id} /> }))}
+        items={ids.map((id) => ({ id, label: (
+            <span className="flex flex-col gap-1">
+              <LyceumName id={id} />
+              {mismatch.includes(id) && (
+                <span className="flex flex-wrap items-center gap-2 text-xs font-extrabold">
+                  <span role="status" className="rounded-full bg-gold px-2 py-0.5 text-ink">⚠ {t("field.mismatch")}</span>
+                  {onReplace && (
+                    <button type="button" disabled={disabled} onClick={() => onReplace(id)} className="text-brand underline">
+                      {t("field.replace")}
+                    </button>
+                  )}
+                  <button type="button" disabled={disabled} onClick={() => onChange(ids.filter((x) => x !== id))} className="text-red underline">
+                    {t("field.remove")}
+                  </button>
+                </span>
+              )}
+            </span>
+          ),
+        }))}
         max={MAX_DREAMS}
         emptyText={t("dream.priority.empty")}
         disabled={disabled}

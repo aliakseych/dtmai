@@ -20,6 +20,7 @@ export const NAV: NavSection[] = [
   { title: "Platform", items: [
     { href: "/ai/", label: "AI models & spend", keywords: "openrouter routes limits" },
     { href: "/lyceums/", label: "Lyceums", keywords: "profiles reps moderation posts import edu.uz quota" },
+    { href: "/fields/", label: "Fields of study", keywords: "speciality edu.uz subjects mapping onboarding" },
     { href: "/billing/", label: "Plans & grants", keywords: "premium subscription" },
     { href: "/users/", label: "Users", keywords: "learners accounts roles stats" },
     { href: "/admins/", label: "Admins & staff", keywords: "create staff editor admin accounts" },

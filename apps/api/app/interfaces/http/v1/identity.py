@@ -93,7 +93,9 @@ class MeOut(BaseModel):
     dream_lyceum_ids: list[UUID]
     education_language_id: UUID | None
     city: str | None
+    field_code: str | None
     subject_ids: list[UUID]
+    dream_field_mismatch: list[UUID]
 
 
 class MePatch(BaseModel):
@@ -102,6 +104,7 @@ class MePatch(BaseModel):
     dream_lyceum_ids: list[UUID] | None = Field(default=None, max_length=10)
     education_language_id: UUID | None = None
     city: str | None = Field(default=None, max_length=50)
+    field_code: str | None = Field(default=None, max_length=20)
     subject_ids: list[UUID] | None = Field(default=None, max_length=10)
 
 
@@ -111,7 +114,7 @@ def _tokens(t: TokenPair) -> TokensOut:
     )
 
 
-def _me(u: User) -> MeOut:
+def _me(u: User, mismatch: list[UUID]) -> MeOut:
     return MeOut(
         id=u.id,
         email=u.email,
@@ -123,7 +126,9 @@ def _me(u: User) -> MeOut:
         dream_lyceum_ids=list(u.dream_lyceum_ids),
         education_language_id=u.education_language_id,
         city=u.city,
+        field_code=u.field_code,
         subject_ids=list(u.subject_ids),
+        dream_field_mismatch=mismatch,
     )
 
 
@@ -191,7 +196,8 @@ async def telegram_widget(body: TelegramWidgetIn, svc: IdentityServiceDep) -> To
 
 @router.get("/me", operation_id="identity_get_me", responses=ERR)
 async def get_me(user: CurrentUser, svc: IdentityServiceDep) -> MeOut:
-    return _me(await svc.get_me(user.user_id))
+    me = await svc.get_me(user.user_id)
+    return _me(me, await svc.dream_field_mismatch(me))
 
 
 @router.patch("/me", operation_id="identity_update_me", responses=ERR)
@@ -206,9 +212,10 @@ async def patch_me(body: MePatch, user: CurrentUser, svc: IdentityServiceDep) ->
             body.education_language_id if "education_language_id" in sent else UNSET
         ),
         city=body.city if "city" in sent else UNSET,
+        field_code=body.field_code if "field_code" in sent else UNSET,
         subject_ids=(body.subject_ids or []) if "subject_ids" in sent else UNSET,
     )
-    return _me(updated)
+    return _me(updated, await svc.dream_field_mismatch(updated))
 
 
 # --- admin -------------------------------------------------------------------

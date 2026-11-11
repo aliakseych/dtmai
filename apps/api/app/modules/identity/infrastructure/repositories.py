@@ -17,7 +17,7 @@ def _to_domain(r: UserRow) -> User:
         id=r.id, name=r.name, locale=r.locale, email=r.email, email_verified=r.email_verified,
         password_hash=r.password_hash, telegram_id=r.telegram_id,
         roles={Role(x) for x in r.roles}, dream_lyceum_ids=list(r.dream_lyceum_ids or []),
-        education_language_id=r.education_language_id, city=r.city,
+        education_language_id=r.education_language_id, city=r.city, field_code=r.field_code,
         subject_ids=list(r.subject_ids or []), created_at=r.created_at,
         last_seen_at=r.last_seen_at, telegram_username=r.telegram_username,
         disabled=r.status == DISABLED, is_system=r.is_system,
@@ -30,6 +30,7 @@ def _fill(r: UserRow, u: User) -> None:
     r.roles = sorted(x.value for x in u.roles)
     r.dream_lyceum_ids, r.education_language_id = list(u.dream_lyceum_ids), u.education_language_id
     r.city, r.subject_ids = u.city, list(u.subject_ids)
+    r.field_code = u.field_code
     r.telegram_username, r.is_system = u.telegram_username, u.is_system
     r.status = DISABLED if u.disabled else ACTIVE
 

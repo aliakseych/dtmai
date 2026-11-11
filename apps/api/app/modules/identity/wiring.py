@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.identity.application.service import IdentityConfig, IdentityService
 from app.modules.lyceums.city_wiring import build_city_catalog
+from app.modules.lyceums.field_wiring import build_field_catalog
 from app.modules.identity.infrastructure.clock import SystemClock
 from app.modules.identity.infrastructure.mail import build_mailer
 from app.modules.identity.infrastructure.passwords import Argon2Hasher
@@ -36,6 +37,7 @@ def build_identity_service(session: AsyncSession) -> IdentityService:
             jwt_secret=s.jwt_secret,
         ),
         build_city_catalog(session),
+        build_field_catalog(session),
     )
 
 

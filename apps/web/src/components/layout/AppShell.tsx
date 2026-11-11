@@ -2,18 +2,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { buttonClass, Card, cn, Logo, Mascot, Modal } from "@dtmai/ui";
+import { Avatar, buttonClass, cn, Logo, Mascot, Modal } from "@dtmai/ui";
 import { LocaleSwitcher, useT } from "@dtmai/i18n";
 import { useAuth } from "@/lib/auth";
 import { useBilling } from "@/lib/billing";
 import { MAIN_NAV, MORE_NAV, TAB_NAV } from "./nav";
 import { NavIcon } from "./NavIcon";
+import { QuestsPanel } from "./QuestsPanel";
 import { TopStats } from "./TopStats";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const t = useT();
   const path = usePathname();
-  const { isGuest } = useAuth();
+  const { isGuest, me } = useAuth();
   const { canBuy } = useBilling();
   const [more, setMore] = useState(false);
   const active = (href: string) => path.startsWith(href.slice(0, -1));
@@ -44,7 +45,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <LocaleSwitcher className="mt-auto max-w-full" placement="top" align="start" />
+        <div className="mt-auto flex flex-col gap-3 border-t-2 border-line pt-3">
+          {me && (
+            <Link href="/profile/" className="flex items-center gap-3 rounded-2xl border-2 border-transparent px-3 py-2 transition hover:bg-snow active:scale-[0.98]">
+              <Avatar name={me.name} size={36} />
+              <span className="truncate text-[15px] font-extrabold text-ink">{me.name}</span>
+            </Link>
+          )}
+          <LocaleSwitcher className="max-w-full" placement="top" align="start" />
+        </div>
       </aside>
 
       <div className="lg:pl-72">
@@ -71,12 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="flex justify-end">
               <TopStats />
             </div>
-            <Card className="flex flex-col gap-3">
-              <h2 className="text-lg">{t("nav.quests")}</h2>
-              <Link href="/quests/" className={buttonClass("secondary", true)}>
-                {t("nav.quests")}
-              </Link>
-            </Card>
+            <QuestsPanel />
             {canBuy && (
               <div className="flex flex-col items-center gap-3 rounded-card bg-brand p-5 text-center text-white">
                 <Mascot mood="premium" size={96} alt={t("mascot.alt")} className="h-auto w-24" />

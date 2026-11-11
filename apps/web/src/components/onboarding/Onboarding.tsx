@@ -14,10 +14,13 @@ import { PlacementStep } from "./PlacementStep";
 import { CityStep, type CityChoice } from "./CityStep";
 import { fetchCities } from "@/lib/cities";
 import { SubjectsStep } from "./SubjectsStep";
+import { FieldStep } from "./FieldStep";
+import { PrioritiesStep } from "./PrioritiesStep";
+import { fetchFields } from "@/lib/fields";
 
-const STEPS = ["city", "language", "lyceum", "subjects", "placement"] as const;
+const STEPS = ["city", "language", "lyceum", "field", "priorities", "subjects", "placement"] as const;
 
-/** City -> education language -> dream lyceum -> subjects (multi) -> placement for the first subject. */
+/** City -> language -> first lyceum -> field -> other priorities -> subjects (derived from the field) -> placement. */
 export function Onboarding() {
   const t = useT();
   const { locale } = useLocale();
@@ -28,6 +31,7 @@ export function Onboarding() {
   const [lyceumIds, setLyceumIds] = useState<string[]>([]);
   const [languageId, setLanguageId] = useState<string | null>(null);
   const [subjectIds, setSubjectIds] = useState<string[]>([]);
+  const [fieldCode, setFieldCode] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [saveError, setSaveError] = useState(false);
@@ -37,6 +41,13 @@ export function Onboarding() {
   const subjects = useAsync(() => api.unwrap(api.client.GET("/v1/catalog/subjects")), []);
 
   const cities = useAsync(fetchCities, []);
+  const fields = useAsync(fetchFields, []);
+  const fieldList = fields.state.status === "ready" ? fields.state.data : [];
+  const chosenField = fieldList.find((f) => f.code === fieldCode);
+  // Subjects are fixed by the field's mapping; editable only when it has none.
+  const subjectsLocked = !!chosenField && chosenField.subject_ids.length > 0;
+  const lyceumRows = lyceums.state.status === "ready" ? lyceums.state.data : [];
+  const offered = lyceumRows.find((l) => l.id === lyceumIds[0])?.field_codes ?? [];
 
   const subjectList = subjects.state.status === "ready" ? subjects.state.data : [];
   // First subject in catalog order among those chosen.
@@ -53,7 +64,7 @@ export function Onboarding() {
     try {
       await api.unwrap(
         api.client.PATCH("/v1/identity/me", {
-          body: { city: city ?? null, subject_ids: subjectIds, dream_lyceum_ids: lyceumIds, education_language_id: languageId },
+          body: { city: city ?? null, subject_ids: subjectIds, dream_lyceum_ids: lyceumIds, education_language_id: languageId, field_code: fieldCode },
         }),
       );
       await reloadMe();
@@ -113,12 +124,42 @@ export function Onboarding() {
       )}
       {step === "lyceum" && (
         <OnboardingFrame {...frame} speech={t("onb.title.target")} canContinue={lyceumIds.length > 0}>
-          <LyceumStep state={lyceums.state} onRetry={lyceums.reload} city={city ?? null} value={lyceumIds} onChange={setLyceumIds} />
+          <LyceumStep
+            single
+            state={lyceums.state}
+            onRetry={lyceums.reload}
+            city={city ?? null}
+            value={lyceumIds.slice(0, 1)}
+            onChange={(ids) => {
+              setLyceumIds((cur) => (ids[0] && cur[0] !== ids[0] ? [ids[0], ...cur.slice(1).filter((x) => x !== ids[0])] : cur));
+              if (ids[0] !== lyceumIds[0]) setFieldCode(null);
+            }}
+          />
+        </OnboardingFrame>
+      )}
+      {step === "field" && (
+        <OnboardingFrame {...frame} speech={t("onb.title.field")} canContinue={!!fieldCode || (fields.state.status === "ready" && offered.every((c) => !fieldList.some((f) => f.code === c)))}>
+          <FieldStep
+            state={fields.state}
+            onRetry={fields.reload}
+            offered={offered}
+            value={fieldCode}
+            onChange={(code) => {
+              setFieldCode(code);
+              const f = fieldList.find((x) => x.code === code);
+              if (f && f.subject_ids.length > 0) setSubjectIds(f.subject_ids);
+            }}
+          />
+        </OnboardingFrame>
+      )}
+      {step === "priorities" && (
+        <OnboardingFrame {...frame} speech={t("onb.title.priorities")} canContinue={lyceumIds.length > 0}>
+          <PrioritiesStep state={lyceums.state} onRetry={lyceums.reload} city={city ?? null} value={lyceumIds} onChange={setLyceumIds} fieldCode={fieldCode} />
         </OnboardingFrame>
       )}
       {step === "subjects" && (
         <OnboardingFrame {...frame} speech={t("onb.title.subjects")} canContinue={subjectIds.length > 0}>
-          <SubjectsStep state={subjects.state} onRetry={subjects.reload} value={subjectIds} onToggle={toggleSubject} />
+          <SubjectsStep state={subjects.state} onRetry={subjects.reload} value={subjectIds} onToggle={toggleSubject} readOnly={subjectsLocked} />
         </OnboardingFrame>
       )}
     </>

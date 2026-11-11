@@ -1088,6 +1088,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/lyceums/fields/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Field Subjects
+         * @description Set the ordered required subjects of a field; an empty list clears the mapping.
+         */
+        put: operations["lyceums_admin_set_field_subjects"];
+        post?: never;
+        /** Clear Field Subjects */
+        delete: operations["lyceums_admin_clear_field_subjects"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/lyceums/import": {
         parameters: {
             query?: never;
@@ -2489,8 +2510,31 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Cities */
+        /**
+         * List Cities
+         * @description Cities sorted by their name in the request locale.
+         */
         get: operations["lyceums_list_cities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/lyceums/fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Fields
+         * @description Distinct fields of study (edu.uz specialities) with their required subject ids.
+         */
+        get: operations["lyceums_list_fields"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3551,6 +3595,22 @@ export interface components {
             /** Text */
             text: string | null;
         };
+        /** FieldOut */
+        FieldOut: {
+            /** Code */
+            code: string;
+            /** Mapped */
+            mapped: boolean;
+            /** Name */
+            name: string;
+            /** Subject Ids */
+            subject_ids: string[];
+        };
+        /** FieldSubjectsIn */
+        FieldSubjectsIn: {
+            /** Subject Ids */
+            subject_ids: string[];
+        };
         /** FileOut */
         FileOut: {
             /** Error */
@@ -4094,6 +4154,8 @@ export interface components {
             code: string;
             /** Dreamers Count */
             dreamers_count: number;
+            /** Field Codes */
+            field_codes: string[];
             /**
              * Id
              * Format: uuid
@@ -4159,6 +4221,8 @@ export interface components {
              * @enum {string}
              */
             dormitory_status: "available" | "limited" | "none" | "unknown";
+            /** Field Codes */
+            field_codes: string[];
             /**
              * Id
              * Format: uuid
@@ -4176,6 +4240,8 @@ export interface components {
         MeOut: {
             /** City */
             city: string | null;
+            /** Dream Field Mismatch */
+            dream_field_mismatch: string[];
             /** Dream Lyceum Ids */
             dream_lyceum_ids: string[];
             /** Education Language Id */
@@ -4184,6 +4250,8 @@ export interface components {
             email: string | null;
             /** Email Verified */
             email_verified: boolean;
+            /** Field Code */
+            field_code: string | null;
             /**
              * Id
              * Format: uuid
@@ -4208,6 +4276,8 @@ export interface components {
             dream_lyceum_ids?: string[] | null;
             /** Education Language Id */
             education_language_id?: string | null;
+            /** Field Code */
+            field_code?: string | null;
             /** Locale */
             locale?: string | null;
             /** Name */
@@ -4731,6 +4801,11 @@ export interface components {
         };
         /** QuestOut */
         QuestOut: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "lesson" | "drill" | "review" | "mock" | "any";
             /** Code */
             code: string;
             /** Completed */
@@ -12980,6 +13055,124 @@ export interface operations {
             };
         };
     };
+    lyceums_admin_set_field_subjects: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FieldSubjectsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FieldOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_admin_clear_field_subjects: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     start_import_v1_admin_lyceums_import_post: {
         parameters: {
             query?: never;
@@ -18421,6 +18614,40 @@ export interface operations {
     };
     lyceums_list_cities: {
         parameters: {
+            query?: {
+                /** @description UI locale; overrides Accept-Language */
+                locale?: string | null;
+            };
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CityOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lyceums_list_fields: {
+        parameters: {
             query?: never;
             header?: never;
             path?: never;
@@ -18434,7 +18661,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CityOut"][];
+                    "application/json": components["schemas"]["FieldOut"][];
                 };
             };
         };

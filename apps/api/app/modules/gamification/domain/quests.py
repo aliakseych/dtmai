@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 from datetime import date
 from hashlib import sha256
+from typing import Literal
 from uuid import UUID
 
 METRICS = frozenset(
@@ -16,6 +17,23 @@ METRICS = frozenset(
         "streak_kept",
     }
 )
+
+QuestAction = Literal["lesson", "drill", "review", "mock", "any"]
+
+_ACTIONS: dict[str, QuestAction] = {
+    "lessons_completed": "lesson",
+    "perfect_sessions": "lesson",
+    "xp_earned": "lesson",
+    "streak_kept": "lesson",
+    "review_sessions": "review",
+    "mocks_submitted": "mock",
+    "correct_answers": "drill",
+}
+
+
+def quest_action(metric: str) -> QuestAction:
+    """Which learner activity advances this metric (drives the quest's call to action)."""
+    return _ACTIONS.get(metric, "any")
 
 
 @dataclass(frozen=True, slots=True)

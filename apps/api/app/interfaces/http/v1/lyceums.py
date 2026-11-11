@@ -2,10 +2,14 @@ from datetime import datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, Depends, Header, Query, Response
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.lyceums.domain.fields import (
+    normalize_speciality_code,
+    validate_field_subject_ids,
+)
 from app.modules.lyceums.domain.models import (
     ImportRun,
     competition_ratio,
@@ -22,6 +26,7 @@ from app.modules.lyceums.domain.rep import (
 from app.modules.lyceums.infrastructure.orm import EducationLanguageRow, LyceumRow
 from app.modules.lyceums.wiring import build_profile_service, build_rep_service
 from app.modules.lyceums.infrastructure.repositories import (
+    SqlFields,
     SqlImportRuns,
     SqlLyceumQueries,
     StatView,
@@ -30,6 +35,7 @@ from app.shared.db import get_session
 from app.shared.deps import CurrentUser, require_role
 from app.shared.audit import audit_admin
 from app.shared.errors import NotFound, ProblemDetails
+from app.shared.locale import pick_locale
 from app.shared.security import Principal
 
 router = APIRouter(tags=["lyceums"])
@@ -43,6 +49,7 @@ ERR: dict[int | str, dict[str, Any]] = {
 }
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
+Admin = Annotated[Principal, Depends(require_role("admin"))]
 
 
 DormitoryStatusLiteral = Literal["available", "limited", "none", "unknown"]
@@ -83,6 +90,18 @@ class LyceumSummary(BaseModel):
     competition_ratio: float | None
     competition: float | None
     competition_year: int | None
+    field_codes: list[str]
+
+
+class FieldOut(BaseModel):
+    code: str
+    name: str
+    subject_ids: list[UUID]
+    mapped: bool
+
+
+class FieldSubjectsIn(BaseModel):
+    subject_ids: list[UUID] = Field(max_length=10)
 
 
 class LanguageOut(BaseModel):
@@ -155,6 +174,7 @@ class LyceumDetail(BaseModel):
     profile: ProfileOut
     posts: list[PostOut]
     dreamers_count: int
+    field_codes: list[str]
 
 
 class ImportRunOut(BaseModel):
@@ -235,6 +255,7 @@ async def search_lyceums(
     queries = SqlLyceumQueries(session)
     rows = await queries.search(q, limit, offset, sort)
     totals = await queries.latest_year_totals([r.id for r in rows])
+    field_codes = await SqlFields(session).codes_by_lyceum([r.id for r in rows])
     out: list[LyceumSummary] = []
     for r in rows:
         year, quota, apps = totals.get(r.id, (None, None, None))
@@ -245,16 +266,34 @@ async def search_lyceums(
             dormitory_status=r.dormitory_status or "unknown",  # type: ignore[arg-type]
             latest_year=year, quota=quota, applications=apps, competition_ratio=ratio,
             competition=ratio, competition_year=year if ratio is not None else None,
+            field_codes=field_codes.get(r.id, []),
         ))
     return out
 
 
 @router.get("/cities", response_model=list[CityOut], operation_id="lyceums_list_cities")
-async def list_cities(session: SessionDep) -> list[CityOut]:
-    cities = await build_profile_service(session).cities()
+async def list_cities(
+    session: SessionDep,
+    locale: Annotated[str | None, Query(description="UI locale; overrides Accept-Language")] = None,
+    accept_language: Annotated[str | None, Header()] = None,
+) -> list[CityOut]:
+    """Cities sorted by their name in the request locale."""
+    cities = await build_profile_service(session).cities(
+        pick_locale(locale or accept_language)
+    )
     return [
         CityOut(code=c.code, names=CityNamesOut.model_validate(c.names), lyceum_count=c.lyceum_count)
         for c in cities
+    ]
+
+
+@router.get("/fields", response_model=list[FieldOut], operation_id="lyceums_list_fields")
+async def list_fields(session: SessionDep) -> list[FieldOut]:
+    """Distinct fields of study (edu.uz specialities) with their required subject ids."""
+    fields = await SqlFields(session).list_fields()
+    return [
+        FieldOut(code=f.code, name=f.name, subject_ids=f.subject_ids, mapped=f.mapped)
+        for f in sorted(fields, key=lambda f: f.name.casefold())
     ]
 
 
@@ -281,7 +320,9 @@ async def lyceum_detail(lyceum_id: UUID, session: SessionDep, _user: CurrentUser
         for y, (q, a) in sorted(by_year.items(), reverse=True)
     ]
     posts = await build_rep_service(session).published(lyceum_id)
+    field_codes = (await SqlFields(session).codes_by_lyceum([lyceum_id])).get(lyceum_id, [])
     return LyceumDetail(
+        field_codes=field_codes,
         id=row.id, code=row.code, names=_names(row), years=years, stats=[_stat(s) for s in stats],
         profile=_profile(row), posts=[_post(p) for p in posts],
         dreamers_count=await build_identity_service(session).count_dreamers(lyceum_id),
@@ -303,6 +344,36 @@ async def list_imports(
     session: SessionDep, limit: Annotated[int, Query(ge=1, le=100)] = 20
 ) -> list[ImportRunOut]:
     return [_run(r) for r in await SqlImportRuns(session).list(limit)]
+
+
+@admin_router.put("/fields/{code}", response_model=FieldOut,
+                  operation_id="lyceums_admin_set_field_subjects", responses=ERR)
+async def set_field_subjects(
+    code: str, body: FieldSubjectsIn, session: SessionDep, who: Admin
+) -> FieldOut:
+    """Set the ordered required subjects of a field; an empty list clears the mapping."""
+    code = normalize_speciality_code(code)
+    ids = validate_field_subject_ids(body.subject_ids)
+    fields = SqlFields(session)
+    if not await fields.known_code(code):
+        raise NotFound("field not found", code="field_not_found")
+    if ids:
+        await fields.set_subjects(code, ids)
+    else:
+        await fields.clear_subjects(code)
+    audit_admin(who, "lyceums.set_field_subjects", field_code=code, subject_ids=[str(i) for i in ids])
+    field = next(f for f in await fields.list_fields() if f.code == code)
+    return FieldOut(code=field.code, name=field.name, subject_ids=field.subject_ids,
+                    mapped=field.mapped)
+
+
+@admin_router.delete("/fields/{code}", status_code=204,
+                     operation_id="lyceums_admin_clear_field_subjects", responses=ERR)
+async def clear_field_subjects(code: str, session: SessionDep, who: Admin) -> Response:
+    code = normalize_speciality_code(code)
+    await SqlFields(session).clear_subjects(code)
+    audit_admin(who, "lyceums.clear_field_subjects", field_code=code)
+    return Response(status_code=204)
 
 
 @admin_router.patch("/stats/{stat_id}", response_model=StatOut, responses=ERR)
@@ -444,7 +515,6 @@ async def rep_update_profile(
 
 
 # --- admin: profile, applications, moderation -----------------------------------
-Admin = Annotated[Principal, Depends(require_role("admin"))]
 
 
 class LyceumPatch(BaseModel):

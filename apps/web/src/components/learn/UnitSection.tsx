@@ -10,6 +10,13 @@ import { OFFSETS, unitStyle } from "./unitStyle";
 
 const stepState = (s: string, isCurrent: boolean): StepState => (s === "done" ? "completed" : s === "locked" ? "locked" : isCurrent ? "current" : "open");
 
+/** Quests deep-link to `/learn/#current`: bring the first open lesson into view once its node mounts. */
+function scrollIfRequested(el: HTMLElement | null) {
+  if (el && window.location.hash === "#current" && document.querySelector("[data-current-lesson]") === el) {
+    el.scrollIntoView({ block: "center" });
+  }
+}
+
 /** One topic: sticky banner (UNIT N, title, THEORY) and its zig-zag lesson nodes with the mascot beside the gaps. */
 export function UnitSection({ unit, index, fresh }: { unit: Path["units"][number]; index: number; fresh: Set<string> }) {
   const t = useT();
@@ -43,7 +50,13 @@ export function UnitSection({ unit, index, fresh }: { unit: Path["units"][number
           const status = t(state === "completed" ? "learn.node.done" : state === "locked" ? "learn.node.locked" : "learn.node.start");
           const side = i % OFFSETS.length === 2 ? "left" : i % OFFSETS.length === 6 ? "right" : null;
           return (
-            <div key={l.id} className="relative flex w-full justify-center py-1.5" style={{ transform: `translateX(${off}px)` }}>
+            <div
+              key={l.id}
+              ref={l.id === currentId ? scrollIfRequested : undefined}
+              data-current-lesson={l.id === currentId ? "" : undefined}
+              className="relative flex w-full justify-center py-1.5"
+              style={{ transform: `translateX(${off}px)` }}
+            >
               {side && (
                 <Mascot
                   mood={side === "left" ? "right" : "left"}

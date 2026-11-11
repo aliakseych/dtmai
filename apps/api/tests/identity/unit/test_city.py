@@ -28,7 +28,7 @@ def make() -> tuple[IdentityService, Users, User]:
     user = User(id=new_id(), name="A", email="a@b.uz", email_verified=True, password_hash="h")
     users = Users(user)
     cfg = IdentityConfig(60, 600, 600, 3, "t", 60, "s" * 32)
-    svc = IdentityService(users, None, None, None, None, None, cfg, Cities())  # type: ignore[arg-type]
+    svc = IdentityService(users, None, None, None, None, None, cfg, Cities(), None)  # type: ignore[arg-type]
     return svc, users, user
 
 

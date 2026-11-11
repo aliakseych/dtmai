@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocale, useT } from "@dtmai/i18n";
 import { ChoiceList } from "@dtmai/ui";
 import { AsyncView } from "@/components/AsyncView";
@@ -27,11 +27,27 @@ export function CityStep({ state, onRetry, value, onChange }: { state: AsyncStat
 
 function List({ cities, locale, value, onChange }: { cities: City[]; locale: Parameters<typeof pick>[1]; value: CityChoice; onChange: (v: string | null) => void }) {
   const t = useT();
-  const items = useMemo(
-    () => cities.map((c) => ({ value: c.code, label: pick(c.names, locale), hint: String(c.lyceum_count) })).sort((a, b) => a.label.localeCompare(b.label, locale)),
-    [cities, locale],
-  );
+  const [sort, setSort] = useState<"name" | "count">("name");
+  const items = useMemo(() => {
+    const rows = cities.map((c) => ({ value: c.code, label: pick(c.names, locale), hint: String(c.lyceum_count), count: c.lyceum_count }));
+    return rows.sort((a, b) => (sort === "count" ? b.count - a.count || a.label.localeCompare(b.label, locale) : a.label.localeCompare(b.label, locale)));
+  }, [cities, locale, sort]);
   return (
+    <>
+    <div role="group" aria-label={t("onb.city.sort")} className="flex items-center gap-2 text-sm font-extrabold">
+      <span className="text-ink-soft">{t("onb.city.sort")}</span>
+      {(["name", "count"] as const).map((k) => (
+        <button
+          key={k}
+          type="button"
+          aria-pressed={sort === k}
+          onClick={() => setSort(k)}
+          className={sort === k ? "rounded-full bg-brand px-3 py-1 text-white" : "rounded-full border-2 border-line px-3 py-1 text-ink"}
+        >
+          {t(k === "name" ? "onb.city.sort.name" : "onb.city.sort.count")}
+        </button>
+      ))}
+    </div>
     <ChoiceList
       label={t("onb.city.q")}
       items={items}
@@ -42,5 +58,6 @@ function List({ cities, locale, value, onChange }: { cities: City[]; locale: Par
       emptyText={t("onb.city.none")}
       columns
     />
+    </>
   );
 }

@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import StrEnum
@@ -9,6 +10,7 @@ LOCALES = ("uz-Latn", "uz-Cyrl", "ru", "en")
 DEFAULT_LOCALE = "uz-Latn"
 MIN_PASSWORD_LENGTH = 8
 MAX_SUBJECTS = 10
+MAX_FIELD_CODE_LENGTH = 20
 MAX_DREAM_LYCEUMS = 3
 MAX_CITY_LENGTH = 50
 GUEST_RETENTION_DAYS = 30
@@ -50,6 +52,23 @@ def validate_city(city: str | None) -> str | None:
     if len(value) > MAX_CITY_LENGTH:
         raise ValidationFailed("city too long", code="invalid_city")
     return value or None
+
+
+def validate_field_code(code: str | None) -> str | None:
+    """Blank clears the field; otherwise a trimmed speciality code."""
+    value = (code or "").strip()
+    if len(value) > MAX_FIELD_CODE_LENGTH:
+        raise ValidationFailed("field code too long", code="invalid_field_code")
+    return value or None
+
+
+def dream_field_mismatch(
+    field_code: str | None, dream_lyceum_ids: list[UUID], offered: Mapping[UUID, set[str]]
+) -> list[UUID]:
+    """Dream lyceums that do not offer the chosen field (never rejects; priority order kept)."""
+    if field_code is None:
+        return []
+    return [i for i in dream_lyceum_ids if field_code not in offered.get(i, set())]
 
 
 def validate_subject_ids(ids: list[UUID]) -> list[UUID]:
@@ -105,6 +124,7 @@ class User:
     dream_lyceum_ids: list[UUID] = field(default_factory=list)
     education_language_id: UUID | None = None
     city: str | None = None
+    field_code: str | None = None
     subject_ids: list[UUID] = field(default_factory=list)
     created_at: datetime | None = None
     last_seen_at: datetime | None = None

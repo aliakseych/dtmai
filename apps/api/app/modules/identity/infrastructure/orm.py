@@ -28,6 +28,7 @@ class UserRow(Base):
     )
     education_language_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     city: Mapped[str | None] = mapped_column(String(100))
+    field_code: Mapped[str | None] = mapped_column(String(20))
     subject_ids: Mapped[list[uuid.UUID]] = mapped_column(
         ARRAY(UUID(as_uuid=True)), default=list, server_default="{}"
     )

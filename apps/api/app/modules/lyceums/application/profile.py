@@ -29,8 +29,9 @@ class ProfileService:
     def __init__(self, profiles: LyceumProfiles, cities: CityRepository) -> None:
         self._profiles, self._cities = profiles, cities
 
-    async def cities(self) -> list[CityView]:
-        return await self._cities.list_with_counts()
+    async def cities(self, locale: str) -> list[CityView]:
+        """Cities sorted by their name in `locale`."""
+        return await self._cities.list_with_counts(locale)
 
     async def update(self, lyceum_id: UUID, raw: Mapping[str, Any]) -> list[str]:
         """Apply the sent keys (already filtered by the caller); returns the changed keys."""

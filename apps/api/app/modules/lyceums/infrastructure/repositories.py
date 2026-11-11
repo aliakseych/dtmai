@@ -19,10 +19,12 @@ from app.modules.lyceums.domain.rep import (
     PostStatus,
     RepMembership,
 )
+from app.modules.lyceums.domain.fields import FieldView
 from app.modules.lyceums.domain.profile import CityView
 from app.modules.lyceums.infrastructure.orm import (
     CityRow,
     EducationLanguageRow,
+    FieldSubjectsRow,
     ImportRunRow,
     LyceumPostRow,
     LyceumRow,
@@ -262,7 +264,7 @@ class SqlCities:
     async def exists(self, code: str) -> bool:
         return await self._s.get(CityRow, code) is not None
 
-    async def list_with_counts(self) -> list[CityView]:
+    async def list_with_counts(self, locale: str = "uz-Latn") -> list[CityView]:
         counts = (
             select(LyceumRow.city, func.count(LyceumRow.id).label("n"))
             .where(LyceumRow.city.is_not(None)).group_by(LyceumRow.city).subquery()
@@ -279,7 +281,75 @@ class SqlCities:
             )
             for c, n in (await self._s.execute(stmt))
         ]
-        return sorted(out, key=lambda c: c.names["uz-Latn"].casefold())
+        return sorted(out, key=lambda c: c.names.get(locale, c.names["uz-Latn"]).casefold())
+
+
+class SqlFields:
+    """Fields of study derived from imported specialities + the admin subject mapping."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._s = session
+
+    async def _mapping(self) -> dict[str, list[UUID]]:
+        rows = await self._s.scalars(select(FieldSubjectsRow))
+        return {r.speciality_code: list(r.subject_ids or []) for r in rows}
+
+    async def list_fields(self) -> list[FieldView]:
+        """Distinct specialities; the name comes from the newest year that has the code."""
+        rows = await self._s.execute(
+            select(YearlyStatRow.speciality_code, YearlyStatRow.name)
+            .order_by(YearlyStatRow.speciality_code, YearlyStatRow.year.desc())
+        )
+        names: dict[str, str] = {}
+        for code, name in rows:
+            names.setdefault(code, name)
+        mapping = await self._mapping()
+        return [
+            FieldView(code=c, name=n, subject_ids=mapping.get(c, []), mapped=c in mapping)
+            for c, n in names.items()
+        ]
+
+    async def known_code(self, code: str) -> bool:
+        return await self._s.scalar(
+            select(YearlyStatRow.id).where(YearlyStatRow.speciality_code == code).limit(1)
+        ) is not None
+
+    async def set_subjects(self, code: str, subject_ids: list[UUID]) -> None:
+        stmt = insert(FieldSubjectsRow).values(speciality_code=code, subject_ids=subject_ids)
+        await self._s.execute(stmt.on_conflict_do_update(
+            index_elements=[FieldSubjectsRow.speciality_code],
+            set_={"subject_ids": subject_ids},
+        ))
+
+    async def clear_subjects(self, code: str) -> None:
+        await self._s.execute(
+            delete(FieldSubjectsRow).where(FieldSubjectsRow.speciality_code == code)
+        )
+
+    async def subjects_for(self, code: str) -> list[UUID] | None:
+        """Mapped subject ids, or None when the field has no (or an empty) mapping."""
+        row = await self._s.get(FieldSubjectsRow, code)
+        return list(row.subject_ids) if row and row.subject_ids else None
+
+    async def codes_by_lyceum(self, lyceum_ids: list[UUID]) -> dict[UUID, list[str]]:
+        """lyceum_id -> speciality codes offered in its newest imported year."""
+        if not lyceum_ids:
+            return {}
+        latest = (
+            select(YearlyStatRow.lyceum_id, func.max(YearlyStatRow.year).label("y"))
+            .where(YearlyStatRow.lyceum_id.in_(lyceum_ids))
+            .group_by(YearlyStatRow.lyceum_id).subquery()
+        )
+        stmt = (
+            select(YearlyStatRow.lyceum_id, YearlyStatRow.speciality_code)
+            .join(latest, (latest.c.lyceum_id == YearlyStatRow.lyceum_id)
+                  & (latest.c.y == YearlyStatRow.year))
+            .distinct().order_by(YearlyStatRow.lyceum_id, YearlyStatRow.speciality_code)
+        )
+        out: dict[UUID, list[str]] = {}
+        for lid, code in await self._s.execute(stmt):
+            out.setdefault(lid, []).append(code)
+        return out
 
 
 def _membership(r: RepMembershipRow) -> RepMembership:

@@ -95,7 +95,7 @@ def make(user):
     )
     users, codes, mail = Users(user), Codes(), Mailer()
     return (
-        IdentityService(users, codes, Refresh(), Hasher(), mail, Clock(), cfg, Cities()),
+        IdentityService(users, codes, Refresh(), Hasher(), mail, Clock(), cfg, Cities(), None),
         users,
         codes,
         mail,

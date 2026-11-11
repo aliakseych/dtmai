@@ -99,6 +99,19 @@ class YearlyStatRow(Base):
     passing_score: Mapped[float | None] = mapped_column(Float)
 
 
+class FieldSubjectsRow(Base):
+    """Admin mapping: field of study (speciality code) -> required catalog subjects, ordered."""
+
+    __tablename__ = "field_subjects"
+    __table_args__ = {"schema": SCHEMA}
+
+    speciality_code: Mapped[str] = mapped_column(String(20), primary_key=True)
+    # Soft references: subjects live in the catalog module's schema.
+    subject_ids: Mapped[list[uuid.UUID]] = mapped_column(
+        ARRAY(UUID(as_uuid=True)), default=list, server_default="{}"
+    )
+
+
 class ImportRunRow(Base):
     __tablename__ = "import_runs"
     __table_args__ = {"schema": SCHEMA}

@@ -13,7 +13,7 @@ from app.modules.gamification.application.service import (
 )
 from app.modules.gamification.domain.config import GameConfig
 from app.modules.gamification.domain.quests import METRICS as QUEST_METRICS
-from app.modules.gamification.domain.quests import QuestTemplate
+from app.modules.gamification.domain.quests import QuestAction, QuestTemplate, quest_action
 from app.modules.gamification.ports import LeaderboardRow, Tier
 from app.modules.gamification.wiring import GamificationServiceDep
 from app.shared.deps import CurrentUser, require_role
@@ -97,6 +97,7 @@ class QuestOut(BaseModel):
     reward_gems: int
     reward_xp: int
     completed: bool
+    action: QuestAction
 
 
 class LeagueRowOut(BaseModel):
@@ -166,7 +167,7 @@ async def quests(user: CurrentUser, svc: GamificationServiceDep) -> list[QuestOu
     return [
         QuestOut(id=q.id, code=q.code, metric=q.metric, title=q.title, progress=q.progress,
                  target=q.target, reward_gems=q.reward_gems, reward_xp=q.reward_xp,
-                 completed=q.completed)
+                 completed=q.completed, action=quest_action(q.metric))
         for q in await svc.quests(user.user_id)
     ]
 

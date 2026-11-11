@@ -56,3 +56,15 @@ class CityCatalog(Protocol):
     """Known city codes (owned by the lyceums module)."""
 
     async def exists(self, code: str) -> bool: ...
+
+
+class FieldCatalog(Protocol):
+    """Fields of study (owned by the lyceums module)."""
+
+    async def subjects_for(self, field_code: str) -> list[UUID] | None:
+        """Admin-mapped subject ids, or None when the field has no mapping."""
+        ...
+
+    async def offered_fields(self, lyceum_ids: list[UUID]) -> dict[UUID, set[str]]:
+        """lyceum_id -> field codes offered in its newest imported year."""
+        ...
