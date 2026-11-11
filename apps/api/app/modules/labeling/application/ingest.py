@@ -130,7 +130,7 @@ class IngestService:
             for pg in pages:
                 parsed, _ = await self._gw.complete_json(
                     route, [LLMMessage("system", system), LLMMessage("user", _content(pg))],
-                    purpose="ingestion.extract", ref=f"{batch.id}:{Path(f.path).name}:{pg.number}",
+                    purpose="ingestion.extract", ref=f"{f.id}:{pg.number}",
                 )
                 out.append({"page": pg.number, "data": parsed})
             f.extracted = {"pages": out}
