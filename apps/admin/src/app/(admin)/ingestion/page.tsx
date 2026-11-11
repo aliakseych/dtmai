@@ -35,7 +35,7 @@ export default function IngestionPage() {
   const set = (p: Partial<BatchIn>) => setF((x) => ({ ...x, ...p }));
   return (
     <>
-      <PageHeader title="Ingestion" sub="Harvest question files from a server-side folder through the AI extraction pipeline." actions={<Btn variant="primary" onClick={() => setOpen(true)}>New batch</Btn>} />
+      <PageHeader title="Ingestion" sub="Upload exam PDFs or images and run them through the AI extraction pipeline." actions={<Btn variant="primary" onClick={() => setOpen(true)}>New batch</Btn>} />
       <div className="min-h-0 flex-1 overflow-auto">
         <DataTable<Batch> rows={list.data} loading={list.isLoading} error={list.error} rowKey={(r) => r.id} onRow={(r) => setSel(r.id)} selected={sel}
           cols={[
