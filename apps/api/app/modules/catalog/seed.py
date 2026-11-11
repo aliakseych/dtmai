@@ -1,7 +1,7 @@
 """Idempotent catalog seed: `python -m app.modules.catalog.seed`.
 
 Creates the five launch subjects, base question types, question bases and topics harvested
-from data/categories.json (override with CATEGORIES_JSON). Re-running adds only what is missing.
+from seed_topics.json next to this module (override with CATEGORIES_JSON). Re-running adds only what is missing.
 """
 
 import asyncio
@@ -44,7 +44,7 @@ _CATEGORY_SUBJECT = {"MATH": ("math", "ru"), "ENGLISH": ("english", "en")}
 
 def categories_path() -> Path:
     env = os.environ.get("CATEGORIES_JSON")
-    return Path(env) if env else Path(__file__).resolve().parents[5] / "data" / "categories.json"
+    return Path(env) if env else Path(__file__).with_name("seed_topics.json")
 
 
 async def seed(session: AsyncSession) -> dict[str, int]:
