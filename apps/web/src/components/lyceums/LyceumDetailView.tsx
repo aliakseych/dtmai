@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useLocale, useT } from "@dtmai/i18n";
 import { mediaUrl } from "@/lib/env";
 import { pick } from "@/lib/localized";
+import { AdmissionSeats } from "./AdmissionSeats";
 import { DreamButton } from "./DreamButton";
 import { LyceumCover } from "./LyceumMedia";
 import { PostsByKind } from "./PostsByKind";
@@ -111,6 +112,8 @@ export function LyceumDetailView({ detail: d, onDreamChanged }: { detail: Lyceum
           </ul>
         </section>
       )}
+
+      <AdmissionSeats admission={d.admission} />
 
       <PostsByKind posts={d.posts} />
 

@@ -5,8 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.identity.domain.models import Role
 from app.modules.identity.wiring import build_identity_service
+from app.modules.lyceums.application.admission import AdmissionService
 from app.modules.lyceums.application.profile import ProfileService
 from app.modules.lyceums.application.rep import RepService
+from app.modules.lyceums.infrastructure.admission import SqlAdmissionStore, load_seed_docs
 from app.modules.lyceums.infrastructure.repositories import (
     SqlCities,
     SqlLyceumProfiles,
@@ -34,6 +36,14 @@ def build_profile_service(session: AsyncSession) -> ProfileService:
 
 def build_rep_service(session: AsyncSession) -> RepService:
     return RepService(
-        SqlLyceumProfiles(session), SqlMemberships(session), SqlPosts(session),
-        _IdentityRoleGranter(session), build_profile_service(session), _SystemClock(),
+        SqlLyceumProfiles(session),
+        SqlMemberships(session),
+        SqlPosts(session),
+        _IdentityRoleGranter(session),
+        build_profile_service(session),
+        _SystemClock(),
     )
+
+
+def build_admission_service(session: AsyncSession) -> AdmissionService:
+    return AdmissionService(SqlAdmissionStore(session), load_seed_docs)

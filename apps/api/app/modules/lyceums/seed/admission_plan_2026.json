@@ -1,0 +1,3010 @@
+{
+ "year": 2026,
+ "source": "Buyruqqa Ilova AL 220",
+ "lyceums": [
+  {
+   "n": 1,
+   "name": "Oʻzbekiston xalqaro islomshunoslik akademiyasi akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "arab",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "name": "Islom Karimov nomidagi Toshkent davlat texnika universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 130,
+      "uz": 78,
+      "ru": 52,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 26,
+      "ru": 52,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910004",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "name": "Oʻzbekiston Milliy universiteti \"Tabiiy va aniq fanlar\"ga ixtisoslashgan S.X.Sirojiddinov nomidagi respublika akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 104,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 104,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "name": "Oʻzbekiston davlat jahon tillari universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 156,
+      "uz": 78,
+      "ru": 78,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "turk",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "name": "Toshkent davlat iqtisodiyot universiteti “International Business” akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 182,
+      "uz": 104,
+      "ru": 78,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "name": "Toshkent davlat iqtisodiyot universiteti “International Finance” akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 234,
+      "uz": 182,
+      "ru": 52,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 78,
+      "uz": 52,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 7,
+   "name": "Toshkent toʻqimachilik va yengil sanoat instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 52,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910003",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 52,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 8,
+   "name": "Toshkent davlat sharqshunoslik universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "yapon",
+     "seats": {
+      "total": 26,
+      "uz": 13,
+      "ru": 13,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "xitoy",
+     "seats": {
+      "total": 26,
+      "uz": 13,
+      "ru": 13,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "turk",
+     "seats": {
+      "total": 13,
+      "uz": 13,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "arab",
+     "seats": {
+      "total": 13,
+      "uz": 13,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "koreys",
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 9,
+   "name": "Toshkent kimyo-texnologiya instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 10,
+   "name": "Andijon davlat texnika instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 182,
+      "uz": 156,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 11,
+   "name": "Andijon davlat universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930004",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 12,
+   "name": "Buxoro davlat universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 104,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 13,
+   "name": "Guliston davlat universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 14,
+   "name": "Qoraqalpoq davlat universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 0,
+      "qq": 26
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 0,
+      "ru": 26,
+      "qq": 26
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 0,
+      "ru": 0,
+      "qq": 52
+     }
+    },
+    {
+     "code": "3930001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 0,
+      "ru": 0,
+      "qq": 26
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 0,
+      "ru": 0,
+      "qq": 26
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 0,
+      "ru": 26,
+      "qq": 26
+     }
+    }
+   ]
+  },
+  {
+   "n": 15,
+   "name": "Qarshi davlat universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 16,
+   "name": "Qarshi davlat texnika universiteti Nuriston akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930004",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "nemis",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 17,
+   "name": "Qarshi davlat texnika universiteti 2-son akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 18,
+   "name": "Namangan davlat universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 104,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 104,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 104,
+      "uz": 104,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 19,
+   "name": "Namangan davlat texnika universiteti 2-son akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 20,
+   "name": "Samarqand davlat universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 104,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 21,
+   "name": "Samarqand davlat chet tillari instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 156,
+      "uz": 156,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 22,
+   "name": "Samarqand iqtisodiyot va servis instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 156,
+      "uz": 130,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 78,
+      "uz": 52,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 23,
+   "name": "Termiz davlat universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930004",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 24,
+   "name": "Fargʻona davlat universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 52,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 104,
+      "uz": 78,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "nemis",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 25,
+   "name": "Fargʻona davlat texnika universiteti 1- son akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 78,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "nemis",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 26,
+   "name": "Fargʻona davlat texnika universiteti 2-son akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 27,
+   "name": "Urganch davlat universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930004",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 78,
+      "uz": 52,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "nemis",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "fransuz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 28,
+   "name": "Termiz davlat muhandislik va agrotexnologiyalar universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 29,
+   "name": "Navoiy davlat universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 30,
+   "name": "Qoʻqon davlat universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 31,
+   "name": "Olmaliq davlat texnika instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 32,
+   "name": "\"TIQXMMI\" milliy tadqiqotlar universiteti \"Internatiomal House- Toshkent\" akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 0,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 52,
+      "ru": 52,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 0,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 33,
+   "name": "Toshkent arxitektura-qurilish universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910003",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 52,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 34,
+   "name": "Samarqand davlat arxitektura-qurilish universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910003",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 35,
+   "name": "Oʻzbekiston Milliy pedagogika universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 78,
+      "uz": 52,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "arab",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "xitoy",
+     "seats": {
+      "total": 26,
+      "uz": 13,
+      "ru": 13,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "koreys",
+     "seats": {
+      "total": 26,
+      "uz": 13,
+      "ru": 13,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 36,
+   "name": "Chirchiq davlat pedagogika universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 78,
+      "uz": 52,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 37,
+   "name": "Nukus davlat pedagogika instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 0,
+      "ru": 0,
+      "qq": 52
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 26,
+      "ru": 0,
+      "qq": 52
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 0,
+      "ru": 0,
+      "qq": 52
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 0,
+      "ru": 0,
+      "qq": 52
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 0,
+      "ru": 0,
+      "qq": 52
+     }
+    }
+   ]
+  },
+  {
+   "n": 38,
+   "name": "Jizzax davlat pedagogika universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 104,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930004",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 104,
+      "uz": 104,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 39,
+   "name": "Andijon davlat pedagogika instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 40,
+   "name": "Namangan davlat pedagogika instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 41,
+   "name": "Urganch davlat pedagogika instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 42,
+   "name": "Buxoro davlat pedagogika instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 43,
+   "name": "Samarqand davlat pedagogika instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 44,
+   "name": "Guliston davlat pedagogika instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930004",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 45,
+   "name": "Shahrisabz davlat pedagogika instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 46,
+   "name": "Termiz davlat pedagogika instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930004",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 47,
+   "name": "Toshkent davlat agrar universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 48,
+   "name": "Andijon qishloq xoʻjaligi va agrotexnologiyalar instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 49,
+   "name": "Самарқанд давлат ветеринария медицинаси, чорвачилик ва биотехнологиялар университети академик лицейи",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 104,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 50,
+   "name": "Toshkent davlat tibbiyot universiteti 1-son akademik litseyi",
+   "directions": [
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 208,
+      "uz": 104,
+      "ru": 104,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 51,
+   "name": "Toshkent davlat tibbiyot universiteti 2-son akademik litseyi",
+   "directions": [
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 208,
+      "uz": 130,
+      "ru": 78,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 52,
+   "name": "Toshkent davlat tibbiyot universiteti 3-son akademik litseyi",
+   "directions": [
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 182,
+      "uz": 130,
+      "ru": 52,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 53,
+   "name": "Urganch davlat tibbiyot instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 156,
+      "uz": 130,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 54,
+   "name": "Toshkent farmatsevtika instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 182,
+      "uz": 104,
+      "ru": 78,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 55,
+   "name": "Andijon davlat tibbiyot instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 208,
+      "uz": 130,
+      "ru": 78,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 56,
+   "name": "Buxoro davlat tibbiyot instituti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 182,
+      "uz": 156,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 57,
+   "name": "Samarqand davlat tibbiyot universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 208,
+      "uz": 182,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 58,
+   "name": "Toshkent axborot texnologiyalari universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 78,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 130,
+      "uz": 78,
+      "ru": 52,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 59,
+   "name": "Toshkent axborot texnologiyalari universitetining Samarqand filiali akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 104,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 52,
+      "uz": 52,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 60,
+   "name": "Jahon iqtisodiyoti va diplomatiya universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 104,
+      "uz": 52,
+      "ru": 52,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 0,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 61,
+   "name": "Navoiy davlat konchilik va texnologiyalar universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 78,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 52,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3920001",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 62,
+   "name": "Toshkent davlat transport universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 52,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 52,
+      "ru": 26,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3940000",
+     "language": "ingliz",
+     "seats": {
+      "total": 26,
+      "uz": 26,
+      "ru": 0,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 63,
+   "name": "Toshkent davlat yuridik universiteti huzuridagi M.S.Vosiqova nomidagi akademik litseyi",
+   "directions": [
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 156,
+      "uz": 104,
+      "ru": 52,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 64,
+   "name": "Toshkent davlat yuridik universiteti huzuridagi Namangan viloyat akademik litseyi",
+   "directions": [
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 130,
+      "uz": 104,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 65,
+   "name": "Toshkent davlat yuridik universiteti huzuridagi Samarqand viloyat akademik litseyi",
+   "directions": [
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 130,
+      "uz": 104,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 66,
+   "name": "Toshkent davlat yuridik universiteti huzuridagi Qashqadaryo viloyat akademik litseyi",
+   "directions": [
+    {
+     "code": "3930005",
+     "language": null,
+     "seats": {
+      "total": 130,
+      "uz": 104,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 67,
+   "name": "Toshkent shahridagi I.M. Gubkin nomidagi Rossiya davlat neft va gaz universiteti filiali akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 0,
+      "ru": 78,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 78,
+      "uz": 0,
+      "ru": 78,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 68,
+   "name": "Toshkent shahridagi Turin politexnika universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910001",
+     "language": null,
+     "seats": {
+      "total": 130,
+      "uz": 52,
+      "ru": 78,
+      "qq": 0
+     }
+    },
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 52,
+      "uz": 26,
+      "ru": 26,
+      "qq": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": 69,
+   "name": "Toshkent shahridagi Xalqaro Vestminster universiteti akademik litseyi",
+   "directions": [
+    {
+     "code": "3910002",
+     "language": null,
+     "seats": {
+      "total": 156,
+      "uz": 52,
+      "ru": 104,
+      "qq": 0
+     }
+    }
+   ]
+  }
+ ]
+}

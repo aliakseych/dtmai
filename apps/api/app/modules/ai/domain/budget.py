@@ -52,3 +52,8 @@ def check_call_allowed(
 def within_quota(limit: int, used: int) -> bool:
     """Entitlement-style limit: -1 unlimited, 0 none, N per period."""
     return limit < 0 or used < limit
+
+
+def remaining(limit: int, used: int) -> int:
+    """Calls left under `within_quota` semantics: -1 unlimited, never negative."""
+    return -1 if limit < 0 else max(0, limit - used)

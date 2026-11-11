@@ -8,7 +8,11 @@ from app.modules.ai.application.gateway import AIGateway
 from app.modules.ai.application.tutor import NoActiveMock, TutorService
 from app.modules.ai.infrastructure.config import get_ai_settings
 from app.modules.ai.infrastructure.openrouter import OpenRouterLLM
-from app.modules.ai.infrastructure.repositories import SqlAIConfigRepository, SqlLedgerRepository
+from app.modules.ai.infrastructure.repositories import (
+    PgTutorSlotLock,
+    SqlAIConfigRepository,
+    SqlLedgerRepository,
+)
 from app.modules.ai.ports import ActiveMockChecker, AIConfigRepository, LedgerRepository, LLMPort
 from app.shared.db import get_sessionmaker
 
@@ -49,7 +53,7 @@ def get_explain_service(gw: GatewayDep) -> ExplainService:
 
 
 def get_tutor_service(gw: GatewayDep, ledger: LedgerRepoDep) -> TutorService:
-    return TutorService(gw, ledger, _mock_checker)
+    return TutorService(gw, ledger, _mock_checker, PgTutorSlotLock(get_sessionmaker()))
 
 
 ExplainDep = Annotated[ExplainService, Depends(get_explain_service)]

@@ -15,7 +15,9 @@ class AISettings(BaseSettings):
     ai_http_timeout_seconds: float = 90.0
     ai_max_retries: int = 3
     ai_retry_base_delay_seconds: float = 2.0
-    ai_tutor_messages_per_day_default: int = 50  # fair-use cap when plan has no limit key
+    ai_temur_daily_quota: int = (
+        20  # free Ask Temur messages per user per Tashkent day; -1 unlimited
+    )
     ai_explanations_per_day_default: int = 3
 
 

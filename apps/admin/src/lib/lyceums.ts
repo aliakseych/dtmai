@@ -34,5 +34,14 @@ export const lyceums = {
   posts: (status: S["PostStatus"] = "pending") => u(A.GET("/v1/admin/lyceums/posts", { params: { query: { status, limit: 100 } } })),
   moderate: (post_id: string, action: "publish" | "reject", reason?: string) =>
     u(A.POST("/v1/admin/lyceums/posts/{post_id}/moderate", { params: { path: { post_id } }, body: { action, reason: reason || null } })),
+  seedMatches: () => u(A.GET("/v1/admin/lyceums/admission/matches")),
+  setSeedMatch: (kind: "plan" | "contact", ref: number, lyceum_id: string | null) =>
+    u(A.PUT("/v1/admin/lyceums/admission/matches/{kind}/{ref}", { params: { path: { kind, ref } }, body: { lyceum_id } })),
+  putPlanRow: (lyceum_id: string, body: S["PlanRowIn"]) =>
+    u(A.PUT("/v1/admin/lyceums/{lyceum_id}/admission/plan", { params: { path: { lyceum_id } }, body })),
+  deletePlanRow: (lyceum_id: string, year: number, direction_code: string, language_name: string | null) =>
+    u(A.DELETE("/v1/admin/lyceums/{lyceum_id}/admission/plan", { params: { path: { lyceum_id }, query: { year, direction_code, language_name: language_name ?? undefined } } })),
+  putContact: (lyceum_id: string, phones: string[], telegram: string | null) =>
+    u(A.PUT("/v1/admin/lyceums/{lyceum_id}/contact", { params: { path: { lyceum_id } }, body: { phones, telegram } })),
 };
 

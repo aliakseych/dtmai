@@ -4,8 +4,8 @@ from datetime import datetime
 from sqlalchemy import (
     ARRAY,
     JSON,
-    Boolean,
     BigInteger,
+    Boolean,
     DateTime,
     Float,
     ForeignKey,
@@ -79,8 +79,9 @@ class EducationLanguageRow(Base):
 class YearlyStatRow(Base):
     __tablename__ = "yearly_stats"
     __table_args__ = (
-        UniqueConstraint("lyceum_id", "language_id", "speciality_code", "year",
-                         name="uq_yearly_stats_key"),
+        UniqueConstraint(
+            "lyceum_id", "language_id", "speciality_code", "year", name="uq_yearly_stats_key"
+        ),
         {"schema": SCHEMA},
     )
 
@@ -133,7 +134,8 @@ class RepMembershipRow(Base):
     # Soft reference to identity.users (other module's schema).
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     lyceum_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey(f"{SCHEMA}.lyceums.id", ondelete="CASCADE"),
+        UUID(as_uuid=True),
+        ForeignKey(f"{SCHEMA}.lyceums.id", ondelete="CASCADE"),
         primary_key=True,
     )
     status: Mapped[str] = mapped_column(String(10))
@@ -163,3 +165,65 @@ class LyceumPostRow(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AdmissionPlanRow(Base):
+    """Seats per lyceum, year, direction (and foreign language for direction 3940000)."""
+
+    __tablename__ = "lyceum_admission_plan"
+    __table_args__ = {"schema": SCHEMA}
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    lyceum_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey(f"{SCHEMA}.lyceums.id", ondelete="CASCADE"), index=True
+    )
+    year: Mapped[int] = mapped_column(Integer)
+    direction_code: Mapped[str] = mapped_column(String(20))
+    language_name: Mapped[str | None] = mapped_column(String(40))
+    seats_uz: Mapped[int] = mapped_column(Integer, default=0)
+    seats_ru: Mapped[int] = mapped_column(Integer, default=0)
+    seats_qq: Mapped[int] = mapped_column(Integer, default=0)
+    seats_total: Mapped[int] = mapped_column(Integer, default=0)
+    source: Mapped[str] = mapped_column(String(10), default="seed", server_default="seed")
+
+
+class PlanTombstoneRow(Base):
+    """An admin deleted this seed plan row; the seed import must not bring it back."""
+
+    __tablename__ = "lyceum_plan_tombstone"
+    __table_args__ = {"schema": SCHEMA}
+
+    lyceum_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey(f"{SCHEMA}.lyceums.id", ondelete="CASCADE"), primary_key=True
+    )
+    year: Mapped[int] = mapped_column(Integer, primary_key=True)
+    direction_code: Mapped[str] = mapped_column(String(20), primary_key=True)
+    language_name: Mapped[str] = mapped_column(String(40), primary_key=True, server_default="")
+
+
+class LyceumContactRow(Base):
+    __tablename__ = "lyceum_contact"
+    __table_args__ = {"schema": SCHEMA}
+
+    lyceum_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(f"{SCHEMA}.lyceums.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    phones: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list, server_default="{}")
+    telegram: Mapped[str | None] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(String(10), default="seed", server_default="seed")
+
+
+class SeedMatchRow(Base):
+    """Which lyceum a seed document entry (`kind`, order number `seed_ref`) belongs to."""
+
+    __tablename__ = "lyceum_seed_match"
+    __table_args__ = {"schema": SCHEMA}
+
+    kind: Mapped[str] = mapped_column(String(10), primary_key=True)
+    seed_ref: Mapped[int] = mapped_column(Integer, primary_key=True)
+    lyceum_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey(f"{SCHEMA}.lyceums.id", ondelete="SET NULL")
+    )
+    source: Mapped[str] = mapped_column(String(10), default="auto", server_default="auto")

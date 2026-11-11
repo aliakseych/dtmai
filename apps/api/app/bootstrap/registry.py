@@ -1,7 +1,23 @@
 from fastapi import APIRouter
 
-from app.interfaces.http.v1 import ai, assessment, bank, billing, catalog, gamification, identity, ingestion, labeling, learning, media, lyceums, notify
 import app.modules.lyceums.facade  # noqa: F401  (plugs LyceumBenchmark into assessment)
+from app.interfaces.http.v1 import (
+    ai,
+    assessment,
+    bank,
+    billing,
+    catalog,
+    exam_info,
+    gamification,
+    identity,
+    ingestion,
+    labeling,
+    learning,
+    lyceums,
+    media,
+    notify,
+    study_plan,
+)
 
 # One line per module: (router, prefix). Importing a router also imports its ORM models,
 # which registers them on Base.metadata for Alembic.
@@ -30,6 +46,9 @@ MODULES: list[tuple[APIRouter, str]] = [
     (labeling.router, "/labeling"),
     (labeling.admin_router, "/admin/labeling"),
     (ingestion.admin_router, "/admin/ingestion"),
+    (study_plan.router, "/study-plan"),
+    (exam_info.router, "/exam-info"),
+    (exam_info.admin_router, "/admin/exam-info"),
 ]
 
 # Modules exposing taskiq tasks (dotted import paths).
@@ -40,4 +59,5 @@ TASK_MODULES: list[str] = [
     "app.modules.labeling.tasks",
     "app.interfaces.jobs.gamification",
     "app.interfaces.jobs.assessment",
+    "app.interfaces.jobs.study_plan",
 ]

@@ -28,3 +28,13 @@ class TutorLimitReached(DomainError):
 
 class FeatureNotEntitled(Forbidden):
     code = "feature_not_entitled"
+
+
+class GuestNotAllowed(Forbidden):
+    code = "guest_not_allowed"
+
+
+def ensure_registered(roles: frozenset[str] | set[str]) -> None:
+    """Ask Temur is for registered users only; guests get a 403 `guest_not_allowed`."""
+    if "guest" in roles:
+        raise GuestNotAllowed("sign in to chat with Temur")

@@ -7,6 +7,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.learning.domain import rush
 from app.modules.learning.domain.elo import DEFAULT_PLAYER_ELO, compute_elo_delta, level_for
 from app.modules.learning.domain.mastery import weakest
 from app.modules.learning.domain.placement import PlacementState, PoolItem, start_unit_index
@@ -45,6 +46,7 @@ class SessionView:
     items: list[Item]
     hearts: int | None
     unlimited_hearts: bool
+    ends_at: datetime | None = None  # rush only: server deadline
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,6 +60,8 @@ class AnswerResult:
     total: int
     session_done: bool
     next_item: Item | None  # placement only
+    streak: int | None = None  # rush only: current streak
+    points: int | None = None  # rush only: running score
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,6 +74,8 @@ class FinishView:
     total: int
     xp_base: int
     start_unit_index: int | None
+    best_streak: int | None = None  # rush only
+    points: int | None = None  # rush only
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,18 +114,33 @@ class LearningService:
 
     # ---- starting -------------------------------------------------------
     async def _open(
-        self, user_id: UUID, mode: Mode, items: list[Item], *, subject_id: UUID | None,
-        topic_id: UUID | None = None, lesson_id: UUID | None = None, language: str,
-        meta: dict[str, Any] | None = None, question_ids: list[UUID] | None = None,
+        self,
+        user_id: UUID,
+        mode: Mode,
+        items: list[Item],
+        *,
+        subject_id: UUID | None,
+        topic_id: UUID | None = None,
+        lesson_id: UUID | None = None,
+        language: str,
+        meta: dict[str, Any] | None = None,
+        question_ids: list[UUID] | None = None,
     ) -> SessionRec:
         if not items:
             raise Conflict("no questions available", code="no_questions")
         now = self._now()
         await self._r.abandon_open(user_id, mode, now)
         rec = SessionRec(
-            id=new_id(), user_id=user_id, mode=mode, subject_id=subject_id, topic_id=topic_id,
-            lesson_id=lesson_id, language=language,
-            question_ids=question_ids or [i.id for i in items], started_at=now, meta=meta or {},
+            id=new_id(),
+            user_id=user_id,
+            mode=mode,
+            subject_id=subject_id,
+            topic_id=topic_id,
+            lesson_id=lesson_id,
+            language=language,
+            question_ids=question_ids or [i.id for i in items],
+            started_at=now,
+            meta=meta or {},
         )
         await self._r.add_session(rec)
         return rec
@@ -130,9 +151,19 @@ class LearningService:
 
     async def _view(self, rec: SessionRec, items: list[Item]) -> SessionView:
         hearts, unlimited = await self._h.state(rec.user_id)
+        ends = rec.meta.get("ends_at") if rec.mode is Mode.RUSH else None
         return SessionView(
-            rec.id, rec.mode.value, rec.status, rec.subject_id, rec.total, rec.answered, rec.correct,
-            items, hearts, unlimited,
+            rec.id,
+            rec.mode.value,
+            rec.status,
+            rec.subject_id,
+            rec.total,
+            rec.answered,
+            rec.correct,
+            items,
+            hearts,
+            unlimited,
+            datetime.fromisoformat(ends) if ends else None,
         )
 
     async def start_lesson(self, user_id: UUID, lesson_id: UUID, language: str) -> SessionView:
@@ -141,28 +172,47 @@ class LearningService:
         if ref is None:
             raise NotFound("lesson not found", code="lesson_not_found")
         items = await self._c.pick(
-            subject_id=ref.subject_id, topic_ids=ref.topic_ids, type_ids=ref.type_ids,
-            language=ref.language, n=validate_count(ref.count),
+            subject_id=ref.subject_id,
+            topic_ids=ref.topic_ids,
+            type_ids=ref.type_ids,
+            language=ref.language,
+            n=validate_count(ref.count),
         )
         rec = await self._open(
-            user_id, Mode.LESSON, items, subject_id=ref.subject_id, lesson_id=lesson_id, language=ref.language
+            user_id,
+            Mode.LESSON,
+            items,
+            subject_id=ref.subject_id,
+            lesson_id=lesson_id,
+            language=ref.language,
         )
         return await self._view(rec, items)
 
     async def start_drill(
-        self, user_id: UUID, subject_id: UUID, topic_id: UUID | None, type_id: UUID | None,
-        language: str, count: int,
+        self,
+        user_id: UUID,
+        subject_id: UUID,
+        topic_id: UUID | None,
+        type_id: UUID | None,
+        language: str,
+        count: int,
     ) -> SessionView:
         await self._hearts_gate(user_id, Mode.DRILL)
         items = await self._c.pick(
-            subject_id=subject_id, topic_ids=[topic_id] if topic_id else None,
-            type_ids=[type_id] if type_id else None, language=language, n=validate_count(count),
+            subject_id=subject_id,
+            topic_ids=[topic_id] if topic_id else None,
+            type_ids=[type_id] if type_id else None,
+            language=language,
+            n=validate_count(count),
             exclude_ids=await self._r.seen_ids(user_id, 50),
         )
         if not items:  # everything recently seen: allow repeats rather than an empty drill
             items = await self._c.pick(
-                subject_id=subject_id, topic_ids=[topic_id] if topic_id else None,
-                type_ids=[type_id] if type_id else None, language=language, n=count,
+                subject_id=subject_id,
+                topic_ids=[topic_id] if topic_id else None,
+                type_ids=[type_id] if type_id else None,
+                language=language,
+                n=count,
             )
         rec = await self._open(
             user_id, Mode.DRILL, items, subject_id=subject_id, topic_id=topic_id, language=language
@@ -180,25 +230,75 @@ class LearningService:
             if len(items) >= n:
                 break
             more = await self._c.pick(
-                subject_id=subject_id, topic_ids=[topic_id] if topic_id else None, type_ids=[type_id],
-                language=language, n=n - len(items), exclude_ids=list(chosen),
+                subject_id=subject_id,
+                topic_ids=[topic_id] if topic_id else None,
+                type_ids=[type_id],
+                language=language,
+                n=n - len(items),
+                exclude_ids=list(chosen),
             )
             items += more
             chosen |= {i.id for i in more}
         rec = await self._open(
-            user_id, Mode.REVIEW, items, subject_id=subject_id, language=language, meta={"due": len(due_ids)}
+            user_id,
+            Mode.REVIEW,
+            items,
+            subject_id=subject_id,
+            language=language,
+            meta={"due": len(due_ids)},
+        )
+        return await self._view(rec, items)
+
+    async def start_rush(self, user_id: UUID, subject_id: UUID, language: str) -> SessionView:
+        """60 s run over verified questions (the bank only serves verified ones); the clock starts now."""
+        pool = await self._c.pick(
+            subject_id=subject_id,
+            topic_ids=None,
+            type_ids=None,
+            language=language,
+            n=rush.POOL_SIZE,
+            exclude_ids=await self._r.seen_ids(user_id, 50),
+        )
+        if len(pool) < rush.POOL_SIZE:  # small bank: allow repeats rather than a short run
+            pool = await self._c.pick(
+                subject_id=subject_id,
+                topic_ids=None,
+                type_ids=None,
+                language=language,
+                n=rush.POOL_SIZE,
+            )
+        items = [i for i in pool if i.kind != "passage_group"]  # passages are too slow for a sprint
+        random.shuffle(items)
+        now = self._now()
+        rec = await self._open(
+            user_id,
+            Mode.RUSH,
+            items,
+            subject_id=subject_id,
+            language=language,
+            meta={"ends_at": rush.deadline(now).isoformat(), "streak": 0, "best": 0, "points": 0},
         )
         return await self._view(rec, items)
 
     async def start_placement(self, user_id: UUID, subject_id: UUID, language: str) -> SessionView:
-        pool = await self._c.pick(subject_id=subject_id, topic_ids=None, type_ids=None, language=language, n=PLACEMENT_POOL)
+        pool = await self._c.pick(
+            subject_id=subject_id,
+            topic_ids=None,
+            type_ids=None,
+            language=language,
+            n=PLACEMENT_POOL,
+        )
         random.Random(str(user_id)).shuffle(pool)
         state = PlacementState([PoolItem(i.id, i.difficulty) for i in pool])
         first = state.next_item()
         if first is None:
             raise Conflict("no questions available", code="no_questions")
-        meta = {"pool": [{"id": str(p.id), "d": p.difficulty} for p in state.pool], "theta": state.theta,
-                "asked": [], "deltas": []}
+        meta = {
+            "pool": [{"id": str(p.id), "d": p.difficulty} for p in state.pool],
+            "theta": state.theta,
+            "asked": [],
+            "deltas": [],
+        }
         rec = await self._open(
             user_id, Mode.PLACEMENT, pool, subject_id=subject_id, language=language, meta=meta
         )
@@ -232,7 +332,12 @@ class LearningService:
 
     @staticmethod
     def _store(rec: SessionRec, s: PlacementState) -> None:
-        rec.meta = {**rec.meta, "theta": s.theta, "asked": [str(a) for a in s.asked], "deltas": s.deltas}
+        rec.meta = {
+            **rec.meta,
+            "theta": s.theta,
+            "asked": [str(a) for a in s.asked],
+            "deltas": s.deltas,
+        }
 
     async def get(self, user_id: UUID, session_id: UUID) -> SessionView:
         """Resume: remaining (unanswered) items."""
@@ -247,11 +352,20 @@ class LearningService:
 
     # ---- answering ------------------------------------------------------
     async def answer(
-        self, user_id: UUID, session_id: UUID, question_id: UUID, response: dict[str, Any], time_ms: int | None
+        self,
+        user_id: UUID,
+        session_id: UUID,
+        question_id: UUID,
+        response: dict[str, Any],
+        time_ms: int | None,
     ) -> AnswerResult:
         rec = await self._owned(user_id, session_id, lock=True)
         if rec.status != IN_PROGRESS:
             raise Conflict("session is closed", code="session_closed")
+        if rec.mode is Mode.RUSH and rush.is_expired(
+            self._now(), datetime.fromisoformat(rec.meta["ends_at"])
+        ):
+            raise Conflict("time is up", code="rush_time_up")
         state: PlacementState | None = None
         pool_item: PoolItem | None = None
         if rec.mode is Mode.PLACEMENT:
@@ -271,20 +385,41 @@ class LearningService:
         if rec.mode is not Mode.PLACEMENT:
             rating = await self._r.rating(user_id, item.subject_id, DEFAULT_PLAYER_ELO)
             elo_delta = compute_elo_delta(
-                rating, item.difficulty, graded.correct, level_for(item.difficulty, official=item.official),
+                rating,
+                item.difficulty,
+                graded.correct,
+                level_for(item.difficulty, official=item.official),
                 (time_ms / 1000) if time_ms else None,
             )
         if not await self._r.add_attempt(
-            session_id=rec.id, user_id=user_id, question_id=question_id, correct=graded.correct,
-            response=response, time_ms=time_ms, elo_delta=elo_delta,
+            session_id=rec.id,
+            user_id=user_id,
+            question_id=question_id,
+            correct=graded.correct,
+            response=response,
+            time_ms=time_ms,
+            elo_delta=elo_delta,
         ):
             raise Conflict("already answered", code="already_answered")
 
         rec.answered += 1
         rec.correct += 1 if graded.correct else 0
+        if rec.mode is Mode.RUSH:
+            streak = int(rec.meta.get("streak", 0)) + 1 if graded.correct else 0
+            points = int(rec.meta.get("points", 0))
+            if graded.correct:
+                points += rush.BASE_POINTS * rush.multiplier(streak)
+            rec.meta = {
+                **rec.meta,
+                "streak": streak,
+                "best": max(int(rec.meta.get("best", 0)), streak),
+                "points": points,
+            }
         if rec.mode is not Mode.PLACEMENT:
             await self._r.set_rating(
-                user_id, item.subject_id, await self._r.rating(user_id, item.subject_id, DEFAULT_PLAYER_ELO) + elo_delta
+                user_id,
+                item.subject_id,
+                await self._r.rating(user_id, item.subject_id, DEFAULT_PLAYER_ELO) + elo_delta,
             )
             await self.apply_learning(user_id, item, graded.correct)
 
@@ -308,14 +443,34 @@ class LearningService:
                 next_item = (await self._c.items([nxt.id]) or [None])[0]
         await self._r.save_session(rec)
 
-        await publish(self._s, Event("AttemptGraded", {
-            "user_id": str(user_id), "question_id": str(question_id), "question_type_id": str(item.type_id),
-            "topic_id": str(item.topic_id), "subject_id": str(item.subject_id), "correct": graded.correct,
-            "mode": rec.mode.value, "session_id": str(rec.id),
-        }))
+        await publish(
+            self._s,
+            Event(
+                "AttemptGraded",
+                {
+                    "user_id": str(user_id),
+                    "question_id": str(question_id),
+                    "question_type_id": str(item.type_id),
+                    "topic_id": str(item.topic_id),
+                    "subject_id": str(item.subject_id),
+                    "correct": graded.correct,
+                    "mode": rec.mode.value,
+                    "session_id": str(rec.id),
+                },
+            ),
+        )
         return AnswerResult(
-            graded.correct, graded.correct_response, elo_delta, hearts, unlimited, rec.answered,
-            rec.total, done, next_item,
+            graded.correct,
+            graded.correct_response,
+            elo_delta,
+            hearts,
+            unlimited,
+            rec.answered,
+            rec.total,
+            done,
+            next_item,
+            streak=int(rec.meta.get("streak", 0)) if rec.mode is Mode.RUSH else None,
+            points=int(rec.meta.get("points", 0)) if rec.mode is Mode.RUSH else None,
         )
 
     async def apply_learning(self, user_id: UUID, item: Item, correct: bool) -> None:
@@ -335,13 +490,20 @@ class LearningService:
 
     async def on_mock_attempt(self, event_id: UUID, payload: dict[str, Any]) -> None:
         """Mock answers feed mastery/SRS via events (mock sessions live in `assessment`)."""
-        if payload.get("mode") != "mock" or not await self._r.mark_event(event_id, "attempt_graded"):
+        if payload.get("mode") != "mock" or not await self._r.mark_event(
+            event_id, "attempt_graded"
+        ):
             return
         found = await self._c.items([UUID(payload["question_id"])])
         if found:
             await self.apply_learning(UUID(payload["user_id"]), found[0], bool(payload["correct"]))
 
     # ---- finishing ------------------------------------------------------
+    def _xp(self, rec: SessionRec) -> int:
+        if rec.mode is Mode.RUSH:
+            return rush.xp(rec.correct, int(rec.meta.get("best", 0)))
+        return xp_base(rec.mode, rec.correct, rec.total)
+
     async def finish(self, user_id: UUID, session_id: UUID) -> FinishView:
         rec = await self._owned(user_id, session_id, lock=True)
         unit: int | None = None
@@ -356,22 +518,42 @@ class LearningService:
                     rec.status = COMPLETED
                 else:
                     rec.status = ABANDONED
-            elif rec.done:
+            elif rec.done or (rec.mode is Mode.RUSH and rec.answered > 0):
                 rec.status = COMPLETED
-                await publish(self._s, Event("SessionCompleted", {
-                    "user_id": str(user_id), "session_id": str(rec.id), "mode": rec.mode.value,
-                    "xp_base": xp_base(rec.mode, rec.correct, rec.total), "correct": rec.correct,
-                    "total": rec.total,
-                }))
+                # Rush is judged on what was answered, so the xp ceiling is per answered item.
+                scored_total = rec.answered if rec.mode is Mode.RUSH else rec.total
+                await publish(
+                    self._s,
+                    Event(
+                        "SessionCompleted",
+                        {
+                            "user_id": str(user_id),
+                            "session_id": str(rec.id),
+                            "mode": rec.mode.value,
+                            "xp_base": self._xp(rec),
+                            "correct": rec.correct,
+                            "total": scored_total,
+                        },
+                    ),
+                )
             else:
                 rec.status = ABANDONED
             await self._r.save_session(rec)
         elif rec.mode is Mode.PLACEMENT and rec.subject_id:
             p = await self._r.placement(user_id, rec.subject_id)
             unit = p.start_unit_index if p else None
+        rush_meta = rec.mode is Mode.RUSH
         return FinishView(
-            rec.id, rec.mode.value, rec.status, rec.correct, rec.answered, rec.total,
-            xp_base(rec.mode, rec.correct, rec.total) if rec.status == COMPLETED else 0, unit,
+            rec.id,
+            rec.mode.value,
+            rec.status,
+            rec.correct,
+            rec.answered,
+            rec.total,
+            self._xp(rec) if rec.status == COMPLETED else 0,
+            unit,
+            best_streak=int(rec.meta.get("best", 0)) if rush_meta else None,
+            points=int(rec.meta.get("points", 0)) if rush_meta else None,
         )
 
     # ---- analytics ------------------------------------------------------
@@ -382,11 +564,16 @@ class LearningService:
         return [(_nil(k[0]), k[1], m) for k, m in ranked]  # type: ignore[index]
 
     async def weak_areas(self, user_id: UUID, subject_id: UUID, limit: int = 5) -> list[WeakArea]:
-        return [WeakArea(t, ty, m.score, m.attempts) for t, ty, m in await self._weak_ranked(user_id, subject_id, limit)]
+        return [
+            WeakArea(t, ty, m.score, m.attempts)
+            for t, ty, m in await self._weak_ranked(user_id, subject_id, limit)
+        ]
 
     async def mastery(self, user_id: UUID, subject_id: UUID) -> list[WeakArea]:
         rows = await self._r.weak_mastery(user_id, subject_id)
-        return sorted((WeakArea(_nil(t), ty, m.score, m.attempts) for t, ty, m in rows), key=lambda w: w.score)
+        return sorted(
+            (WeakArea(_nil(t), ty, m.score, m.attempts) for t, ty, m in rows), key=lambda w: w.score
+        )
 
     async def path_progress(
         self, user_id: UUID, subject_id: UUID, lesson_ids: list[UUID]

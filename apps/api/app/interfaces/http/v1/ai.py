@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
@@ -5,6 +6,8 @@ from fastapi import APIRouter, Depends, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.ai.application.errors import ensure_registered
+from app.modules.ai.application.suggestions import suggest_for
 from app.modules.ai.application.tutor import ChatTurn
 from app.modules.ai.domain.budget import MICRO, Limits
 from app.modules.ai.domain.routing import ModelRoute, Task
@@ -56,14 +59,34 @@ class TutorIn(BaseModel):
     locale: Locale = "uz-Latn"
 
 
+class TutorQuizOut(BaseModel):
+    """Inline quiz; the client checks `correct_index` itself."""
+
+    stem: str
+    options: list[str]
+    correct_index: int
+    explanation: str
+
+
+class TutorQuotaOut(BaseModel):
+    limit: int = Field(description="Messages per day; -1 = unlimited")
+    used: int
+    remaining: int = Field(description="-1 = unlimited")
+
+
 class TutorOut(BaseModel):
     reply: str
     model: str
+    quiz: TutorQuizOut | None = None
+    quota: TutorQuotaOut
 
 
-@router.post(
-    "/explain/{question_id}", operation_id="ai_explain_question", responses=ERR
-)
+class TutorSuggestionsOut(BaseModel):
+    suggestions: list[str]
+    quota: TutorQuotaOut
+
+
+@router.post("/explain/{question_id}", operation_id="ai_explain_question", responses=ERR)
 async def explain(
     question_id: UUID,
     user: CurrentUser,
@@ -73,19 +96,44 @@ async def explain(
 ) -> ExplainOut:
     locale = body.locale if body else "uz-Latn"
     text, cached, model = await svc.explain(session, user.user_id, question_id, locale)
-    return ExplainOut(question_id=question_id, locale=locale, explanation=text, cached=cached, model=model)
+    return ExplainOut(
+        question_id=question_id, locale=locale, explanation=text, cached=cached, model=model
+    )
 
 
 @router.post("/tutor", operation_id="ai_tutor_chat", responses=ERR)
 async def tutor(body: TutorIn, user: CurrentUser, svc: TutorDep, session: SessionDep) -> TutorOut:
-    reply, model = await svc.chat(
+    ensure_registered(user.roles)
+    r = await svc.chat(
         session,
         user.user_id,
         [ChatTurn(m.role, m.content) for m in body.messages],
         question_id=body.question_id,
         locale=body.locale,
     )
-    return TutorOut(reply=reply, model=model)
+    quiz = (
+        TutorQuizOut(
+            stem=r.quiz.stem,
+            options=r.quiz.options,
+            correct_index=r.quiz.correct_index,
+            explanation=r.quiz.explanation,
+        )
+        if r.quiz
+        else None
+    )
+    return TutorOut(reply=r.text, model=r.model, quiz=quiz, quota=TutorQuotaOut(**asdict(r.quota)))
+
+
+@router.get("/tutor/suggestions", operation_id="ai_tutor_suggestions", responses=ERR)
+async def tutor_suggestions(
+    user: CurrentUser, svc: TutorDep, session: SessionDep, locale: Locale = "uz-Latn"
+) -> TutorSuggestionsOut:
+    """Prompt chips from the learner's weak topics, plus today's remaining quota."""
+    ensure_registered(user.roles)
+    return TutorSuggestionsOut(
+        suggestions=await suggest_for(session, user.user_id, locale),
+        quota=TutorQuotaOut(**asdict(await svc.quota(user.user_id))),
+    )
 
 
 # ---- admin: model routing, limits, spend ----------------------------------------------------
@@ -159,7 +207,9 @@ async def put_route(body: RouteIO, admin: Admin, repo: ConfigRepoDep) -> RouteIO
     return _route_out(route)
 
 
-@admin_router.delete("/routes/{task}/{slot}", status_code=204, operation_id="ai_admin_delete_route", responses=ERR)
+@admin_router.delete(
+    "/routes/{task}/{slot}", status_code=204, operation_id="ai_admin_delete_route", responses=ERR
+)
 async def delete_route(task: Task, slot: int, _: Admin, repo: ConfigRepoDep) -> Response:
     if not await repo.delete_route(task, slot):
         raise NotFound("route not found")
@@ -195,7 +245,10 @@ async def spend(
     def rows(items: list[Any]) -> list[SpendRowOut]:
         return [
             SpendRowOut(
-                key=r.key, calls=r.calls, tokens_in=r.tokens_in, tokens_out=r.tokens_out,
+                key=r.key,
+                calls=r.calls,
+                tokens_in=r.tokens_in,
+                tokens_out=r.tokens_out,
                 cost_usd=r.cost_micro / MICRO,
             )
             for r in items

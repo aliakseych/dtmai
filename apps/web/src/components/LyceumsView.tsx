@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useLocale, useT } from "@dtmai/i18n";
-import { ChoiceDropdown } from "@dtmai/ui";
+import { ChoiceDropdown, cn } from "@dtmai/ui";
 import { AsyncView } from "@/components/AsyncView";
 import { PageTitle } from "@/components/PageTitle";
 import { DreamPriorities } from "@/components/lyceums/DreamPriorities";
@@ -55,7 +55,7 @@ export function LyceumsView() {
           return (
             <div className="grid max-h-[75vh] gap-3 overflow-y-auto pr-1 md:grid-cols-2 xl:grid-cols-3">
               {list.map((l) => (
-                <div key={l.id} className={open === l.id ? "md:col-span-2 xl:col-span-3" : undefined}>
+                <div key={l.id} className={cn("min-w-0", open === l.id && "md:col-span-2 xl:col-span-3")}>
                   <LyceumCard summary={l} title={pick(l.names, locale)} cityName={cityName(l.city)} open={open === l.id} onToggle={() => setOpen(open === l.id ? null : l.id)} />
                 </div>
               ))}

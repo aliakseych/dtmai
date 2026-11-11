@@ -10,6 +10,7 @@ class Mode(StrEnum):
     DRILL = "drill"
     REVIEW = "review"
     PLACEMENT = "placement"
+    RUSH = "rush"
 
 
 HEART_MODES = frozenset({Mode.LESSON, Mode.DRILL})  # only these cost hearts
@@ -27,7 +28,7 @@ def can_start(mode: Mode, hearts: int, unlimited: bool) -> None:
 
 
 def xp_base(mode: Mode, correct: int, total: int) -> int:
-    if mode is Mode.PLACEMENT or total <= 0:
+    if mode in (Mode.PLACEMENT, Mode.RUSH) or total <= 0:  # rush xp lives in domain.rush
         return 0
     base = correct * XP_PER_CORRECT
     if mode in HEART_MODES and correct == total:

@@ -1,3 +1,5 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import timedelta
 from uuid import UUID
 
@@ -43,7 +45,9 @@ class SqlAIConfigRepository:
 
     async def all_routes(self) -> list[ModelRoute]:
         async with self._maker() as s:
-            rows = await s.scalars(select(ModelRouteRow).order_by(ModelRouteRow.task, ModelRouteRow.slot))
+            rows = await s.scalars(
+                select(ModelRouteRow).order_by(ModelRouteRow.task, ModelRouteRow.slot)
+            )
             return [_route(r) for r in rows]
 
     async def upsert_route(self, route: ModelRoute, actor: UUID) -> None:
@@ -71,7 +75,9 @@ class SqlAIConfigRepository:
     async def delete_route(self, task: Task, slot: int) -> bool:
         async with self._maker() as s, s.begin():
             res = await s.execute(
-                delete(ModelRouteRow).where(ModelRouteRow.task == task.value, ModelRouteRow.slot == slot)
+                delete(ModelRouteRow).where(
+                    ModelRouteRow.task == task.value, ModelRouteRow.slot == slot
+                )
             )
             return bool(res.rowcount)  # type: ignore[attr-defined]
 
@@ -95,7 +101,8 @@ class SqlAIConfigRepository:
             await s.execute(
                 stmt.on_conflict_do_update(
                     index_elements=["id"],
-                    set_={k: v for k, v in values.items() if k != "id"} | {"updated_at": func.now()},
+                    set_={k: v for k, v in values.items() if k != "id"}
+                    | {"updated_at": func.now()},
                 )
             )
 
@@ -136,9 +143,9 @@ class SqlLedgerRepository:
     async def user_tokens_today(self, user_id: UUID) -> int:
         async with self._maker() as s:
             v = await s.scalar(
-                select(func.coalesce(func.sum(LedgerRow.tokens_in + LedgerRow.tokens_out), 0)).where(
-                    LedgerRow.day == tashkent_today(), LedgerRow.user_id == user_id
-                )
+                select(
+                    func.coalesce(func.sum(LedgerRow.tokens_in + LedgerRow.tokens_out), 0)
+                ).where(LedgerRow.day == tashkent_today(), LedgerRow.user_id == user_id)
             )
             return int(v or 0)
 
@@ -179,3 +186,17 @@ class SqlLedgerRepository:
             by_model=await group(LedgerRow.model),
             by_purpose=await group(LedgerRow.purpose),
         )
+
+
+class PgTutorSlotLock:
+    """Per-user/per-Tashkent-day Postgres advisory transaction lock, held until the chat finishes."""
+
+    def __init__(self, maker: async_sessionmaker[AsyncSession]) -> None:
+        self._maker = maker
+
+    @asynccontextmanager
+    async def hold(self, user_id: UUID) -> AsyncIterator[None]:
+        key = f"tutor:{user_id}:{tashkent_today().isoformat()}"
+        async with self._maker() as s, s.begin():
+            await s.execute(select(func.pg_advisory_xact_lock(func.hashtextextended(key, 0))))
+            yield

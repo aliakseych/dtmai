@@ -1,3 +1,4 @@
+from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Protocol
@@ -72,6 +73,12 @@ class AIConfigRepository(Protocol):
     async def delete_route(self, task: Task, slot: int) -> bool: ...
     async def limits(self) -> Limits: ...
     async def set_limits(self, limits: Limits, actor: UUID) -> None: ...
+
+
+class TutorSlotLock(Protocol):
+    """Serializes a user's tutor chats so the quota check and the counted ledger write are atomic."""
+
+    def hold(self, user_id: UUID) -> AbstractAsyncContextManager[None]: ...
 
 
 class LedgerRepository(Protocol):

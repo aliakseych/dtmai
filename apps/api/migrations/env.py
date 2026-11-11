@@ -36,6 +36,8 @@ SCHEMAS = {
     "learning",
     "assessment",
     "gamification",
+    "study_plan",
+    "exam_info",
 }
 SCHEMA_FILTER: str | None = context.get_x_argument(as_dictionary=True).get("schema")
 VERSION_SCHEMA = "public"
@@ -47,7 +49,9 @@ def include_name(name: str | None, type_: str, parent_names: dict[str, Any]) -> 
     return True
 
 
-def include_object(obj: Any, name: str | None, type_: str, reflected: bool, compare_to: Any) -> bool:
+def include_object(
+    obj: Any, name: str | None, type_: str, reflected: bool, compare_to: Any
+) -> bool:
     if SCHEMA_FILTER is None:
         return True
     table = obj if type_ == "table" else getattr(obj, "table", None)

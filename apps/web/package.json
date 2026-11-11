@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "bunx serve out",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "bun test"
   },
   "dependencies": {
     "@dtmai/api-client": "workspace:*",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.5",
+    "@types/bun": "latest",
     "@types/katex": "^0.16.8",
     "@types/node": "^24.0.0",
     "@types/react": "^19.3.0",

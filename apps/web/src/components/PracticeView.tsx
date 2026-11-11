@@ -36,6 +36,13 @@ function Panel({ subjectId }: { subjectId: string }) {
           </Card>
         )}
       </AsyncView>
+      <Card className="flex flex-col gap-3">
+        <h2 className="text-xl">{t("rush.title")}</h2>
+        <p className="text-ink-soft">{t("rush.text")}</p>
+        <Link href={`/practice/rush/?subject=${subjectId}`} className={buttonClass("super", true)}>
+          {t("rush.play")}
+        </Link>
+      </Card>
       <TopicBrowser subjectId={subjectId} />
       <Card className="flex flex-col gap-3">
         <h2 className="text-xl">{t("practice.weak")}</h2>

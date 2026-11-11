@@ -89,15 +89,15 @@ export function Onboarding() {
     } catch {
       /* skipping is best-effort; the path is reachable regardless */
     }
-    router.replace("/learn/");
+    router.replace("/home/");
   }
 
   if (placing && firstSubject)
     return (
       <LessonPlayer
         load={() => api.unwrap(api.client.POST("/v1/learning/placement/start", { body: { subject_id: firstSubject.id, language: langCode() } }))}
-        exitHref="/learn/"
-        doneHref="/learn/"
+        exitHref="/home/"
+        doneHref="/home/"
       />
     );
 

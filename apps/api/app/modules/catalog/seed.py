@@ -13,34 +13,142 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.catalog.facade import service
-from app.shared.db import get_sessionmaker
+from app.shared.db import get_engine, get_sessionmaker
 
 SUBJECTS: list[tuple[str, dict[str, str]]] = [
-    ("math", {"uz-Latn": "Matematika", "uz-Cyrl": "Математика", "ru": "Математика", "en": "Mathematics"}),
-    ("english", {"uz-Latn": "Ingliz tili", "uz-Cyrl": "Инглиз тили", "ru": "Английский язык", "en": "English"}),
-    ("iq", {"uz-Latn": "IQ (mantiqiy fikrlash)", "uz-Cyrl": "IQ (мантиқий фикрлаш)", "ru": "IQ (логика)", "en": "IQ / Logic"}),
+    (
+        "math",
+        {"uz-Latn": "Matematika", "uz-Cyrl": "Математика", "ru": "Математика", "en": "Mathematics"},
+    ),
+    (
+        "english",
+        {
+            "uz-Latn": "Ingliz tili",
+            "uz-Cyrl": "Инглиз тили",
+            "ru": "Английский язык",
+            "en": "English",
+        },
+    ),
+    (
+        "iq",
+        {
+            "uz-Latn": "IQ (mantiqiy fikrlash)",
+            "uz-Cyrl": "IQ (мантиқий фикрлаш)",
+            "ru": "IQ (логика)",
+            "en": "IQ / Logic",
+        },
+    ),
     ("history", {"uz-Latn": "Tarix", "uz-Cyrl": "Тарих", "ru": "История", "en": "History"}),
     ("physics", {"uz-Latn": "Fizika", "uz-Cyrl": "Физика", "ru": "Физика", "en": "Physics"}),
 ]
 
 _CHOICE = {"option_count": 4, "label_scheme": "latin"}
 TYPES: list[dict[str, Any]] = [
-    {"code": "mcq_single_4", "kind": "single_choice", "names": {"en": "Multiple choice (4)", "ru": "Тест (4 варианта)", "uz-Latn": "Test (4 variant)", "uz-Cyrl": "Тест (4 вариант)"}, "config": _CHOICE},
-    {"code": "mcq_word_pair", "kind": "single_choice", "names": {"en": "Word-pair choice", "ru": "Пара слов", "uz-Latn": "So'z juftligi", "uz-Cyrl": "Сўз жуфтлиги"}, "config": {**_CHOICE, "option_style": "word_pair"}},
-    {"code": "image_stem_mcq", "kind": "single_choice", "names": {"en": "Image question", "ru": "Вопрос с рисунком", "uz-Latn": "Rasmli savol", "uz-Cyrl": "Расмли савол"}, "config": {**_CHOICE, "image_stem": True}},
-    {"code": "numeric_input", "kind": "numeric", "names": {"en": "Numeric answer", "ru": "Числовой ответ", "uz-Latn": "Raqamli javob", "uz-Cyrl": "Рақамли жавоб"}, "config": {}},
-    {"code": "reading_group", "kind": "passage_group", "names": {"en": "Reading passage", "ru": "Текст с вопросами", "uz-Latn": "Matn va savollar", "uz-Cyrl": "Матн ва саволлар"}, "config": {}},
+    {
+        "code": "mcq_single_4",
+        "kind": "single_choice",
+        "names": {
+            "en": "Multiple choice (4)",
+            "ru": "Тест (4 варианта)",
+            "uz-Latn": "Test (4 variant)",
+            "uz-Cyrl": "Тест (4 вариант)",
+        },
+        "config": _CHOICE,
+    },
+    {
+        "code": "mcq_word_pair",
+        "kind": "single_choice",
+        "names": {
+            "en": "Word-pair choice",
+            "ru": "Пара слов",
+            "uz-Latn": "So'z juftligi",
+            "uz-Cyrl": "Сўз жуфтлиги",
+        },
+        "config": {**_CHOICE, "option_style": "word_pair"},
+    },
+    {
+        "code": "image_stem_mcq",
+        "kind": "single_choice",
+        "names": {
+            "en": "Image question",
+            "ru": "Вопрос с рисунком",
+            "uz-Latn": "Rasmli savol",
+            "uz-Cyrl": "Расмли савол",
+        },
+        "config": {**_CHOICE, "image_stem": True},
+    },
+    {
+        "code": "numeric_input",
+        "kind": "numeric",
+        "names": {
+            "en": "Numeric answer",
+            "ru": "Числовой ответ",
+            "uz-Latn": "Raqamli javob",
+            "uz-Cyrl": "Рақамли жавоб",
+        },
+        "config": {},
+    },
+    {
+        "code": "reading_group",
+        "kind": "passage_group",
+        "names": {
+            "en": "Reading passage",
+            "ru": "Текст с вопросами",
+            "uz-Latn": "Matn va savollar",
+            "uz-Cyrl": "Матн ва саволлар",
+        },
+        "config": {},
+    },
 ]
 
 BASES: list[dict[str, Any]] = [
-    {"code": "previous_years", "kind": "previous_year", "names": {"en": "Previous-year exams", "ru": "Экзамены прошлых лет", "uz-Latn": "Oldingi yillar imtihonlari", "uz-Cyrl": "Олдинги йиллар имтиҳонлари"}},
-    {"code": "bluebook", "kind": "bluebook", "names": {"en": "Practice papers", "ru": "Тренировочные варианты", "uz-Latn": "Mashq variantlari", "uz-Cyrl": "Машқ вариантлари"}},
-    {"code": "ai_generated", "kind": "ai_generated", "names": {"en": "AI-generated", "ru": "Созданные ИИ", "uz-Latn": "AI yaratgan", "uz-Cyrl": "AI яратган"}},
-    {"code": "harvested", "kind": "harvested", "names": {"en": "Harvested bank", "ru": "Общий банк вопросов", "uz-Latn": "Umumiy savollar banki", "uz-Cyrl": "Умумий саволлар банки"}},
+    {
+        "code": "previous_years",
+        "kind": "previous_year",
+        "names": {
+            "en": "Previous-year exams",
+            "ru": "Экзамены прошлых лет",
+            "uz-Latn": "Oldingi yillar imtihonlari",
+            "uz-Cyrl": "Олдинги йиллар имтиҳонлари",
+        },
+    },
+    {
+        "code": "bluebook",
+        "kind": "bluebook",
+        "names": {
+            "en": "Practice papers",
+            "ru": "Тренировочные варианты",
+            "uz-Latn": "Mashq variantlari",
+            "uz-Cyrl": "Машқ вариантлари",
+        },
+    },
+    {
+        "code": "ai_generated",
+        "kind": "ai_generated",
+        "names": {
+            "en": "AI-generated",
+            "ru": "Созданные ИИ",
+            "uz-Latn": "AI yaratgan",
+            "uz-Cyrl": "AI яратган",
+        },
+    },
+    {
+        "code": "harvested",
+        "kind": "harvested",
+        "names": {
+            "en": "Harvested bank",
+            "ru": "Общий банк вопросов",
+            "uz-Latn": "Umumiy savollar banki",
+            "uz-Cyrl": "Умумий саволлар банки",
+        },
+    },
 ]
 
 _CATEGORY_SUBJECT = {
-    "MATH": ("math", "ru"), "ENGLISH": ("english", "en"), "IQ": ("iq", "ru"), "HISTORY": ("history", "ru"),
+    "MATH": ("math", "ru"),
+    "ENGLISH": ("english", "en"),
+    "IQ": ("iq", "ru"),
+    "HISTORY": ("history", "ru"),
     "PHYSICS": ("physics", "ru"),
 }
 
@@ -56,7 +164,9 @@ async def seed(session: AsyncSession) -> dict[str, int]:
     subj_ids: dict[str, Any] = {r["code"]: r["id"] for r in await svc.repo.list("subject")}
     for code, names in SUBJECTS:
         if code not in subj_ids:
-            subj_ids[code] = (await svc.create("subject", {"code": code, "names": names}, "seed"))["id"]
+            subj_ids[code] = (await svc.create("subject", {"code": code, "names": names}, "seed"))[
+                "id"
+            ]
             added["subjects"] += 1
     have = {r["code"] for r in await svc.repo.list("question_type")}
     for t in TYPES:
@@ -75,7 +185,10 @@ async def seed(session: AsyncSession) -> dict[str, int]:
             if not mapped:
                 continue
             code, loc = mapped
-            existing = {tuple(sorted(t["names"].items())) for t in await svc.repo.list("topic", subject_id=subj_ids[code])}
+            existing = {
+                tuple(sorted(t["names"].items()))
+                for t in await svc.repo.list("topic", subject_id=subj_ids[code])
+            }
             names = item.get("names") or {loc: item["name"]}
             if tuple(sorted(names.items())) not in existing:
                 await svc.create("topic", {"subject_id": subj_ids[code], "names": names}, "seed")
@@ -89,6 +202,8 @@ async def _run() -> None:
     async with get_sessionmaker()() as session:
         result = await seed(session)
         await session.commit()
+    # Pooled connections are bound to this event loop; the next CLI seed runs its own loop.
+    await get_engine().dispose()
     print("seeded:", result)
 
 

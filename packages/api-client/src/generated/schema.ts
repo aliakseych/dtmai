@@ -774,6 +774,181 @@ export interface paths {
         patch: operations["catalog_admin_update_unit"];
         trace?: never;
     };
+    "/v1/admin/exam-info/certificate-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin Create Cert Rule */
+        post: operations["exam_info_admin_create_cert_rule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/exam-info/certificate-rules/{rule_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Admin Update Cert Rule */
+        put: operations["exam_info_admin_update_cert_rule"];
+        post?: never;
+        /** Admin Delete Cert Rule */
+        delete: operations["exam_info_admin_delete_cert_rule"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/exam-info/choices/{group}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Admin Replace Choice */
+        put: operations["exam_info_admin_replace_choice"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/exam-info/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Events */
+        get: operations["exam_info_admin_list_events"];
+        put?: never;
+        /** Admin Create Event */
+        post: operations["exam_info_admin_create_event"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/exam-info/events/{event_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Admin Update Event */
+        put: operations["exam_info_admin_update_event"];
+        post?: never;
+        /** Admin Delete Event */
+        delete: operations["exam_info_admin_delete_event"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/exam-info/faq": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Faq */
+        get: operations["exam_info_admin_list_faq"];
+        put?: never;
+        /** Admin Create Faq */
+        post: operations["exam_info_admin_create_faq"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/exam-info/faq/{faq_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Admin Update Faq */
+        put: operations["exam_info_admin_update_faq"];
+        post?: never;
+        /** Admin Delete Faq */
+        delete: operations["exam_info_admin_delete_faq"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/exam-info/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin List Profiles */
+        get: operations["exam_info_admin_list_profiles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/exam-info/profiles/{profile_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Admin Update Profile */
+        patch: operations["exam_info_admin_update_profile"];
+        trace?: never;
+    };
+    "/v1/admin/exam-info/sections/{section_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Admin Update Section */
+        patch: operations["exam_info_admin_update_section"];
+        trace?: never;
+    };
     "/v1/admin/gamification/config": {
         parameters: {
             query?: never;
@@ -1088,6 +1263,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/lyceums/admission/matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Seed Matches */
+        get: operations["lyceums_admin_list_seed_matches"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/lyceums/admission/matches/{kind}/{ref}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Seed Match */
+        put: operations["lyceums_admin_set_seed_match"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/lyceums/fields/{code}": {
         parameters: {
             query?: never;
@@ -1226,6 +1435,41 @@ export interface paths {
         head?: never;
         /** Update Profile */
         patch: operations["lyceums_admin_update_profile"];
+        trace?: never;
+    };
+    "/v1/admin/lyceums/{lyceum_id}/admission/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put Plan Row */
+        put: operations["lyceums_admin_put_plan_row"];
+        post?: never;
+        /** Delete Plan Row */
+        delete: operations["lyceums_admin_delete_plan_row"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/lyceums/{lyceum_id}/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put Contact */
+        put: operations["lyceums_admin_put_contact"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/admin/lyceums/{lyceum_id}/rep/{user_id}/approve": {
@@ -1397,6 +1641,26 @@ export interface paths {
         put?: never;
         /** Tutor */
         post: operations["ai_tutor_chat"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ai/tutor/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tutor Suggestions
+         * @description Prompt chips from the learner's weak topics, plus today's remaining quota.
+         */
+        get: operations["ai_tutor_suggestions"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1776,6 +2040,74 @@ export interface paths {
         };
         /** List Topics */
         get: operations["catalog_list_topics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exam-info/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Events */
+        get: operations["exam_info_list_events"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exam-info/faq": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Faq */
+        get: operations["exam_info_list_faq"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exam-info/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Profiles */
+        get: operations["exam_info_list_profiles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exam-info/profiles/{direction_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Profile */
+        get: operations["exam_info_get_profile"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2418,6 +2750,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/learning/rush/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Rush
+         * @description Question Rush: 60 s of verified questions; `ends_at` is the server deadline.
+         */
+        post: operations["learning_start_rush"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/learning/sessions/{session_id}": {
         parameters: {
             query?: never;
@@ -2751,6 +3103,177 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/study-plan/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Analytics */
+        get: operations["study_plan_analytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/study-plan/daily-questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Daily Questions */
+        get: operations["study_plan_daily_questions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/study-plan/daily-questions/{question_id}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer Daily Question */
+        post: operations["study_plan_answer_daily_question"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/study-plan/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate */
+        post: operations["study_plan_generate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/study-plan/home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Home */
+        get: operations["study_plan_home"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/study-plan/month": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Month */
+        get: operations["study_plan_month"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/study-plan/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Settings */
+        get: operations["study_plan_get_settings"];
+        put?: never;
+        /** Save Settings */
+        post: operations["study_plan_save_settings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/study-plan/tasks/{task_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete Task */
+        post: operations["study_plan_complete_task"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/study-plan/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Today */
+        get: operations["study_plan_today"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/study-plan/week": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Week */
+        get: operations["study_plan_week"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2859,6 +3382,20 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** AdmissionOut */
+        AdmissionOut: {
+            /** Applications Year */
+            applications_year: number | null;
+            contact: components["schemas"]["ContactCardOut"] | null;
+            /** Plan */
+            plan: components["schemas"]["PlanRowOut"][];
+            /** Ratio */
+            ratio: number | null;
+            /** Seats Total */
+            seats_total: number;
+            /** Year */
+            year: number | null;
+        };
         /** AgreementOut */
         AgreementOut: {
             /** Audited */
@@ -2867,6 +3404,30 @@ export interface components {
             matched: number;
             /** Rate */
             rate: number | null;
+        };
+        /** AnalyticsOut */
+        AnalyticsOut: {
+            /** Completion Rate */
+            completion_rate: number;
+            /**
+             * Locked
+             * @description True without the study_plan_analytics entitlement
+             */
+            locked: boolean;
+            /** Mastery */
+            mastery: components["schemas"]["SubjectMasteryOut"][];
+            /** Minutes Done */
+            minutes_done: number;
+            /** Minutes Planned */
+            minutes_planned: number;
+            /** Mocks */
+            mocks: components["schemas"]["MockTrendOut"][];
+            /** Tasks Done */
+            tasks_done: number;
+            /** Tasks Missed */
+            tasks_missed: number;
+            /** Tasks Todo */
+            tasks_todo: number;
         };
         /** AnswerIn */
         AnswerIn: {
@@ -2901,8 +3462,18 @@ export interface components {
             hearts: number | null;
             /** @description Placement only: the next adaptive question */
             next_item: components["schemas"]["app__interfaces__http__v1__learning__ItemOut"] | null;
+            /**
+             * Points
+             * @description Rush only: running score
+             */
+            points?: number | null;
             /** Session Done */
             session_done: boolean;
+            /**
+             * Streak
+             * @description Rush only: current streak
+             */
+            streak?: number | null;
             /** Total */
             total: number;
             /** Unlimited Hearts */
@@ -2949,7 +3520,7 @@ export interface components {
             /** Language */
             language: string;
             /** Sections */
-            sections: components["schemas"]["SectionOut"][];
+            sections: components["schemas"]["app__interfaces__http__v1__assessment__SectionOut"][];
             /**
              * Server Now
              * Format: date-time
@@ -3316,6 +3887,122 @@ export interface components {
             /** Updated */
             updated: number;
         };
+        /** CertRuleCreate */
+        CertRuleCreate: {
+            /**
+             * Active
+             * @default true
+             */
+            active: boolean;
+            /**
+             * Awarded Fraction
+             * @default 1
+             */
+            awarded_fraction: number | string;
+            /** Cert Type */
+            cert_type: string;
+            /** Language Subject Id */
+            language_subject_id?: string | null;
+            /** Level Label */
+            level_label?: string | null;
+            /** Min Value */
+            min_value?: number | string | null;
+            /** Note */
+            note?: {
+                [key: string]: string;
+            };
+            /**
+             * Section Id
+             * Format: uuid
+             */
+            section_id: string;
+            /** Source Url */
+            source_url?: string | null;
+            /**
+             * Verified
+             * @default false
+             */
+            verified: boolean;
+        };
+        /** CertRuleIn */
+        CertRuleIn: {
+            /**
+             * Active
+             * @default true
+             */
+            active: boolean;
+            /**
+             * Awarded Fraction
+             * @default 1
+             */
+            awarded_fraction: number | string;
+            /** Cert Type */
+            cert_type: string;
+            /** Language Subject Id */
+            language_subject_id?: string | null;
+            /** Level Label */
+            level_label?: string | null;
+            /** Min Value */
+            min_value?: number | string | null;
+            /** Note */
+            note?: {
+                [key: string]: string;
+            };
+            /** Source Url */
+            source_url?: string | null;
+            /**
+             * Verified
+             * @default false
+             */
+            verified: boolean;
+        };
+        /** CertRuleOut */
+        CertRuleOut: {
+            /** Active */
+            active: boolean;
+            /** Awarded Fraction */
+            awarded_fraction: number;
+            /** Cert Type */
+            cert_type: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Language Subject Id */
+            language_subject_id: string | null;
+            /** Level Label */
+            level_label: string | null;
+            /** Min Value */
+            min_value: number | null;
+            /** Note */
+            note: {
+                [key: string]: string;
+            };
+            /**
+             * Section Id
+             * Format: uuid
+             */
+            section_id: string;
+            /** Source Url */
+            source_url: string | null;
+            /** Verified */
+            verified: boolean;
+        };
+        /** CertificateIO */
+        CertificateIO: {
+            /** Cert Type */
+            cert_type: string;
+            /** Language Subject Id */
+            language_subject_id?: string | null;
+            /**
+             * Section Id
+             * Format: uuid
+             */
+            section_id: string;
+            /** Value */
+            value: number;
+        };
         /**
          * Channel
          * @enum {string}
@@ -3337,6 +4024,11 @@ export interface components {
             invoice_id: string;
             /** Pay Url */
             pay_url: string;
+        };
+        /** ChoiceIn */
+        ChoiceIn: {
+            /** Subject Ids */
+            subject_ids: string[];
         };
         /** CityNamesOut */
         CityNamesOut: {
@@ -3391,6 +4083,20 @@ export interface components {
             /** Xp Session Cap */
             xp_session_cap: number;
         };
+        /** ContactCardIn */
+        ContactCardIn: {
+            /** Phones */
+            phones: string[];
+            /** Telegram */
+            telegram?: string | null;
+        };
+        /** ContactCardOut */
+        ContactCardOut: {
+            /** Phones */
+            phones: string[];
+            /** Telegram */
+            telegram: string | null;
+        };
         /** ContactsIn */
         ContactsIn: {
             /** Email */
@@ -3443,6 +4149,22 @@ export interface components {
              */
             id: string;
         };
+        /** DailyAnswerIn */
+        DailyAnswerIn: {
+            /** Response */
+            response: {
+                [key: string]: unknown;
+            };
+        };
+        /** DailyAnswerOut */
+        DailyAnswerOut: {
+            /** Correct */
+            correct: boolean;
+            /** Correct Response */
+            correct_response: {
+                [key: string]: unknown;
+            };
+        };
         /** DailyGoalIn */
         DailyGoalIn: {
             /**
@@ -3450,6 +4172,39 @@ export interface components {
              * @enum {integer}
              */
             xp: 10 | 20 | 30 | 50;
+        };
+        /** DailyQuestionOut */
+        DailyQuestionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Media */
+            media: unknown[];
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+            /** Stem */
+            stem: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+        };
+        /** DailyQuestionsOut */
+        DailyQuestionsOut: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Questions */
+            questions: components["schemas"]["DailyQuestionOut"][];
         };
         /** DailyStatOut */
         DailyStatOut: {
@@ -3464,6 +4219,22 @@ export interface components {
             date: string;
             /** Xp */
             xp: number;
+        };
+        /** DayOut */
+        DayOut: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Done */
+            done: number;
+            /** Minutes */
+            minutes: number;
+            /** Tasks */
+            tasks: components["schemas"]["TaskOut"][];
+            /** Total */
+            total: number;
         };
         /** DecideIn */
         DecideIn: {
@@ -3553,6 +4324,149 @@ export interface components {
             /** Plan Code */
             plan_code: string;
         };
+        /** EventIn */
+        EventIn: {
+            /** Ends On */
+            ends_on?: string | null;
+            /** Exam Year */
+            exam_year: number;
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: {
+                [key: string]: string;
+            };
+            /**
+             * Position
+             * @default 0
+             */
+            position: number;
+            /** Source Url */
+            source_url?: string | null;
+            /**
+             * Starts On
+             * Format: date
+             */
+            starts_on: string;
+            /**
+             * Verified
+             * @default false
+             */
+            verified: boolean;
+        };
+        /** ExamEventOut */
+        ExamEventOut: {
+            /** Ends On */
+            ends_on: string | null;
+            /** Exam Year */
+            exam_year: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: {
+                [key: string]: string;
+            };
+            /** Position */
+            position: number;
+            /** Source Url */
+            source_url: string | null;
+            /**
+             * Starts On
+             * Format: date
+             */
+            starts_on: string;
+            /** Verified */
+            verified: boolean;
+        };
+        /** ExamProfileOut */
+        ExamProfileOut: {
+            /** Active */
+            active: boolean;
+            /** App Max Score */
+            app_max_score: number;
+            /** Certificate Rules */
+            certificate_rules: components["schemas"]["CertRuleOut"][];
+            /** Choices */
+            choices: {
+                [key: string]: string[];
+            };
+            /** Code */
+            code: string;
+            /** Date Verified */
+            date_verified: boolean;
+            /** Direction Code */
+            direction_code: string | null;
+            /** Exam Date */
+            exam_date: string | null;
+            /** Exam Year */
+            exam_year: number;
+            /** Group Code */
+            group_code: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Max Score */
+            max_score: number;
+            /** Mock Blueprint Id */
+            mock_blueprint_id: string | null;
+            /** Names */
+            names: {
+                [key: string]: string;
+            };
+            /** Position */
+            position: number;
+            /** Sections */
+            sections: components["schemas"]["ExamSectionOut"][];
+            /** Source Url */
+            source_url: string | null;
+            /** Taper Days */
+            taper_days: number;
+            /** Trust Self Declared */
+            trust_self_declared: boolean;
+            /** Verified */
+            verified: boolean;
+        };
+        /** ExamSectionOut */
+        ExamSectionOut: {
+            /** Choice Group */
+            choice_group: string | null;
+            /** Exemptible */
+            exemptible: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** In App */
+            in_app: boolean;
+            /** Max Points */
+            max_points: number;
+            /** Names */
+            names: {
+                [key: string]: string;
+            };
+            /** Points Per Question */
+            points_per_question: number | null;
+            /** Question Count */
+            question_count: number | null;
+            /** Role */
+            role: string;
+            /** Slot */
+            slot: number;
+            /** Subject Code */
+            subject_code: string | null;
+            /** Subject Id */
+            subject_id: string | null;
+        };
         /** ExplainIn */
         ExplainIn: {
             /**
@@ -3595,6 +4509,88 @@ export interface components {
             /** Text */
             text: string | null;
         };
+        /** FaqAdminOut */
+        FaqAdminOut: {
+            /** Answer */
+            answer: {
+                [key: string]: string;
+            };
+            /** Category */
+            category: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Key */
+            key: string;
+            /** Position */
+            position: number;
+            /** Published */
+            published: boolean;
+            /** Question */
+            question: {
+                [key: string]: string;
+            };
+            /** Source Url */
+            source_url: string | null;
+            /** Updated At */
+            updated_at: string | null;
+            /** Verified */
+            verified: boolean;
+        };
+        /** FaqIn */
+        FaqIn: {
+            /** Answer */
+            answer: {
+                [key: string]: string;
+            };
+            /** Category */
+            category: string;
+            /** Key */
+            key: string;
+            /**
+             * Position
+             * @default 0
+             */
+            position: number;
+            /**
+             * Published
+             * @default true
+             */
+            published: boolean;
+            /** Question */
+            question: {
+                [key: string]: string;
+            };
+            /** Source Url */
+            source_url?: string | null;
+            /**
+             * Verified
+             * @default false
+             */
+            verified: boolean;
+        };
+        /** FaqOut */
+        FaqOut: {
+            /** Answer */
+            answer: string;
+            /** Category */
+            category: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Key */
+            key: string;
+            /** Question */
+            question: string;
+            /** Source Url */
+            source_url: string | null;
+            /** Verified */
+            verified: boolean;
+        };
         /** FieldOut */
         FieldOut: {
             /** Code */
@@ -3631,6 +4627,11 @@ export interface components {
         FinishOut: {
             /** Answered */
             answered: number;
+            /**
+             * Best Streak
+             * @description Rush only
+             */
+            best_streak?: number | null;
             /** Correct */
             correct: number;
             /**
@@ -3640,6 +4641,11 @@ export interface components {
             id: string;
             /** Mode */
             mode: string;
+            /**
+             * Points
+             * @description Rush only
+             */
+            points?: number | null;
             /** Start Unit Index */
             start_unit_index: number | null;
             /** Status */
@@ -3761,6 +4767,31 @@ export interface components {
             started_at: string;
             /** Submitted At */
             submitted_at: string | null;
+        };
+        /** HomeOut */
+        HomeOut: {
+            /** Configured */
+            configured: boolean;
+            /** Days Left */
+            days_left: number | null;
+            /** Exam Date */
+            exam_date: string | null;
+            /** Max Score */
+            max_score: number | null;
+            /** Phase */
+            phase: string | null;
+            /** Plan End */
+            plan_end: string | null;
+            /** Predicted Score */
+            predicted_score: number | null;
+            /** Tasks */
+            tasks: components["schemas"]["TaskOut"][];
+            /** Today Done */
+            today_done: number;
+            /** Today Minutes */
+            today_minutes: number;
+            /** Today Total */
+            today_total: number;
         };
         /** ImportError_ */
         ImportError_: {
@@ -4150,6 +5181,7 @@ export interface components {
         };
         /** LyceumDetail */
         LyceumDetail: {
+            admission: components["schemas"]["AdmissionOut"];
             /** Code */
             code: string;
             /** Dreamers Count */
@@ -4202,6 +5234,8 @@ export interface components {
         };
         /** LyceumSummary */
         LyceumSummary: {
+            /** Admission Ratio */
+            admission_ratio: number | null;
             /** Applications */
             applications: number | null;
             /** Campus Photo Url */
@@ -4216,6 +5250,7 @@ export interface components {
             competition_ratio: number | null;
             /** Competition Year */
             competition_year: number | null;
+            contact: components["schemas"]["ContactCardOut"] | null;
             /**
              * Dormitory Status
              * @enum {string}
@@ -4235,6 +5270,8 @@ export interface components {
             names: components["schemas"]["NamesOut"];
             /** Quota */
             quota: number | null;
+            /** Seats Total */
+            seats_total: number | null;
         };
         /** MeOut */
         MeOut: {
@@ -4344,6 +5381,18 @@ export interface components {
              * Format: uuid
              */
             mock_id: string;
+            /** Score */
+            score: number;
+            /**
+             * Taken At
+             * Format: date-time
+             */
+            taken_at: string;
+        };
+        /** MockTrendOut */
+        MockTrendOut: {
+            /** Max Score */
+            max_score: number;
             /** Score */
             score: number;
             /**
@@ -4607,6 +5656,42 @@ export interface components {
             /** Sort Order */
             sort_order?: number | null;
         };
+        /** PlanRowIn */
+        PlanRowIn: {
+            /** Direction Code */
+            direction_code: string;
+            /** Language Name */
+            language_name?: string | null;
+            /** Seats Qq */
+            seats_qq: number;
+            /** Seats Ru */
+            seats_ru: number;
+            /** Seats Uz */
+            seats_uz: number;
+            /** Year */
+            year: number;
+        };
+        /** PlanRowOut */
+        PlanRowOut: {
+            /** Applications */
+            applications: number | null;
+            /** Direction Code */
+            direction_code: string;
+            /** Language Name */
+            language_name: string | null;
+            /** Ratio */
+            ratio: number | null;
+            /** Seats Qq */
+            seats_qq: number;
+            /** Seats Ru */
+            seats_ru: number;
+            /** Seats Total */
+            seats_total: number;
+            /** Seats Uz */
+            seats_uz: number;
+            /** Source */
+            source: string;
+        };
         /** PostIn */
         PostIn: {
             /**
@@ -4774,6 +5859,27 @@ export interface components {
             verified_rep: boolean;
             /** Website */
             website: string | null;
+        };
+        /** ProfilePatch */
+        ProfilePatch: {
+            /** Active */
+            active?: boolean | null;
+            /** Date Verified */
+            date_verified?: boolean | null;
+            /** Exam Date */
+            exam_date?: string | null;
+            /** Mock Blueprint Id */
+            mock_blueprint_id?: string | null;
+            /** Position */
+            position?: number | null;
+            /** Source Url */
+            source_url?: string | null;
+            /** Taper Days */
+            taper_days?: number | null;
+            /** Trust Self Declared */
+            trust_self_declared?: boolean | null;
+            /** Verified */
+            verified?: boolean | null;
         };
         /** ProgressOut */
         ProgressOut: {
@@ -5284,6 +6390,21 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** RangeOut */
+        RangeOut: {
+            /** Days */
+            days: components["schemas"]["DayOut"][];
+            /**
+             * Exam Date
+             * Format: date
+             */
+            exam_date: string;
+            /**
+             * Plan End
+             * Format: date
+             */
+            plan_end: string;
+        };
         /** RefreshIn */
         RefreshIn: {
             /** Refresh Token */
@@ -5467,6 +6588,16 @@ export interface components {
              */
             temperature: number;
         };
+        /** RushStartIn */
+        RushStartIn: {
+            /** Language */
+            language: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+        };
         /** SaveIn */
         SaveIn: {
             /**
@@ -5484,17 +6615,33 @@ export interface components {
              */
             flags?: string[] | null;
         };
-        /** SectionOut */
-        SectionOut: {
-            /** Count */
-            count: number;
+        /** SectionPatch */
+        SectionPatch: {
+            /** Subject Id */
+            subject_id?: string | null;
+        };
+        /** SeedMatchIn */
+        SeedMatchIn: {
+            /** Lyceum Id */
+            lyceum_id?: string | null;
+        };
+        /** SeedMatchOut */
+        SeedMatchOut: {
             /**
-             * Subject Id
-             * Format: uuid
+             * Kind
+             * @enum {string}
              */
-            subject_id: string;
-            /** Weight */
-            weight: number;
+            kind: "plan" | "contact";
+            /** Lyceum Id */
+            lyceum_id: string | null;
+            /** Lyceum Name */
+            lyceum_name: string | null;
+            /** Name */
+            name: string;
+            /** Ref */
+            ref: number;
+            /** Source */
+            source: string | null;
         };
         /** SessionOut */
         SessionOut: {
@@ -5502,6 +6649,11 @@ export interface components {
             answered: number;
             /** Correct */
             correct: number;
+            /**
+             * Ends At
+             * @description Rush only: server deadline
+             */
+            ends_at?: string | null;
             /** Hearts */
             hearts: number | null;
             /**
@@ -5521,6 +6673,81 @@ export interface components {
             total: number;
             /** Unlimited Hearts */
             unlimited_hearts: boolean;
+        };
+        /** SettingsIn */
+        SettingsIn: {
+            /**
+             * Certificates
+             * @default []
+             */
+            certificates: components["schemas"]["CertificateIO"][];
+            /** Choice Subject Id */
+            choice_subject_id?: string | null;
+            /** Direction Code */
+            direction_code: string;
+            /**
+             * Exam Date
+             * @description Defaults to the exam profile's date
+             */
+            exam_date?: string | null;
+            /**
+             * Language
+             * @description Education language: uz | ru
+             */
+            language: string;
+            /**
+             * Minutes School Day
+             * @default 45
+             */
+            minutes_school_day: number;
+            /**
+             * Minutes Weekend Day
+             * @default 90
+             */
+            minutes_weekend_day: number;
+            /**
+             * Start Date
+             * @description Defaults to today
+             */
+            start_date?: string | null;
+            /**
+             * Target Lyceum Ids
+             * @default []
+             */
+            target_lyceum_ids: string[];
+        };
+        /** SettingsOut */
+        SettingsOut: {
+            /** Certificates */
+            certificates: components["schemas"]["CertificateIO"][];
+            /** Choice Subject Id */
+            choice_subject_id: string | null;
+            /** Direction Code */
+            direction_code: string;
+            /**
+             * Exam Date
+             * Format: date
+             */
+            exam_date: string;
+            /** Exempt Section Ids */
+            exempt_section_ids: string[];
+            /** Language */
+            language: string;
+            /** Minutes School Day */
+            minutes_school_day: number;
+            /** Minutes Weekend Day */
+            minutes_weekend_day: number;
+            /** Plan End */
+            plan_end: string | null;
+            /** Sections */
+            sections: components["schemas"]["app__interfaces__http__v1__study_plan__SectionOut"][];
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+            /** Target Lyceum Ids */
+            target_lyceum_ids: string[];
         };
         /** SolveIn */
         SolveIn: {
@@ -5634,6 +6861,18 @@ export interface components {
              */
             weight: number;
         };
+        /** SubjectMasteryOut */
+        SubjectMasteryOut: {
+            /** Mastery */
+            mastery: number | null;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Subject Name */
+            subject_name: string | null;
+        };
         /** SubjectOut */
         SubjectOut: {
             /** Active */
@@ -5720,6 +6959,45 @@ export interface components {
          * @enum {string}
          */
         Task: "extract" | "solve" | "judge" | "explain" | "tutor" | "generate";
+        /**
+         * TaskKind
+         * @enum {string}
+         */
+        TaskKind: "lesson" | "drill" | "review" | "mock" | "rush";
+        /** TaskOut */
+        TaskOut: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Done At */
+            done_at: string | null;
+            /** Est Minutes */
+            est_minutes: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["TaskKind"];
+            /** Position */
+            position: number;
+            status: components["schemas"]["TaskStatus"];
+            /** Subject Id */
+            subject_id: string | null;
+            /** Subject Name */
+            subject_name: string | null;
+            /** Target */
+            target: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * TaskStatus
+         * @enum {string}
+         */
+        TaskStatus: "todo" | "done" | "missed";
         /** TelegramWebAppIn */
         TelegramWebAppIn: {
             /** Init Data */
@@ -5774,6 +7052,25 @@ export interface components {
         TiersIn: {
             /** Tiers */
             tiers: components["schemas"]["TierOut"][];
+        };
+        /** TodayOut */
+        TodayOut: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Days Left */
+            days_left: number;
+            /**
+             * Plan End
+             * Format: date
+             */
+            plan_end: string;
+            /** Rest Day */
+            rest_day: boolean;
+            /** Tasks */
+            tasks: components["schemas"]["TaskOut"][];
         };
         /** TokensOut */
         TokensOut: {
@@ -5869,8 +7166,45 @@ export interface components {
         TutorOut: {
             /** Model */
             model: string;
+            quiz?: components["schemas"]["TutorQuizOut"] | null;
+            quota: components["schemas"]["TutorQuotaOut"];
             /** Reply */
             reply: string;
+        };
+        /**
+         * TutorQuizOut
+         * @description Inline quiz; the client checks `correct_index` itself.
+         */
+        TutorQuizOut: {
+            /** Correct Index */
+            correct_index: number;
+            /** Explanation */
+            explanation: string;
+            /** Options */
+            options: string[];
+            /** Stem */
+            stem: string;
+        };
+        /** TutorQuotaOut */
+        TutorQuotaOut: {
+            /**
+             * Limit
+             * @description Messages per day; -1 = unlimited
+             */
+            limit: number;
+            /**
+             * Remaining
+             * @description -1 = unlimited
+             */
+            remaining: number;
+            /** Used */
+            used: number;
+        };
+        /** TutorSuggestionsOut */
+        TutorSuggestionsOut: {
+            quota: components["schemas"]["TutorQuotaOut"];
+            /** Suggestions */
+            suggestions: string[];
         };
         /** TutorTurnIn */
         TutorTurnIn: {
@@ -6058,6 +7392,18 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /** SectionOut */
+        app__interfaces__http__v1__assessment__SectionOut: {
+            /** Count */
+            count: number;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Weight */
+            weight: number;
+        };
         /** ImportIn */
         app__interfaces__http__v1__bank__ImportIn: {
             /** Items */
@@ -6203,6 +7549,33 @@ export interface components {
         app__interfaces__http__v1__media__MediaOut: {
             /** Key */
             key: string;
+        };
+        /** SectionOut */
+        app__interfaces__http__v1__study_plan__SectionOut: {
+            /** Choice Group */
+            choice_group: string | null;
+            /** Exempt */
+            exempt: boolean;
+            /**
+             * In App
+             * @description False: not preparable in the app (e.g. drawing)
+             */
+            in_app: boolean;
+            /** Max Points */
+            max_points: number;
+            /** Role */
+            role: string;
+            /**
+             * Section Id
+             * Format: uuid
+             */
+            section_id: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Subject Name */
+            subject_name: string | null;
+            /** Subject Options */
+            subject_options: string[];
         };
     };
     responses: never;
@@ -11489,6 +12862,1025 @@ export interface operations {
             };
         };
     };
+    exam_info_admin_create_cert_rule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CertRuleCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CertRuleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_update_cert_rule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CertRuleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CertRuleOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_delete_cert_rule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_replace_choice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChoiceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_list_events: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamEventOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_create_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamEventOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_update_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamEventOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_delete_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_list_faq: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FaqAdminOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_create_faq: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FaqIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FaqAdminOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_update_faq: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                faq_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FaqIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FaqAdminOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_delete_faq: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                faq_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_list_profiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamProfileOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_update_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfilePatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamProfileOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_admin_update_section: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                section_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SectionPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     gamification_admin_get_config: {
         parameters: {
             query?: never;
@@ -13055,6 +15447,123 @@ export interface operations {
             };
         };
     };
+    lyceums_admin_list_seed_matches: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeedMatchOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_admin_set_seed_match: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "plan" | "contact";
+                ref: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeedMatchIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     lyceums_admin_set_field_subjects: {
         parameters: {
             query?: never;
@@ -13552,6 +16061,190 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_admin_put_plan_row: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lyceum_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanRowIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanRowOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_admin_delete_plan_row: {
+        parameters: {
+            query: {
+                year: number;
+                direction_code: string;
+                language_name?: string | null;
+            };
+            header?: never;
+            path: {
+                lyceum_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    lyceums_admin_put_contact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lyceum_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactCardIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactCardOut"];
                 };
             };
             /** @description Unauthorized */
@@ -14281,6 +16974,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TutorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden / not entitled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Limit reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description AI upstream failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description AI unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ai_tutor_suggestions: {
+        parameters: {
+            query?: {
+                locale?: "uz-Latn" | "uz-Cyrl" | "ru" | "en";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TutorSuggestionsOut"];
                 };
             };
             /** @description Unauthorized */
@@ -15798,6 +18576,273 @@ export interface operations {
                 };
             };
             /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_list_events: {
+        parameters: {
+            query?: {
+                exam_year?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamEventOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_list_faq: {
+        parameters: {
+            query?: {
+                locale?: string;
+                category?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FaqOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_list_profiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamProfileOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    exam_info_get_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                direction_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamProfileOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -18275,6 +21320,75 @@ export interface operations {
             };
         };
     };
+    learning_start_rush: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RushStartIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     learning_get_session: {
         parameters: {
             query?: never;
@@ -19559,6 +22673,657 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    study_plan_analytics: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    study_plan_daily_questions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyQuestionsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    study_plan_answer_daily_question: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DailyAnswerIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyAnswerOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    study_plan_generate: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    study_plan_home: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomeOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    study_plan_month: {
+        parameters: {
+            query?: {
+                year?: number | null;
+                month?: number | null;
+            };
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    study_plan_get_settings: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    study_plan_save_settings: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    study_plan_complete_task: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    study_plan_today: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TodayOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    study_plan_week: {
+        parameters: {
+            query?: {
+                start?: string | null;
+            };
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -51,3 +51,6 @@ export type Media = S["app__interfaces__http__v1___media__MediaOut"];
 export type Passage = S["PublicPassageOut"];
 export type PredictionView = S["PredictionViewOut"];
 export type HistoryItem = S["HistoryItemOut"];
+export type TutorOut = S["TutorOut"];
+export type TutorQuiz = S["TutorQuizOut"];
+export type TutorQuota = S["TutorQuotaOut"];

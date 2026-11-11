@@ -14,6 +14,7 @@ export function OnboardingFrame({
   onBack,
   onContinue,
   canContinue,
+  continueLabel,
   children,
 }: {
   stepKey: string;
@@ -24,6 +25,7 @@ export function OnboardingFrame({
   onBack?: () => void;
   onContinue: () => void;
   canContinue: boolean;
+  continueLabel?: string;
   children: ReactNode;
 }) {
   const t = useT();
@@ -58,7 +60,7 @@ export function OnboardingFrame({
         </motion.div>
       </AnimatePresence>
       <Button block disabled={!canContinue} onClick={onContinue}>
-        {t("common.continue")}
+        {continueLabel ?? t("common.continue")}
       </Button>
     </div>
   );

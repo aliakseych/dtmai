@@ -2,14 +2,15 @@ from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
+from app.modules.lyceums.domain.admission import ContactCard, PlanRow
 from app.modules.lyceums.domain.models import (
     ImportRun,
     SourceLanguage,
     SourceLyceum,
     SourceSpeciality,
 )
-from app.modules.lyceums.domain.rep import Post, PostStatus, RepMembership
 from app.modules.lyceums.domain.profile import CityView
+from app.modules.lyceums.domain.rep import Post, PostStatus, RepMembership
 
 
 class LyceumStatsSource(Protocol):
@@ -78,3 +79,50 @@ class RepRoleGranter(Protocol):
 
 class Clock(Protocol):
     def now(self) -> datetime: ...
+
+
+class AdmissionStore(Protocol):
+    """Seats, contacts and seed-document matches. `*_seed` writes never touch admin edits."""
+
+    async def lyceum_names(self) -> dict[UUID, str]: ...
+    async def matches(self, kind: str) -> dict[int, tuple[UUID | None, str]]: ...
+    async def save_match(
+        self, kind: str, ref: int, lyceum_id: UUID | None, source: str
+    ) -> None: ...
+    async def upsert_plan_seed(self, row: PlanRow) -> bool:
+        """Insert or refresh a seed row; False when an admin-edited row blocks it."""
+        ...
+
+    async def upsert_contact_seed(self, card: ContactCard) -> bool: ...
+    async def put_plan_admin(self, row: PlanRow) -> None: ...
+    async def delete_plan(
+        self, lyceum_id: UUID, year: int, direction_code: str, language_name: str | None
+    ) -> str | None:
+        """Delete a row; returns its source, or None when there was no such row."""
+        ...
+
+    async def tombstone_plan(
+        self, lyceum_id: UUID, year: int, direction_code: str, language_name: str | None
+    ) -> None:
+        """Remember an admin-deleted seed row so the import skips it."""
+        ...
+
+    async def is_plan_tombstoned(
+        self, lyceum_id: UUID, year: int, direction_code: str, language_name: str | None
+    ) -> bool: ...
+    async def delete_seed_plan(
+        self, lyceum_id: UUID, year: int, keys: list[tuple[str, str | None]]
+    ) -> None:
+        """Drop source=seed rows of one seed entry (admin rows stay)."""
+        ...
+
+    async def delete_seed_contact(self, lyceum_id: UUID) -> None: ...
+    async def put_contact_admin(self, card: ContactCard) -> None: ...
+    async def plan_for(self, lyceum_ids: list[UUID]) -> list[PlanRow]:
+        """Rows of the latest plan year per lyceum."""
+        ...
+
+    async def contacts_for(self, lyceum_ids: list[UUID]) -> dict[UUID, ContactCard]: ...
+    async def stat_rows(self, lyceum_ids: list[UUID]) -> list[tuple[UUID, int, str, int]]:
+        """(lyceum_id, year, speciality_code, applications) from edu.uz stats."""
+        ...

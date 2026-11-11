@@ -31,7 +31,7 @@ One SAN cert named `dtm-ai.uz` is used by all sites. The `certbot` service renew
 docker compose -f docker-compose.prod.yaml --env-file .env pull
 docker compose -f docker-compose.prod.yaml --env-file .env up -d
 ```
-`migrate` (one-shot, `alembic upgrade heads`) runs before api/worker/scheduler; `bot-webhook-setup` (one-shot) registers the Telegram webhook, commands and menu button once the api is healthy, so step 6 is only needed for manual repair. Bot updates are served by the api (`/tg/webhook`); there is no separate bot process. Check `curl https://api.dtm-ai.uz/healthz`.
+`migrate` (one-shot, `alembic upgrade heads` then the insert-only exam-info seed, which never overwrites admin edits) runs before api/worker/scheduler; `bot-webhook-setup` (one-shot) registers the Telegram webhook, commands and menu button once the api is healthy, so step 6 is only needed for manual repair. Bot updates are served by the api (`/tg/webhook`); there is no separate bot process. Check `curl https://api.dtm-ai.uz/healthz`.
 
 Images (built by `deploy.yml`): `ghcr.io/aliakseych/dtmai-{api,web,admin}:${IMAGE_TAG}`. Local build: `docker build -t dtmai-api apps/api`; `docker build -f apps/web/Dockerfile --build-arg NEXT_PUBLIC_API_URL=https://api.dtm-ai.uz --build-arg NEXT_PUBLIC_TG_BOT=<bot> -t dtmai-web .` (admin likewise).
 

@@ -35,8 +35,29 @@ export function LyceumCard({ summary, title, cityName, open, onToggle }: { summa
           </span>
           {year ? ` · ${t("lyceums.lastData", { year: academicYear(year) })}` : ""}
         </p>
+        {(summary.seats_total != null || summary.admission_ratio != null) && (
+          <p className="mt-1 text-sm text-ink-soft">
+            {summary.seats_total != null && t("lyceums.admission.seatsTotal", { count: summary.seats_total })}
+            {summary.seats_total != null && summary.admission_ratio != null && " · "}
+            {summary.admission_ratio != null && `${t("lyceums.admission.ratio")}: ${summary.admission_ratio.toFixed(1)}`}
+          </p>
+        )}
         <DormitoryBadge status={summary.dormitory_status} className="mt-2" />
       </button>
+      {summary.contact && (summary.contact.phones.length > 0 || summary.contact.telegram) && (
+        <p className="mt-2 flex flex-wrap gap-3 text-sm">
+          {summary.contact.phones[0] && (
+            <a href={`tel:${summary.contact.phones[0]}`} className="font-bold text-brand">
+              {summary.contact.phones[0]}
+            </a>
+          )}
+          {summary.contact.telegram && (
+            <a href={summary.contact.telegram} target="_blank" rel="noopener noreferrer" className="font-bold text-brand">
+              {t("lyceums.admission.telegram")}
+            </a>
+          )}
+        </p>
+      )}
       {open && (
         <div className="mt-4 border-t-2 border-line pt-4">
           <Expanded id={summary.id} />
