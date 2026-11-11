@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { pick } from "@/lib/localized";
 import { useStats } from "@/lib/stats";
 import { useAsync } from "@/lib/useAsync";
+import { useAuth } from "@/lib/auth";
 import { SubjectPath } from "./SubjectPath";
 import { DreamPin } from "./DreamPin";
 
@@ -18,6 +19,7 @@ export function LearnView() {
   const { locale } = useLocale();
   const subjects = useAsync(() => api.unwrap(api.client.GET("/v1/catalog/subjects")), []);
   const stats = useStats();
+  const { me } = useAuth();
   const [picked, setPicked] = useState<string | null>(() => {
     try {
       return window.localStorage.getItem(LAST) ?? null;
@@ -35,8 +37,12 @@ export function LearnView() {
   };
   return (
     <AsyncView state={subjects.state} onRetry={subjects.reload} isEmpty={(d) => d.length === 0}>
-      {(list) => {
-        const current = list.some((x) => x.id === picked) ? picked! : list[0].id;
+      {(all) => {
+        // The learner's chosen subjects lead; the rest stay reachable after them.
+        const mine = me?.subject_ids ?? [];
+        const list = [...all].sort((a, b) => Number(!mine.includes(a.id)) - Number(!mine.includes(b.id)));
+        const fallback = list[0]!.id;
+        const current = list.some((x) => x.id === picked) ? picked! : fallback;
         return (
           <div className="flex flex-col gap-6">
             <DreamPin />

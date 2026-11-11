@@ -5,6 +5,7 @@ import { api, type Path } from "@/lib/api";
 import { useLearnLanguage } from "@/lib/auth";
 import { contentLang } from "@/lib/localized";
 import { useAsync } from "@/lib/useAsync";
+import { isCode } from "@/lib/errors";
 import { UnitSection } from "./UnitSection";
 import { useUnlockPop } from "./useUnlockPop";
 
@@ -14,7 +15,14 @@ export function SubjectPath({ subjectId }: { subjectId: string }) {
   const language = useLearnLanguage();
   const { locale } = useLocale();
   const { state, reload } = useAsync(
-    () => api.unwrap(api.client.GET("/v1/catalog/subjects/{subject_id}/path", { params: { path: { subject_id: subjectId }, query: { language, locale: contentLang(locale) } } })),
+    () =>
+      api
+        .unwrap(api.client.GET("/v1/catalog/subjects/{subject_id}/path", { params: { path: { subject_id: subjectId }, query: { language, locale: contentLang(locale) } } }))
+        // No published path yet for this subject/language: show the empty state, not an error.
+        .catch((e: unknown): Path => {
+          if (isCode(e, "not_found")) return { units: [] } as unknown as Path;
+          throw e;
+        }),
     [subjectId, language, locale],
   );
   return (

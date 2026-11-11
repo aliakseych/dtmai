@@ -18,12 +18,10 @@ export function DreamPin() {
   const ratio = latestCompetition(data);
   return (
     <section className="relative isolate flex min-h-32 items-end overflow-hidden rounded-card border-2 border-line bg-brand-soft">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={photo ? mediaUrl(photo) : DREAM_PLACEHOLDER}
-        alt=""
-        className={photo ? "absolute inset-0 -z-10 h-full w-full object-cover" : "absolute right-2 top-1/2 -z-10 h-28 -translate-y-1/2 object-contain"}
-      />
+      {photo && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={mediaUrl(photo)} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover" />
+      )}
       {photo && <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/75 via-black/30 to-transparent" aria-hidden="true" />}
       <div className="flex w-full items-center gap-3 p-4">
         {data.profile.logo_url && (
@@ -40,6 +38,10 @@ export function DreamPin() {
             </p>
           )}
         </div>
+        {!photo && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={DREAM_PLACEHOLDER} alt="" className="hidden h-24 w-32 shrink-0 object-contain sm:block" />
+        )}
         <Link href="/lyceums/" className="shrink-0 rounded-xl bg-white px-3 py-2 text-sm font-extrabold text-brand">
           {t("dream.pin.change")}
         </Link>
