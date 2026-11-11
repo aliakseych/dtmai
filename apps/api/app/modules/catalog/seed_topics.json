@@ -1,28 +1,385 @@
 [
-  {"subject": "MATH", "name": "Бесконечные десятичные дроби"},
-  {"subject": "MATH", "name": "Процент и пропорция"},
-  {"subject": "MATH", "name": "Алгебраические дроби"},
-  {"subject": "MATH", "name": "Квадратный корень"},
-  {"subject": "MATH", "name": "ФСУ (формулы сокращённого умножения)"},
-  {"subject": "MATH", "name": "Уравнения и системы уравнений"},
-  {"subject": "MATH", "name": "Неравенства и системы неравенств"},
-  {"subject": "MATH", "name": "Тригонометрия"},
-  {"subject": "MATH", "name": "Текстовые задачи"},
-  {"subject": "MATH", "name": "Прогрессии (арифметическая и геометрическая)"},
-  {"subject": "MATH", "name": "Углы и равенство углов"},
-  {"subject": "MATH", "name": "Треугольники"},
-  {"subject": "MATH", "name": "Четырёхугольники"},
-  {"subject": "MATH", "name": "Многоугольники"},
-  {"subject": "MATH", "name": "Окружность"},
-  {"subject": "MATH", "name": "Векторы"},
-  {"subject": "MATH", "name": "Стереометрия"},
-  {"subject": "MATH", "name": "Преобразование числовых выражений"},
-  {"subject": "MATH", "name": "Комбинаторика"},
-  {"subject": "ENGLISH", "name": "Grammar"},
-  {"subject": "ENGLISH", "name": "Vocabulary"},
-  {"subject": "ENGLISH", "name": "Reading Comprehension"},
-  {"subject": "ENGLISH", "name": "Word Formation"},
-  {"subject": "ENGLISH", "name": "Tenses"},
-  {"subject": "ENGLISH", "name": "Prepositions"},
-  {"subject": "ENGLISH", "name": "Cloze / Fill in the Blank"}
+  {
+    "subject": "MATH",
+    "name": "Бесконечные десятичные дроби"
+  },
+  {
+    "subject": "MATH",
+    "name": "Процент и пропорция"
+  },
+  {
+    "subject": "MATH",
+    "name": "Алгебраические дроби"
+  },
+  {
+    "subject": "MATH",
+    "name": "Квадратный корень"
+  },
+  {
+    "subject": "MATH",
+    "name": "ФСУ (формулы сокращённого умножения)"
+  },
+  {
+    "subject": "MATH",
+    "name": "Уравнения и системы уравнений"
+  },
+  {
+    "subject": "MATH",
+    "name": "Неравенства и системы неравенств"
+  },
+  {
+    "subject": "MATH",
+    "name": "Тригонометрия"
+  },
+  {
+    "subject": "MATH",
+    "name": "Текстовые задачи"
+  },
+  {
+    "subject": "MATH",
+    "name": "Прогрессии (арифметическая и геометрическая)"
+  },
+  {
+    "subject": "MATH",
+    "name": "Углы и равенство углов"
+  },
+  {
+    "subject": "MATH",
+    "name": "Треугольники"
+  },
+  {
+    "subject": "MATH",
+    "name": "Четырёхугольники"
+  },
+  {
+    "subject": "MATH",
+    "name": "Многоугольники"
+  },
+  {
+    "subject": "MATH",
+    "name": "Окружность"
+  },
+  {
+    "subject": "MATH",
+    "name": "Векторы"
+  },
+  {
+    "subject": "MATH",
+    "name": "Стереометрия"
+  },
+  {
+    "subject": "MATH",
+    "name": "Преобразование числовых выражений"
+  },
+  {
+    "subject": "MATH",
+    "name": "Комбинаторика"
+  },
+  {
+    "subject": "ENGLISH",
+    "name": "Grammar"
+  },
+  {
+    "subject": "ENGLISH",
+    "name": "Vocabulary"
+  },
+  {
+    "subject": "ENGLISH",
+    "name": "Reading Comprehension"
+  },
+  {
+    "subject": "ENGLISH",
+    "name": "Word Formation"
+  },
+  {
+    "subject": "ENGLISH",
+    "name": "Tenses"
+  },
+  {
+    "subject": "ENGLISH",
+    "name": "Prepositions"
+  },
+  {
+    "subject": "ENGLISH",
+    "name": "Cloze / Fill in the Blank"
+  },
+  {
+    "subject": "PHYSICS",
+    "names": {
+      "uz-Latn": "Kinematika",
+      "uz-Cyrl": "Кинематика",
+      "ru": "Кинематика",
+      "en": "Kinematics"
+    }
+  },
+  {
+    "subject": "PHYSICS",
+    "names": {
+      "uz-Latn": "Dinamika",
+      "uz-Cyrl": "Динамика",
+      "ru": "Динамика",
+      "en": "Dynamics"
+    }
+  },
+  {
+    "subject": "PHYSICS",
+    "names": {
+      "uz-Latn": "Saqlanish qonunlari",
+      "uz-Cyrl": "Сақланиш қонунлари",
+      "ru": "Законы сохранения",
+      "en": "Conservation laws"
+    }
+  },
+  {
+    "subject": "PHYSICS",
+    "names": {
+      "uz-Latn": "Statika va gidrostatika",
+      "uz-Cyrl": "Статика ва гидростатика",
+      "ru": "Статика и гидростатика",
+      "en": "Statics and hydrostatics"
+    }
+  },
+  {
+    "subject": "PHYSICS",
+    "names": {
+      "uz-Latn": "Molekulyar fizika",
+      "uz-Cyrl": "Молекуляр физика",
+      "ru": "Молекулярная физика",
+      "en": "Molecular physics"
+    }
+  },
+  {
+    "subject": "PHYSICS",
+    "names": {
+      "uz-Latn": "Termodinamika",
+      "uz-Cyrl": "Термодинамика",
+      "ru": "Термодинамика",
+      "en": "Thermodynamics"
+    }
+  },
+  {
+    "subject": "PHYSICS",
+    "names": {
+      "uz-Latn": "Elektrostatika",
+      "uz-Cyrl": "Электростатика",
+      "ru": "Электростатика",
+      "en": "Electrostatics"
+    }
+  },
+  {
+    "subject": "PHYSICS",
+    "names": {
+      "uz-Latn": "Elektr toki",
+      "uz-Cyrl": "Электр токи",
+      "ru": "Постоянный ток",
+      "en": "Electric current"
+    }
+  },
+  {
+    "subject": "PHYSICS",
+    "names": {
+      "uz-Latn": "Magnetizm",
+      "uz-Cyrl": "Магнетизм",
+      "ru": "Магнетизм",
+      "en": "Magnetism"
+    }
+  },
+  {
+    "subject": "PHYSICS",
+    "names": {
+      "uz-Latn": "Tebranishlar va to'lqinlar",
+      "uz-Cyrl": "Тебранишлар ва тўлқинлар",
+      "ru": "Колебания и волны",
+      "en": "Oscillations and waves"
+    }
+  },
+  {
+    "subject": "PHYSICS",
+    "names": {
+      "uz-Latn": "Optika",
+      "uz-Cyrl": "Оптика",
+      "ru": "Оптика",
+      "en": "Optics"
+    }
+  },
+  {
+    "subject": "PHYSICS",
+    "names": {
+      "uz-Latn": "Atom va yadro fizikasi",
+      "uz-Cyrl": "Атом ва ядро физикаси",
+      "ru": "Атомная и ядерная физика",
+      "en": "Atomic and nuclear physics"
+    }
+  },
+  {
+    "subject": "HISTORY",
+    "names": {
+      "uz-Latn": "Qadimgi dunyo tarixi",
+      "uz-Cyrl": "Қадимги дунё тарихи",
+      "ru": "История Древнего мира",
+      "en": "Ancient world history"
+    }
+  },
+  {
+    "subject": "HISTORY",
+    "names": {
+      "uz-Latn": "O'rta asrlar tarixi",
+      "uz-Cyrl": "Ўрта асрлар тарихи",
+      "ru": "История Средних веков",
+      "en": "Medieval history"
+    }
+  },
+  {
+    "subject": "HISTORY",
+    "names": {
+      "uz-Latn": "Yangi davr tarixi",
+      "uz-Cyrl": "Янги давр тарихи",
+      "ru": "История Нового времени",
+      "en": "Early modern history"
+    }
+  },
+  {
+    "subject": "HISTORY",
+    "names": {
+      "uz-Latn": "Eng yangi tarix",
+      "uz-Cyrl": "Энг янги тарих",
+      "ru": "Новейшая история",
+      "en": "Contemporary history"
+    }
+  },
+  {
+    "subject": "HISTORY",
+    "names": {
+      "uz-Latn": "O'zbekiston tarixi: qadimgi davr",
+      "uz-Cyrl": "Ўзбекистон тарихи: қадимги давр",
+      "ru": "История Узбекистана: древность",
+      "en": "History of Uzbekistan: antiquity"
+    }
+  },
+  {
+    "subject": "HISTORY",
+    "names": {
+      "uz-Latn": "O'zbekiston tarixi: o'rta asrlar",
+      "uz-Cyrl": "Ўзбекистон тарихи: ўрта асрлар",
+      "ru": "История Узбекистана: Средневековье",
+      "en": "History of Uzbekistan: Middle Ages"
+    }
+  },
+  {
+    "subject": "HISTORY",
+    "names": {
+      "uz-Latn": "O'zbekiston tarixi: xonliklar davri",
+      "uz-Cyrl": "Ўзбекистон тарихи: хонликлар даври",
+      "ru": "История Узбекистана: эпоха ханств",
+      "en": "History of Uzbekistan: khanates"
+    }
+  },
+  {
+    "subject": "HISTORY",
+    "names": {
+      "uz-Latn": "O'zbekiston tarixi: XX asr",
+      "uz-Cyrl": "Ўзбекистон тарихи: ХХ аср",
+      "ru": "История Узбекистана: XX век",
+      "en": "History of Uzbekistan: 20th century"
+    }
+  },
+  {
+    "subject": "HISTORY",
+    "names": {
+      "uz-Latn": "Mustaqil O'zbekiston",
+      "uz-Cyrl": "Мустақил Ўзбекистон",
+      "ru": "Независимый Узбекистан",
+      "en": "Independent Uzbekistan"
+    }
+  },
+  {
+    "subject": "HISTORY",
+    "names": {
+      "uz-Latn": "Madaniyat va xronologiya",
+      "uz-Cyrl": "Маданият ва хронология",
+      "ru": "Культура и хронология",
+      "en": "Culture and chronology"
+    }
+  },
+  {
+    "subject": "IQ",
+    "names": {
+      "uz-Latn": "Sonli ketma-ketliklar",
+      "uz-Cyrl": "Сонли кетма-кетликлар",
+      "ru": "Числовые последовательности",
+      "en": "Number series"
+    }
+  },
+  {
+    "subject": "IQ",
+    "names": {
+      "uz-Latn": "Ortiqchasini toping",
+      "uz-Cyrl": "Ортиқчасини топинг",
+      "ru": "Найди лишнее",
+      "en": "Odd one out"
+    }
+  },
+  {
+    "subject": "IQ",
+    "names": {
+      "uz-Latn": "Analogiyalar",
+      "uz-Cyrl": "Аналогиялар",
+      "ru": "Аналогии",
+      "en": "Analogies"
+    }
+  },
+  {
+    "subject": "IQ",
+    "names": {
+      "uz-Latn": "Harf va son kodlari",
+      "uz-Cyrl": "Ҳарф ва сон кодлари",
+      "ru": "Буквенно-цифровые коды",
+      "en": "Letter and number codes"
+    }
+  },
+  {
+    "subject": "IQ",
+    "names": {
+      "uz-Latn": "Figuralar ketma-ketligi",
+      "uz-Cyrl": "Фигуралар кетма-кетлиги",
+      "ru": "Последовательности фигур",
+      "en": "Figure sequences"
+    }
+  },
+  {
+    "subject": "IQ",
+    "names": {
+      "uz-Latn": "Fazoviy tasavvur (kublar, yoyilmalar)",
+      "uz-Cyrl": "Фазовий тасаввур (кублар, ёйилмалар)",
+      "ru": "Пространственное мышление (кубы, развёртки)",
+      "en": "Spatial reasoning (cubes, nets)"
+    }
+  },
+  {
+    "subject": "IQ",
+    "names": {
+      "uz-Latn": "Sonli jadvallar va shakllar",
+      "uz-Cyrl": "Сонли жадваллар ва шакллар",
+      "ru": "Числовые таблицы и фигуры",
+      "en": "Number grids and figures"
+    }
+  },
+  {
+    "subject": "IQ",
+    "names": {
+      "uz-Latn": "Mantiqiy masalalar",
+      "uz-Cyrl": "Мантиқий масалалар",
+      "ru": "Логические задачи",
+      "en": "Logic puzzles"
+    }
+  },
+  {
+    "subject": "IQ",
+    "names": {
+      "uz-Latn": "Tarozi va tenglamalar",
+      "uz-Cyrl": "Тарози ва тенгламалар",
+      "ru": "Весы и уравнения",
+      "en": "Balances and equations"
+    }
+  }
 ]

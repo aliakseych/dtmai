@@ -51,11 +51,11 @@ export default function IngestionPage() {
       <Drawer open={open} onClose={() => setOpen(false)} width="max-w-lg" title="New ingestion batch"
         footer={<><Btn onClick={() => setOpen(false)}>Cancel</Btn><Btn variant="primary" disabled={!(files.length || f.root) || !f.source_code || !f.subject_id || !f.language || busy} onClick={submit}>Start</Btn></>}>
         <div className="space-y-3">
-          <Field label="Files" hint="PDF, PNG, JPEG or WebP · up to 50 files, 25 MB each.">
+          <Field label="Files" hint="PDF, DOCX, PNG, JPEG or WebP · up to 50 files, 100 MB each.">
             <label onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); addFiles(e.dataTransfer.files); }}
               className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-gray-300 p-6 text-center text-sm">
               <span>Drop files here or click to choose</span>
-              <input type="file" multiple accept="application/pdf,image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
+              <input type="file" multiple accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
             </label>
             {files.length > 0 && (
               <ul className="mt-2 space-y-1 text-sm">

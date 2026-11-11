@@ -16,6 +16,25 @@ def natural_key(s: str) -> list[Any]:
     return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", s)]
 
 
+def crop_png(image: bytes, bbox: list[int] | None) -> bytes | None:
+    """Crop a PNG to a 0..1000-normalized bbox (padded); None when bbox is unusable or cropping fails."""
+    from app.modules.labeling.domain.extraction import crop_box
+
+    try:
+        import pymupdf
+
+        src = pymupdf.Pixmap(image)
+        box = crop_box(bbox, src.width, src.height)
+        if box is None:
+            return None
+        rect = pymupdf.IRect(*box)
+        dst = pymupdf.Pixmap(src.colorspace, rect, src.alpha)
+        dst.copy(src, rect)
+        return bytes(dst.tobytes("png"))
+    except Exception:  # noqa: BLE001 - fall back to the whole page
+        return None
+
+
 class LocalFileStore:
     def __init__(self, media_dir: Path | None = None) -> None:
         self._media = media_dir

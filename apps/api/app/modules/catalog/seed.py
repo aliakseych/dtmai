@@ -39,7 +39,10 @@ BASES: list[dict[str, Any]] = [
     {"code": "harvested", "kind": "harvested", "names": {"en": "Harvested bank", "ru": "Общий банк вопросов", "uz-Latn": "Umumiy savollar banki", "uz-Cyrl": "Умумий саволлар банки"}},
 ]
 
-_CATEGORY_SUBJECT = {"MATH": ("math", "ru"), "ENGLISH": ("english", "en")}
+_CATEGORY_SUBJECT = {
+    "MATH": ("math", "ru"), "ENGLISH": ("english", "en"), "IQ": ("iq", "ru"), "HISTORY": ("history", "ru"),
+    "PHYSICS": ("physics", "ru"),
+}
 
 
 def categories_path() -> Path:
@@ -73,7 +76,7 @@ async def seed(session: AsyncSession) -> dict[str, int]:
                 continue
             code, loc = mapped
             existing = {tuple(sorted(t["names"].items())) for t in await svc.repo.list("topic", subject_id=subj_ids[code])}
-            names = {loc: item["name"]}
+            names = item.get("names") or {loc: item["name"]}
             if tuple(sorted(names.items())) not in existing:
                 await svc.create("topic", {"subject_id": subj_ids[code], "names": names}, "seed")
                 added["topics"] += 1

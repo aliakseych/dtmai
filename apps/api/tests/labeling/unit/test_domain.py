@@ -141,3 +141,70 @@ def test_extract_system_lists_topics():
     assert extract_system([]) == EXTRACT_SYSTEM
     out = extract_system(["Algebra", "Geometry"])
     assert "1. Algebra" in out and "2. Geometry" in out
+
+
+# ---- extraction hardening ----------------------------------------------------------------------
+def _q(**kw):
+    base = {"number": 1, "kind": "single_choice", "stem": "S", "options": [{"text": "x"}, {"text": "y"}]}
+    return {"questions": [{**base, **kw}]}
+
+
+def test_int_leading_digits():
+    from app.modules.labeling.domain.extraction import _int
+
+    assert _int("16(1/2-62).") == 16 and _int(" 3. ") == 3 and _int(7) == 7
+    assert _int(True) is None and _int("x1") is None and _int(None) is None
+
+
+def test_figure_options_kept_only_with_figure():
+    pics = [{"id": "a", "text": ""}, {"label": "B", "text": ""}, {"text": ""}]
+    q = parse_page(_q(has_figure=True, options=pics)).questions[0]
+    assert [o["text"] for o in q.options] == ["A", "B", "C"]
+    assert parse_page(_q(has_figure=False, options=pics)).questions == []
+    assert parse_page(_q(has_figure=True, options=[{"id": "a", "text": ""}, {"text": "t"}])).questions[0].options[1]["text"] == "t"
+    assert parse_page(_q(has_figure=True, options=[{"id": "a", "text": ""}])).questions == []
+
+
+def test_answer_raw_and_options_generated():
+    q = parse_page(_q(answer=" B ", options_generated=True, bbox=[1, 2, 3, 4])).questions[0]
+    assert q.answer_raw == "B" and q.options_generated is True and q.bbox == [1, 2, 3, 4]
+    q = parse_page(_q()).questions[0]
+    assert q.answer_raw is None and q.options_generated is False and q.bbox is None
+
+
+def test_crop_box():
+    from app.modules.labeling.domain.extraction import crop_box
+
+    assert crop_box([100, 100, 500, 500], 1000, 2000) == (80, 160, 520, 1040)
+    assert crop_box([0, 0, 1000, 1000], 100, 100) == (0, 0, 100, 100)
+    assert crop_box([10, 10, 300, 300], 1000, 1000) == (0, 0, 320, 320)
+    for bad in (None, [5, 5, 4, 9], [0, 0, 1001, 10], [0, 0, 10, 500], [1, 2, 3], [-1, 0, 500, 500]):
+        assert crop_box(bad, 100, 100) is None
+
+
+def _pe(nums, key=None):
+    from app.modules.labeling.domain.extraction import ExtractedQuestion, PageExtraction
+
+    return PageExtraction([], [ExtractedQuestion(n, "single_choice", "s") for n in nums], key or {})
+
+
+def test_resolve_keys_restarted_numbering():
+    from app.modules.labeling.domain.extraction import resolve_keys
+
+    pages = [_pe([1, 2], {1: "A", 2: "B"}), _pe([1, 2], {1: "C", 2: "D"})]
+    assert resolve_keys(pages) == {(0, 0): "A", (0, 1): "B", (1, 0): "C", (1, 1): "D"}
+
+
+def test_resolve_keys_fallbacks():
+    from app.modules.labeling.domain.extraction import resolve_keys
+
+    assert resolve_keys([_pe([], {1: "A", 2: "B"}), _pe([1, 2])]) == {(1, 0): "A", (1, 1): "B"}
+    # duplicate numbers with a key before them: ambiguous, no fallback
+    assert resolve_keys([_pe([], {1: "A"}), _pe([1]), _pe([1])]) == {}
+
+
+def test_answer_from_key_cyrillic_lookalikes():
+    assert answer_from_key("single_choice", "В", 5) == {"choice": "b"}
+    assert answer_from_key("single_choice", "Е", 5) == {"choice": "e"}
+    assert answer_from_key("multi_choice", "А, С", 5) == {"choices": ["a", "c"]}
+    assert answer_from_key("single_choice", "д", 5) == {"choice": "d"}

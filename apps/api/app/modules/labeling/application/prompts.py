@@ -100,16 +100,28 @@ def generate_messages(
 
 EXTRACT_SYSTEM = (
     "You extract exam questions from a scanned/printed page into structured JSON. Transcribe faithfully, "
-    "keep the original language, math in KaTeX ($...$). Do NOT solve the questions and do NOT invent options. "
+    "keep the original language, math in KaTeX ($...$). Do NOT solve the questions and do NOT invent options "
+    "(except for Q&A rows, see below). "
     "Reply ONLY with JSON: "
     '{"passages": [{"key": "p1", "title": null, "text": "..."}], '
     '"questions": [{"number": <int|null>, "kind": "single_choice|multi_choice|numeric|short_text", '
     '"stem": "...", "options": [{"id": "a", "text": "..."}], "passage_key": null, '
-    '"has_figure": false, "answer": null, "topic": <int|null>}], '
+    '"has_figure": false, "bbox": null, "answer": null, "options_generated": false, "topic": <int|null>}], '
     '"answer_key": {"<question number>": "<answer as printed>"}}. '
+    "'number' is the leading printed integer of the question label (\"16(1/2-62).\" -> 16). "
     "Options ids are lowercase letters in printed order (A->a, B->b). 'passage_key' links a question to a "
-    "reading passage on the page. 'answer_key' is only filled if the page prints official answers. "
-    "Skip matching/ordering/diagram-only items. If the page has no questions, return empty lists."
+    "reading passage on the page. 'answer_key' is only filled if the page prints a list of official answers. "
+    "'answer' is only for an answer printed next to the question on the page, exactly as printed; never use "
+    "handwritten marks or ticks and never solve the question yourself, otherwise null. "
+    "Picture options: when the options are drawings labelled A-E, output one option per label with "
+    "text = the printed label (\"A\") and set has_figure true. "
+    "For items with has_figure true set 'bbox' = [x0,y0,x1,y1] integers 0..1000 normalized to the page "
+    "width/height, covering the whole question including its figure and picture options; otherwise null. "
+    "Q&A rows: a question printed together with its answer but without options (question/answer table) -> "
+    "kind single_choice; options = the printed answer plus 3 plausible but clearly wrong distractors of the "
+    "same category and language, shuffled; set 'answer' to the letter of the correct option (e.g. \"b\") and "
+    "'options_generated' true. "
+    "Skip matching/ordering items. If the page has no questions, return empty lists."
 )
 
 

@@ -92,9 +92,12 @@ async def create_batch(body: BatchIn, svc: IngestDep, session: SessionDep, who: 
     return _batch(batch)
 
 
-UPLOAD_MIME = {"application/pdf": ".pdf", "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp"}
+UPLOAD_MIME = {
+    "application/pdf": ".pdf", "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+}
 UPLOAD_MAX_FILES = 50
-UPLOAD_MAX_BYTES = 25 * 1024 * 1024
+UPLOAD_MAX_BYTES = 100 * 1024 * 1024
 
 
 @admin_router.post("/batches/upload", operation_id="ingestion_upload_batch", response_model=BatchOut,

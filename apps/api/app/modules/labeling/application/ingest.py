@@ -20,9 +20,10 @@ from app.modules.labeling.domain.extraction import (
     parse_page,
     pick_topic,
     placeholder_answer,
+    resolve_keys,
 )
 from app.modules.labeling.infrastructure import catalog_adapter
-from app.modules.labeling.infrastructure.files import DefaultRenderer, store_for
+from app.modules.labeling.infrastructure.files import DefaultRenderer, crop_png, store_for
 from app.modules.labeling.infrastructure.orm import ImportBatchRow, ImportFileRow
 from app.modules.labeling.ports import FileStore, Page, PageRenderer
 from app.shared.errors import Conflict, DomainError, NotFound, ValidationFailed
@@ -149,13 +150,6 @@ class IngestService:
         parsed: dict[UUID, list[tuple[int, PageExtraction]]] = {
             f.id: [(p["page"], parse_page(p["data"])) for p in (f.extracted or {}).get("pages", [])] for f in ready
         }
-        # answer keys may live on any page of any file in the batch (previously extracted files included)
-        key: dict[int, str] = {}
-        if batch.has_answer_key:
-            for f in files:
-                if f.status in ("extracted", "done") and f.extracted:
-                    for p in f.extracted.get("pages", []):
-                        key.update(parse_page(p["data"]).answer_key)
         source_id = await catalog_adapter.get_or_create_source(
             self._s, code=batch.source_code, name=batch.source_name or batch.source_code, year=batch.source_year
         )
@@ -164,15 +158,19 @@ class IngestService:
         for f in ready:
             ids: list[UUID] = []
             passage_ids: dict[str, UUID] = {}
+            # answer keys are scoped to the file and its sections (numbering restarts per chapter)
+            keys = resolve_keys([ex for _, ex in parsed[f.id]]) if batch.has_answer_key else {}
             try:
                 async with self._s.begin_nested():
-                    for page_no, ex in parsed[f.id]:
+                    for pi, (page_no, ex) in enumerate(parsed[f.id]):
                         for p in ex.passages:
                             passage_ids[p.key] = await bank.create_passage(
                                 self._s, language=batch.language, text=p.text, title=p.title, source_id=source_id
                             )
-                        for q in ex.questions:
-                            qid = await self._create_question(batch, f, source_id, page_no, q, key, passage_ids, store, topic_ids)
+                        for qi, q in enumerate(ex.questions):
+                            qid = await self._create_question(
+                                batch, f, source_id, page_no, qi, q, keys.get((pi, qi)), passage_ids, store, topic_ids
+                            )
                             if qid is not None:
                                 ids.append(qid)
                 f.question_ids = [str(i) for i in ids]
@@ -185,19 +183,27 @@ class IngestService:
         return created
 
     async def _create_question(
-        self, batch: ImportBatchRow, f: ImportFileRow, source_id: UUID, page_no: int, q: ExtractedQuestion,
-        key: dict[int, str], passage_ids: dict[str, UUID], store: FileStore, topic_ids: list[UUID],
+        self, batch: ImportBatchRow, f: ImportFileRow, source_id: UUID, page_no: int, idx: int, q: ExtractedQuestion,
+        key_raw: str | None, passage_ids: dict[str, UUID], store: FileStore, topic_ids: list[UUID],
     ) -> UUID | None:
         type_id = (batch.type_ids or {}).get(q.kind)
         if type_id is None or batch.topic_id is None:
             log.warning("no question type for kind %s in batch %s; skipping", q.kind, batch.id)
             return None
-        official = answer_from_key(q.kind, key[q.number], len(q.options)) if q.number in key else None
+        official: dict[str, Any] | None = None
+        answer_source: str | None = None
+        if q.answer_raw:
+            official = answer_from_key(q.kind, q.answer_raw, len(q.options))
+            answer_source = "inline" if official else None
+        if official is None and key_raw is not None:
+            official = answer_from_key(q.kind, key_raw, len(q.options))
+            answer_source = "key" if official else None
         answer = official or placeholder_answer(q.kind, q.options)
         media: list[Any] = []
         if q.has_figure:
+            image = await self._page_image(f, page_no, store)
             media_key = await store.put_public(
-                f"ingest/{batch.id}/{f.id}-p{page_no}.png", await self._page_image(f, page_no, store), "image/png"
+                f"ingest/{batch.id}/{f.id}-p{page_no}-q{idx}.png", crop_png(image, q.bbox) or image, "image/png"
             )
             if media_key:
                 media.append({"type": "image", "key": media_key})
@@ -209,6 +215,7 @@ class IngestService:
             source_ref={
                 "batch": str(batch.id), "file": f.path, "page": page_no, "number": q.number,
                 "base": batch.base, "has_figure": q.has_figure, "answer_placeholder": official is None,
+                "answer_source": answer_source, "options_generated": q.options_generated,
             },
             status="draft", answer_official=official is not None, created_by=ACTOR,
         )
