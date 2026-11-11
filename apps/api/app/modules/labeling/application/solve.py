@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 from uuid import UUID
 
@@ -215,6 +215,10 @@ class SolveService:
 
     async def _apply(self, q: bank.QuestionDTO, stored: dict[str, Any], d: Decision, run_id: UUID) -> None:
         official = d.reason == "official_key"
+        if official and q.options_generated:
+            # The key is official but the distractors are AI-made: a human must review the options.
+            d = replace(d, status=Status.NEEDS_HUMAN, reason="official_key_generated_options")
+            official = False
         if q.status in PROTECTED_STATUSES and not official:
             return  # never downgrade human-reviewed / hidden content
         if official:

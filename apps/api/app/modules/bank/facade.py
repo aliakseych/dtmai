@@ -50,6 +50,7 @@ class QuestionDTO:
     source_id: UUID | None
     status: str
     parent_id: UUID | None = None
+    options_generated: bool = False  # distractors were AI-made at ingestion; needs human review
     children: list["QuestionDTO"] = field(default_factory=list)  # filled for passage_group
 
 
@@ -89,6 +90,7 @@ def to_dto(q: Question) -> QuestionDTO:
         source_id=q.source_id,
         status=q.status,
         parent_id=q.parent_id,
+        options_generated=bool((q.source_ref or {}).get("options_generated")),
     )
 
 
