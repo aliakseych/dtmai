@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@dtmai/ui/tokens.css";
+@import "katex/dist/katex.min.css";
+@source "../../../../packages/ui/src";
+
+html { font-weight: 600; font-size: 14px; }
+body { background: var(--color-snow); }
+h1, h2, h3 { font-weight: 800; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 6px; }

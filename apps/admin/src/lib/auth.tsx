@@ -1,0 +1,96 @@
+"use client";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import type { components } from "@dtmai/api-client";
+import { api, setUnauthorizedHandler } from "./api";
+import { readTokens, writeTokens } from "./session";
+
+export type Me = components["schemas"]["MeOut"];
+type State = { me: Me | null; loading: boolean };
+type Ctx = State & {
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  isAdmin: boolean;
+  canEdit: boolean;
+};
+const AuthCtx = createContext<Ctx | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [st, setSt] = useState<State>({ me: null, loading: true });
+
+  const loadMe = useCallback(async () => {
+    if (!readTokens()) return setSt({ me: null, loading: false });
+    try {
+      setSt({ me: await api.unwrap(api.client.GET("/v1/identity/me")), loading: false });
+    } catch {
+      setSt({ me: null, loading: false });
+    }
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      writeTokens(null);
+      setSt({ me: null, loading: false });
+    });
+    void loadMe();
+  }, [loadMe]);
+
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const t = await api.unwrap(api.client.POST("/v1/identity/login", { body: { email, password } }));
+      writeTokens(t);
+      await loadMe();
+    },
+    [loadMe],
+  );
+  const logout = useCallback(async () => {
+    const rt = readTokens()?.refresh_token;
+    try {
+      if (rt) await api.client.POST("/v1/identity/logout", { body: { refresh_token: rt } });
+    } finally {
+      writeTokens(null);
+      setSt({ me: null, loading: false });
+    }
+  }, []);
+
+  const value = useMemo<Ctx>(
+    () => ({
+      ...st,
+      login,
+      logout,
+      isAdmin: !!st.me?.roles.includes("admin"),
+      canEdit: !!st.me?.roles.some((r) => r === "admin" || r === "editor"),
+    }),
+    [st, login, logout],
+  );
+  return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
+}
+
+export function useAuth(): Ctx {
+  const c = useContext(AuthCtx);
+  if (!c) throw new Error("AuthProvider missing");
+  return c;
+}
+
+/** Client-side guard. The API enforces roles; this only avoids rendering the tool for non-staff. */
+export function RequireAdmin({ children }: { children: ReactNode }) {
+  const { me, loading, canEdit, logout } = useAuth();
+  const router = useRouter();
+  useEffect(() => {
+    if (!loading && !me) router.replace("/login/");
+  }, [loading, me, router]);
+  if (loading || !me) return <div className="grid h-screen place-items-center text-ink-soft">Loading…</div>;
+  if (!canEdit)
+    return (
+      <div className="grid h-screen place-items-center">
+        <div className="text-center">
+          <h1 className="text-xl">No access</h1>
+          <p className="mt-1 text-ink-soft">{me.email} has no admin or editor role.</p>
+          <button className="mt-3 rounded-md border border-line bg-white px-3 py-1.5" onClick={() => void logout()}>
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
+  return <>{children}</>;
+}
