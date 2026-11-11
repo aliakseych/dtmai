@@ -1,14 +1,23 @@
-# Dev stuff
-.venv
-.idea
-.env
+node_modules/
+.next/
+out/
+dist/
+.venv/
+__pycache__/
 *.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+.env.*
+!.env.sample
+deploy/.env
 .DS_Store
-*/.DS_Store
-.python-version
-
-# DATA
-data/english/*
-data/math/*
-!data/english/.gitkeep
-!data/math/.gitkeep
+.idea/
+.dart_tool/
+build/
+apps/mobile/ios/Pods/
+*.log
+data/
+.codegraph/
+.omp/
