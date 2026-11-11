@@ -1,0 +1,151 @@
+# Production stack for a single VPS. Run from deploy/: docker compose -f docker-compose.prod.yaml --env-file .env up -d
+name: dtmai
+x-hardened: &hardened
+  restart: unless-stopped
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  logging:
+    driver: json-file
+    options: {max-size: "10m", max-file: "5"}
+
+x-api-env: &api-env
+  ENV: prod
+  DATABASE_URL: postgresql+asyncpg://dtmai:${POSTGRES_PASSWORD}@postgres:5432/dtmai
+  REDIS_URL: redis://redis:6379/0
+  JWT_SECRET: ${JWT_SECRET}
+  CORS_ORIGINS: '["https://dtm-ai.uz","https://app.dtm-ai.uz","https://admin.dtm-ai.uz"]'
+  TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+  TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET}
+  MAIL_BACKEND: smtp
+  MAIL_FROM: ${MAIL_FROM}
+  SMTP_HOST: ${SMTP_HOST}
+  SMTP_PORT: ${SMTP_PORT}
+  SMTP_USER: ${SMTP_USER}
+  SMTP_PASSWORD: ${SMTP_PASSWORD}
+  SMTP_STARTTLS: "true"
+  OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+  S3_ENDPOINT: http://rustfs:9000
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+  S3_SECRET_KEY: ${S3_SECRET_KEY}
+  S3_BUCKET: ${S3_BUCKET}
+  CLICK_SERVICE_ID: ${CLICK_SERVICE_ID}
+  CLICK_MERCHANT_ID: ${CLICK_MERCHANT_ID}
+  CLICK_MERCHANT_USER_ID: ${CLICK_MERCHANT_USER_ID}
+  CLICK_SECRET_KEY: ${CLICK_SECRET_KEY}
+  TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
+  TELEGRAM_WEBHOOK_URL: https://api.dtm-ai.uz/tg/webhook
+  TELEGRAM_MINI_APP_URL: https://app.dtm-ai.uz/tg
+
+x-app: &app
+  <<: *hardened
+  image: ghcr.io/aliakseych/dtmai-api:${IMAGE_TAG}
+  environment: *api-env
+  read_only: true
+  tmpfs: [/tmp]
+  networks: [internal]
+
+services:
+  postgres:
+    <<: *hardened
+    image: postgres:16.15-alpine
+    environment:
+      POSTGRES_USER: dtmai
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: dtmai
+    volumes: [pg:/var/lib/postgresql/data]
+    cap_drop: []
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dtmai"]
+      interval: 10s
+      retries: 10
+    networks: [internal]
+  redis:
+    <<: *hardened
+    image: redis:7.4.12-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redis:/data]
+    networks: [internal]
+  rustfs:
+    <<: *hardened
+    image: rustfs/rustfs:1.0.5
+    environment:
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_KEY}
+    volumes: [s3:/data]
+    networks: [internal]
+  migrate:
+    <<: *app
+    command: ["python", "-m", "app", "migrate"]
+    restart: "no"
+    depends_on:
+      postgres: {condition: service_healthy}
+  api:
+    <<: *app
+    command: ["python", "-m", "app", "api"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_started}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 15s
+      retries: 5
+  # One-shot: registers the Telegram webhook, commands and Mini App menu button once api is healthy.
+  bot-webhook-setup:
+    <<: *app
+    command: ["python", "-m", "app.interfaces.bot", "set-webhook"]
+    restart: "no"
+    depends_on:
+      api: {condition: service_healthy}
+  worker:
+    <<: *app
+    command: ["python", "-m", "app", "worker"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+  scheduler:
+    <<: *app
+    command: ["python", "-m", "app", "scheduler"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+  web:
+    <<: *hardened
+    image: ghcr.io/aliakseych/dtmai-web:${IMAGE_TAG}
+    cap_add: [NET_BIND_SERVICE, CHOWN, SETGID, SETUID]
+    read_only: true
+    tmpfs: [/tmp, /var/cache/nginx, /var/run]
+    networks: [internal]
+  admin:
+    <<: *hardened
+    image: ghcr.io/aliakseych/dtmai-admin:${IMAGE_TAG}
+    cap_add: [NET_BIND_SERVICE, CHOWN, SETGID, SETUID]
+    read_only: true
+    tmpfs: [/tmp, /var/cache/nginx, /var/run]
+    networks: [internal]
+  edge:
+    <<: *hardened
+    image: nginx:1.30.6-alpine
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE, CHOWN, SETGID, SETUID]
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/sites:/etc/nginx/sites:ro
+      - certs:/etc/letsencrypt:ro
+      - acme:/var/www/acme:ro
+    depends_on: [api, web, admin]
+    networks: [internal]
+  certbot:
+    <<: *hardened
+    image: certbot/certbot:v5.10.0
+    entrypoint: ["/bin/sh", "-c", "trap exit TERM; while :; do certbot renew --webroot -w /var/www/acme --quiet; sleep 12h & wait $${!}; done"]
+    cap_drop: []
+    volumes: [certs:/etc/letsencrypt, acme:/var/www/acme]
+    networks: [internal]
+
+networks:
+  internal:
+volumes:
+  pg:
+  redis:
+  s3:
+  certs:
+  acme:
