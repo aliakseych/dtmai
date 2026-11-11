@@ -18,6 +18,5 @@ deploy/.env
 build/
 apps/mobile/ios/Pods/
 *.log
-data/
 .codegraph/
 .omp/
