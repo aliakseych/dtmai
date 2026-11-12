@@ -10,6 +10,8 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
 
   static const _reminderId = 1001;
+  static const _oneShotBaseId = 1010;
+  static const _skipDays = 7;
   static const _channelId = 'streak_reminder';
 
   Future<void> init() async {
@@ -49,8 +51,10 @@ class NotificationService {
         iOS: const DarwinNotificationDetails(),
       );
 
-  /// Schedules the next reminder at [hour]:00 local time. If [skipToday] (daily goal
-  /// already reached) the first reminder is tomorrow.
+  /// Schedules streak reminders at [hour]:00 local time. Normally one daily repeating
+  /// notification. If [skipToday] (daily goal reached) iOS ignores the start date of a
+  /// repeating schedule, so the next 7 days are scheduled as one-shots starting tomorrow;
+  /// every sync re-arms them.
   Future<void> scheduleStreakReminder({
     required String title,
     required String body,
@@ -58,22 +62,41 @@ class NotificationService {
     int hour = 19,
     bool skipToday = false,
   }) async {
-    await _plugin.cancel(id: _reminderId);
+    await cancelStreakReminder();
     final now = tz.TZDateTime.now(tz.local);
-    var at = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour);
-    if (skipToday || !at.isAfter(now)) at = at.add(const Duration(days: 1));
-    await _plugin.zonedSchedule(
-      id: _reminderId,
-      title: title,
-      body: body,
-      scheduledDate: at,
-      notificationDetails: _details(channelName),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
+    final today = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour);
+    if (!skipToday) {
+      final at = today.isAfter(now) ? today : today.add(const Duration(days: 1));
+      await _plugin.zonedSchedule(
+        id: _reminderId,
+        title: title,
+        body: body,
+        scheduledDate: at,
+        notificationDetails: _details(channelName),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+      return;
+    }
+    for (var i = 0; i < _skipDays; i++) {
+      final d = tz.TZDateTime(tz.local, now.year, now.month, now.day + 1 + i, hour);
+      await _plugin.zonedSchedule(
+        id: _oneShotBaseId + i,
+        title: title,
+        body: body,
+        scheduledDate: d,
+        notificationDetails: _details(channelName),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      );
+    }
   }
 
-  Future<void> cancelStreakReminder() => _plugin.cancel(id: _reminderId);
+  Future<void> cancelStreakReminder() async {
+    await _plugin.cancel(id: _reminderId);
+    for (var i = 0; i < _skipDays; i++) {
+      await _plugin.cancel(id: _oneShotBaseId + i);
+    }
+  }
 
   Future<void> showNow({required int id, String? title, String? body, String channelName = 'DTM AI'}) async {
     try {

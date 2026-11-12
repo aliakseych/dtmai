@@ -12,12 +12,15 @@ typedef SessionExpired = void Function();
 
 /// Adds the bearer token and retries once on 401 after `POST /v1/identity/refresh`.
 class AuthInterceptor extends QueuedInterceptor {
-  AuthInterceptor(this._storage, this._dio, this._onExpired)
-      : _refreshDio = Dio(BaseOptions(baseUrl: Config.apiUrl));
+  /// [refreshDio] and [retryDio] are separate from the app Dio so neither goes
+  /// through this interceptor's queue (retrying via the app Dio would deadlock).
+  AuthInterceptor(this._storage, this._onExpired, {Dio? refreshDio, Dio? retryDio})
+      : _refreshDio = refreshDio ?? Dio(BaseOptions(baseUrl: Config.apiUrl)),
+        _retryDio = retryDio ?? Dio(BaseOptions(baseUrl: Config.apiUrl));
 
   final TokenStorage _storage;
-  final Dio _dio;
   final Dio _refreshDio;
+  final Dio _retryDio;
   final SessionExpired _onExpired;
 
   static const _retriedKey = 'auth_retried';
@@ -38,24 +41,37 @@ class AuthInterceptor extends QueuedInterceptor {
     }
     final t = await _storage.read();
     if (t == null) return handler.next(err);
-    try {
-      final res = await _refreshDio.post<Map<String, dynamic>>(
-        '/v1/identity/refresh',
-        data: {'refresh_token': t.refresh},
-      );
-      final data = res.data!;
-      final pair = TokenPair(data['access_token'] as String, data['refresh_token'] as String);
-      await _storage.write(pair);
-      req.headers['Authorization'] = 'Bearer ${pair.access}';
-      req.extra[_retriedKey] = true;
-      handler.resolve(await _dio.fetch<dynamic>(req));
-    } on DioException catch (e) {
-      final status = e.response?.statusCode;
-      if (status == 401 || status == 403 || status == 422) {
-        await _storage.clear();
-        _onExpired();
+
+    var access = t.access;
+    // A queued earlier request may already have refreshed the tokens: just retry.
+    if (req.headers['Authorization'] == 'Bearer ${t.access}') {
+      try {
+        final res = await _refreshDio.post<Map<String, dynamic>>(
+          '/v1/identity/refresh',
+          data: {'refresh_token': t.refresh},
+        );
+        final data = res.data!;
+        final pair = TokenPair(data['access_token'] as String, data['refresh_token'] as String);
+        await _storage.write(pair);
+        access = pair.access;
+      } on DioException catch (e) {
+        final status = e.response?.statusCode;
+        if (status == 401 || status == 403 || status == 422) {
+          await _storage.clear();
+          _onExpired();
+        }
+        return handler.next(err);
+      } catch (_) {
+        return handler.next(err);
       }
-      handler.next(err);
+    }
+
+    req.headers['Authorization'] = 'Bearer $access';
+    req.extra[_retriedKey] = true;
+    try {
+      handler.resolve(await _retryDio.fetch<dynamic>(req));
+    } on DioException catch (retryErr) {
+      handler.next(retryErr);
     }
   }
 }
@@ -90,7 +106,6 @@ final dioProvider = Provider<Dio>((ref) {
     LocaleInterceptor(() => AppLocales.toTag(ref.read(localeProvider))),
     AuthInterceptor(
       ref.read(tokenStorageProvider),
-      dio,
       () => ref.read(sessionExpiredBusProvider).callback?.call(),
     ),
   ]);
