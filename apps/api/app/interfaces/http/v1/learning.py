@@ -330,7 +330,11 @@ async def start_lesson(
 @router.post(
     "/drills/start", response_model=SessionOut, responses=ERR, operation_id="learning_start_drill"
 )
-async def start_drill(body: DrillStartIn, user: CurrentUser, svc: LearningServiceDep) -> SessionOut:
+async def start_drill(
+    body: DrillStartIn, user: CurrentUser, svc: LearningServiceDep, session: Session
+) -> SessionOut:
+    if body.source_id is not None:
+        await catalog.require_learner_base(session, body.source_id)
     return SessionOut.of(
         await svc.start_drill(
             user.user_id,

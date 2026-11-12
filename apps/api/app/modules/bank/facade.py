@@ -261,7 +261,7 @@ async def count_verified_for_subject(session: AsyncSession, subject_id: UUID) ->
     from app.modules.bank.domain.models import QuestionFilter
 
     _, total = await service(session).search(
-        QuestionFilter(subject_id=subject_id, status="verified"), 1, 0
+        QuestionFilter(subject_id=subject_id, status="verified", learner_visible=True), 1, 0
     )
     return total
 

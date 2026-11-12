@@ -340,6 +340,8 @@ async def overview(
 ) -> BankOverviewOut:
     """Learner question bank of one subject: verified questions per topic/question type with the
     caller's solved counts, filterable by question base and difficulty level."""
+    if source_id is not None:
+        await catalog.require_learner_base(session, source_id)
     solved = await learning.solved_question_ids(session, user.user_id)
     rows = await bank_facade.facets(session, subject_id, language, solved)
     types = {t.id: t for t in await catalog.list_question_types(session)}

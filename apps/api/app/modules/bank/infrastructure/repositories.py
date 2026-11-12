@@ -2,7 +2,22 @@ from collections.abc import Sequence
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, String, and_, case, cast, func, or_, select, update
+from sqlalchemy import (
+    Boolean,
+    Column,
+    ColumnElement,
+    MetaData,
+    String,
+    Table,
+    Uuid,
+    and_,
+    case,
+    cast,
+    func,
+    or_,
+    select,
+    update,
+)
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,6 +36,21 @@ _Q_FIELDS = (
     "parent_id source_id source_ref translation_group_id status answer_official attempts "
     "correct_count report_count created_by created_at updated_at"
 ).split()
+
+# Read-only reference to the catalog's base registry (no ORM import: bank stays below catalog).
+_BASES = Table(
+    "question_bases",
+    MetaData(),
+    Column("id", Uuid),
+    Column("archived", Boolean),
+    schema="catalog",
+)
+
+
+def _base_visible() -> ColumnElement[bool]:
+    """Learner-visible: no base, or the base is not archived."""
+    archived = select(_BASES.c.id).where(_BASES.c.archived.is_(True))
+    return or_(QuestionRow.source_id.is_(None), QuestionRow.source_id.not_in(archived))
 
 
 def _to_domain(r: QuestionRow) -> Question:
@@ -52,6 +82,7 @@ def _scope(
         QuestionRow.language == language,
         QuestionRow.status.in_(list(statuses)),
         QuestionRow.parent_id.is_(None),  # group children are served through their parent
+        _base_visible(),
     ]
     if topic_ids:
         c.append(QuestionRow.topic_id.in_(list(topic_ids)))
@@ -183,6 +214,8 @@ class SqlQuestionRepository:
             )
         if f.reported:
             conds.append(QuestionRow.report_count > 0)
+        if f.learner_visible:
+            conds.append(_base_visible())
         where = and_(*conds) if conds else True
         total = int(
             await self.s.scalar(select(func.count()).select_from(QuestionRow).where(where)) or 0

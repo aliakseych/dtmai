@@ -3,7 +3,7 @@
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from app.modules.lyceums.domain.rep import validate_description
+from app.modules.lyceums.domain.rep import MAX_BODY, validate_description
 from app.shared.errors import ValidationFailed
 
 MAX_BUILDINGS = 20
@@ -14,9 +14,9 @@ MAX_OFFERINGS = 50
 _NAME_MAX = 200
 
 
-def _names(raw: object, *, required: bool, code: str) -> dict[str, str]:
+def _names(raw: object, *, required: bool, code: str, limit: int = _NAME_MAX) -> dict[str, str]:
     cleaned = validate_description(dict(raw or {})) if isinstance(raw, Mapping) else {}
-    if any(len(v) > _NAME_MAX for v in cleaned.values()):
+    if any(len(v) > limit for v in cleaned.values()):
         raise ValidationFailed("name too long", code=code)
     if required and not cleaned:
         raise ValidationFailed("a localized name is required", code=code)
@@ -115,7 +115,10 @@ def clean_specializations(raw: Sequence[Mapping[str, Any]]) -> list[dict[str, An
                 "field_code": field_code,
                 "name": _names(s.get("name"), required=True, code="invalid_specialization"),
                 "description": _names(
-                    s.get("description"), required=False, code="invalid_specialization"
+                    s.get("description"),
+                    required=False,
+                    code="invalid_specialization",
+                    limit=MAX_BODY,
                 ),
                 "second_year_subjects": subjects,
             }
@@ -129,8 +132,12 @@ def clean_offerings(raw: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
     return [
         {
             "title": _names(o.get("title"), required=True, code="invalid_offering"),
-            "description": _names(o.get("description"), required=False, code="invalid_offering"),
-            "taught_by": _names(o.get("taught_by"), required=False, code="invalid_offering"),
+            "description": _names(
+                o.get("description"), required=False, code="invalid_offering", limit=MAX_BODY
+            ),
+            "taught_by": _names(
+                o.get("taught_by"), required=False, code="invalid_offering", limit=MAX_BODY
+            ),
         }
         for o in raw
     ]

@@ -30,3 +30,18 @@ def test_overview_filters_and_hides_inactive_bases() -> None:
     o = build_overview(rows, bases=bases, types=types, source_id=b1, level="hard")
     assert (o.total, o.solved, o.easy, o.hard) == (2, 0, 4, 2)
     assert len(o.bases) == 1
+
+
+def test_archived_base_excluded_from_scope_sql() -> None:
+    from sqlalchemy import select
+    from sqlalchemy.dialects import postgresql
+
+    from app.modules.bank.infrastructure.orm import QuestionRow
+    from app.modules.bank.infrastructure.repositories import _scope
+
+    sql = str(
+        select(QuestionRow)
+        .where(*_scope(uuid4(), None, None, "en", ("verified",)))
+        .compile(dialect=postgresql.dialect())
+    )
+    assert "catalog.question_bases" in sql and "archived IS true" in sql

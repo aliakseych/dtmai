@@ -1,4 +1,5 @@
 import asyncio
+from functools import lru_cache
 
 import jwt
 from jwt import PyJWKClient
@@ -39,5 +40,10 @@ class JwksGoogleVerifier:
         )
 
 
+@lru_cache(maxsize=4)
+def _verifier(client_id: str) -> JwksGoogleVerifier:
+    return JwksGoogleVerifier(client_id)  # one PyJWKClient per client id keeps its key cache
+
+
 def build_google_verifier(client_id: str) -> GoogleTokenVerifier | None:
-    return JwksGoogleVerifier(client_id) if client_id else None
+    return _verifier(client_id) if client_id else None

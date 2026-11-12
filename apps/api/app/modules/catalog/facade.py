@@ -267,3 +267,10 @@ async def get_or_create_source(
 async def require_subject_exists(session: AsyncSession, id: UUID) -> None:
     if await SqlCatalogRepository(session).get("subject", id) is None:
         raise NotFound(f"subject {id} not found")
+
+
+async def require_learner_base(session: AsyncSession, id: UUID) -> None:
+    """Question base must exist and not be archived (archived bases are hidden from learners)."""
+    row = await SqlCatalogRepository(session).get("question_base", id)
+    if row is None or row["archived"]:
+        raise NotFound("question base not found", code="base_not_found")

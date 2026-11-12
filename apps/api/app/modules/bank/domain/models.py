@@ -76,6 +76,7 @@ class QuestionFilter:
     kind: str | None = None
     q: str | None = None
     reported: bool = False
+    learner_visible: bool = False  # hide questions of archived question bases
 
 
 # Difficulty levels by Elo (same cut-offs as learning's `level_for`); None = unbounded side.
