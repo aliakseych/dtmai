@@ -7,9 +7,9 @@ export type OptionState = "idle" | "selected" | "correct" | "incorrect";
 
 const STATES: Record<OptionState, string> = {
   idle: "border-line bg-white hover:bg-snow",
-  selected: "border-blue bg-blue-soft text-[#0d5f8a]",
-  correct: "border-green-deep bg-green-soft text-[#2f6200]",
-  incorrect: "border-red-deep bg-red-soft text-[#a11c1c]",
+  selected: "border-brand bg-brand-soft text-brand",
+  correct: "border-brand bg-brand-soft text-correct-deep",
+  incorrect: "border-red-deep bg-red-soft text-red-ink",
 };
 
 /** Radiogroup wrapper: roving tabindex + arrow keys (arrows move focus and select, like native radios). */

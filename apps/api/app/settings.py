@@ -39,8 +39,34 @@ class Settings(BaseSettings):
     s3_bucket: str = "dtmai"
 
     def assert_production_safe(self) -> None:
-        if self.env == "prod" and (len(self.jwt_secret) < 32 or self.jwt_secret.startswith("dev-")):
-            raise RuntimeError("JWT_SECRET must be set in production")
+        if self.env != "prod":
+            return
+        problems: list[str] = []
+        if len(self.jwt_secret) < 32 or self.jwt_secret.startswith("dev-"):
+            problems.append("JWT_SECRET must be set (>=32 chars, not dev-*)")
+        if self.mail_backend != "smtp":
+            problems.append("MAIL_BACKEND must be 'smtp'")
+        if not (self.s3_access_key and self.s3_secret_key):
+            problems.append("S3_ACCESS_KEY and S3_SECRET_KEY must be set")
+        if any("localhost" in o or "127.0.0.1" in o for o in self.cors_origins):
+            problems.append("CORS_ORIGINS must not contain localhost")
+        if self.telegram_bot_token and not self.telegram_webhook_secret:
+            problems.append("TELEGRAM_WEBHOOK_SECRET must be set when TELEGRAM_BOT_TOKEN is set")
+        # Local import: the billing module owns its settings (unprefixed env names).
+        from app.modules.billing.settings import get_billing_settings
+
+        billing = get_billing_settings()
+        if billing.payments_enabled and not (
+            billing.click_service_id
+            and billing.click_merchant_id
+            and billing.click_merchant_user_id
+            and billing.click_secret_key
+        ):
+            problems.append(
+                "CLICK_SERVICE_ID/MERCHANT_ID/MERCHANT_USER_ID/SECRET_KEY must be set when PAYMENTS_ENABLED"
+            )
+        if problems:
+            raise RuntimeError("Unsafe production configuration: " + "; ".join(problems))
 
 
 @lru_cache

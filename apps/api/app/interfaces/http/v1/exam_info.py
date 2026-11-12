@@ -68,6 +68,7 @@ class ExamSectionOut(BaseModel):
     max_points: float
     exemptible: bool
     in_app: bool
+    available: bool
 
 
 class ExamProfileOut(BaseModel):
@@ -159,6 +160,7 @@ def _section(s: Section) -> ExamSectionOut:
         max_points=float(s.max_points),
         exemptible=s.exemptible,
         in_app=s.in_app,
+        available=s.available,
     )
 
 

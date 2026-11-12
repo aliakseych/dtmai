@@ -11,7 +11,7 @@ import { repErrorKey } from "./repErrors";
 
 const STATUS: Record<string, { label: MessageKey; tone: string }> = {
   draft: { label: "rep.post.status.draft", tone: "bg-snow text-ink-soft" },
-  pending: { label: "rep.post.status.pending", tone: "bg-accent-soft text-gold-deep" },
+  pending: { label: "rep.post.status.pending", tone: "bg-accent-soft text-accent-ink" },
   published: { label: "rep.post.status.published", tone: "bg-brand-soft text-brand" },
   rejected: { label: "rep.post.status.rejected", tone: "bg-red-soft text-red-deep" },
 };
@@ -73,7 +73,7 @@ export function PostsManager({ lyceumId }: { lyceumId: string }) {
                     {p.body && <p className="mt-1 whitespace-pre-wrap break-words text-ink-soft">{p.body}</p>}
                     {p.starts_at && <p className="mt-1 text-sm text-ink">{t("rep.post.startsAt")}: {when(p.starts_at)}</p>}
                     {p.link && (
-                      <a href={p.link} target="_blank" rel="noopener noreferrer" className="mt-1 block break-all text-sm font-bold text-blue underline">
+                      <a href={p.link} target="_blank" rel="noopener noreferrer" className="mt-1 block break-all text-sm font-bold text-brand underline">
                         {p.link}
                       </a>
                     )}

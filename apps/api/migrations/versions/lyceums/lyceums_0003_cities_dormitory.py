@@ -59,7 +59,8 @@ def _match(names: list[str], variants: dict[str, list[str]]) -> str | None:
     if any(w in h for h in haystack for w in _REGION_WORDS):
         return None
     found = {
-        code for code, vs in variants.items()
+        code
+        for code, vs in variants.items()
         if any(re.search(rf"(?<!\w){re.escape(v)}(?!\w)", h) for v in vs for h in haystack)
     }
     return found.pop() if len(found) == 1 else None
@@ -76,15 +77,24 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("code", name="pk_cities"),
         schema=S,
     )
-    op.bulk_insert(cities, [
-        {"code": c, "name_uz_latn": a, "name_uz_cyrl": b, "name_ru": r, "name_en": e}
-        for c, a, b, r, e in CITIES
-    ])
+    op.bulk_insert(
+        cities,
+        [
+            {"code": c, "name_uz_latn": a, "name_uz_cyrl": b, "name_ru": r, "name_en": e}
+            for c, a, b, r, e in CITIES
+        ],
+    )
 
-    op.add_column("lyceums", sa.Column("dormitory_status", sa.String(10), nullable=False,
-                                       server_default="unknown"), schema=S)
-    op.add_column("lyceums", sa.Column("dormitory_description", sa.JSON(), nullable=False,
-                                       server_default="{}"), schema=S)
+    op.add_column(
+        "lyceums",
+        sa.Column("dormitory_status", sa.String(10), nullable=False, server_default="unknown"),
+        schema=S,
+    )
+    op.add_column(
+        "lyceums",
+        sa.Column("dormitory_description", sa.JSON(), nullable=False, server_default="{}"),
+        schema=S,
+    )
 
     # Free-text city -> code, matched from the lyceum names where unambiguous.
     op.execute(f"UPDATE {S}.lyceums SET city = NULL")
@@ -95,10 +105,19 @@ def upgrade() -> None:
     for row in rows:
         code = _match([row.name_uz, row.name_ru, row.name_en], variants)
         if code is not None:
-            conn.execute(sa.text(f"UPDATE {S}.lyceums SET city = :c WHERE id = :i"),
-                         {"c": code, "i": row.id})
-    op.create_foreign_key("fk_lyceums_city_cities", "lyceums", "cities", ["city"], ["code"],
-                          source_schema=S, referent_schema=S, ondelete="SET NULL")
+            conn.execute(
+                sa.text(f"UPDATE {S}.lyceums SET city = :c WHERE id = :i"), {"c": code, "i": row.id}
+            )
+    op.create_foreign_key(
+        "fk_lyceums_city_cities",
+        "lyceums",
+        "cities",
+        ["city"],
+        ["code"],
+        source_schema=S,
+        referent_schema=S,
+        ondelete="SET NULL",
+    )
     op.create_index("ix_lyceums_city", "lyceums", ["city"], schema=S)
 
 

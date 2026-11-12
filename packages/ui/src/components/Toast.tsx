@@ -7,9 +7,9 @@ type ToastItem = { id: number; text: string; tone: ToastTone };
 const ToastContext = createContext<(text: string, tone?: ToastTone) => void>(() => {});
 
 const TONES: Record<ToastTone, string> = {
-  info: "bg-blue text-white border-blue-deep",
-  success: "bg-green-deep text-white border-[#3d7300]",
-  error: "bg-red-deep text-white border-[#8f1f1f]",
+  info: "bg-brand text-white border-brand",
+  success: "bg-brand text-white border-brand-deep",
+  error: "bg-red-deep text-white border-red-ink",
 };
 
 export function ToastProvider({ children, duration = 4000 }: { children: ReactNode; duration?: number }) {

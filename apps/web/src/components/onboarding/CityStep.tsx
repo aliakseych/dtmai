@@ -29,9 +29,9 @@ function List({ cities, locale, value, onChange }: { cities: City[]; locale: Par
   const t = useT();
   const [sort, setSort] = useState<"name" | "count">("name");
   const items = useMemo(() => {
-    const rows = cities.map((c) => ({ value: c.code, label: pick(c.names, locale), hint: String(c.lyceum_count), count: c.lyceum_count }));
+    const rows = cities.map((c) => ({ value: c.code, label: pick(c.names, locale), hint: t("onb.city.count", { n: c.lyceum_count }), count: c.lyceum_count }));
     return rows.sort((a, b) => (sort === "count" ? b.count - a.count || a.label.localeCompare(b.label, locale) : a.label.localeCompare(b.label, locale)));
-  }, [cities, locale, sort]);
+  }, [cities, locale, sort, t]);
   return (
     <>
     <div role="group" aria-label={t("onb.city.sort")} className="flex items-center gap-2 text-sm font-extrabold">

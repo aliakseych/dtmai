@@ -26,7 +26,9 @@ def upgrade() -> None:
         sa.Column("question_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("payload", postgresql.JSONB(), nullable=False, server_default="{}"),
         sa.Column("duration_ms", sa.Integer(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.PrimaryKeyConstraint("id"),
         schema=S,
     )

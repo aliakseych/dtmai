@@ -5,9 +5,9 @@ import { CheckIcon, LockIcon, StarIcon } from "./icons";
 export type PathNodeState = "locked" | "active" | "done" | "legendary";
 
 const STATES: Record<PathNodeState, string> = {
-  locked: "bg-line text-[#afafaf] border-[#cfcfcf]",
-  active: "bg-green-deep text-white border-[#3d7300]",
-  done: "bg-gold text-ink border-gold-deep",
+  locked: "bg-line text-ink-mute border-line-deep",
+  active: "bg-brand text-white border-brand-deep",
+  done: "bg-accent text-ink border-accent-ink",
   legendary: "bg-brand text-white border-brand-deep",
 };
 
@@ -27,7 +27,7 @@ export function PathNode({
       className={cn(
         "relative grid h-[72px] w-[72px] place-items-center rounded-full border-b-8 transition active:translate-y-1 active:border-b-4 disabled:cursor-not-allowed",
         STATES[state],
-        state === "active" && "ring-4 ring-green-soft",
+        state === "active" && "ring-4 ring-brand-soft",
         className,
       )}
       {...rest}

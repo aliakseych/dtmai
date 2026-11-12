@@ -11,18 +11,19 @@ from app.modules.identity.domain.models import (
     RefreshToken,
     Role,
     User,
+    adopt_guest_profile,
+    dream_field_mismatch,
     ensure_admin_change_allowed,
     guest_cutoff,
     locale_from_telegram,
     normalize_email,
     parse_role_set,
     parse_roles,
-    dream_field_mismatch,
     validate_city,
+    validate_dream_lyceum_ids,
     validate_field_code,
     validate_locale,
     validate_password,
-    validate_dream_lyceum_ids,
     validate_subject_ids,
 )
 from app.modules.identity.ports import (
@@ -97,7 +98,10 @@ class IdentityService:
             user = existing
         else:
             user = User(
-                id=new_id(), name=name.strip() or email, locale=locale, email=email,
+                id=new_id(),
+                name=name.strip() or email,
+                locale=locale,
+                email=email,
                 password_hash=self._hasher.hash(password),
             )
             user.rename(user.name)
@@ -112,17 +116,19 @@ class IdentityService:
     async def _consume_code(self, user: User | None, code: str) -> User:
         """Validate + consume the latest email code; any failure is an indistinguishable `invalid_code`."""
         if user is None:
-            raise Unauthorized("invalid code", code="invalid_code")
+            raise ValidationFailed("invalid code", code="invalid_code")
         stored = await self._codes.latest_for(user.id)
         now = self._clock.now()
         if (
-            stored is None or stored.consumed or stored.expires_at < now
+            stored is None
+            or stored.consumed
+            or stored.expires_at < now
             or stored.attempts >= self._cfg.code_max_attempts
         ):
-            raise Unauthorized("code expired or exhausted", code="invalid_code")
+            raise ValidationFailed("code expired or exhausted", code="invalid_code")
         if not hmac.compare_digest(stored.code_hash, _sha(f"{user.id}:{code.strip()}")):
             await self._codes.record_attempt(stored.id)
-            raise Unauthorized("invalid code", code="invalid_code")
+            raise ValidationFailed("invalid code", code="invalid_code")
         await self._codes.consume(stored.id)
         return user
 
@@ -148,8 +154,10 @@ class IdentityService:
 
     async def login(self, email: str, password: str) -> TokenPair:
         user = await self._users.by_email(normalize_email(email))
-        if user is None or not user.password_hash or not self._hasher.verify(
-            password, user.password_hash
+        if (
+            user is None
+            or not user.password_hash
+            or not self._hasher.verify(password, user.password_hash)
         ):
             raise Unauthorized("wrong email or password", code="invalid_credentials")
         if not user.email_verified:
@@ -189,24 +197,44 @@ class IdentityService:
         return await self._issue(user)
 
     async def list_users(
-        self, q: str | None, role: str | None, status: str | None, sort: str, descending: bool,
-        page: int, size: int,
+        self,
+        q: str | None,
+        role: str | None,
+        status: str | None,
+        sort: str,
+        descending: bool,
+        page: int,
+        size: int,
     ) -> tuple[int, list[User]]:
         disabled = None if status is None else status == "disabled"
-        return await self._users.search(q, role, disabled, sort, descending, size, (page - 1) * size)
+        return await self._users.search(
+            q, role, disabled, sort, descending, size, (page - 1) * size
+        )
 
     async def get_many(self, ids: list[UUID]) -> dict[UUID, User]:
         return {u.id: u for u in await self._users.get_many(ids)}
 
     async def update_user(
-        self, actor_id: UUID, user_id: UUID, *, roles: list[str] | None = None,
-        status: str | None = None, display_name: str | None = None,
+        self,
+        actor_id: UUID,
+        user_id: UUID,
+        *,
+        roles: list[str] | None = None,
+        status: str | None = None,
+        display_name: str | None = None,
     ) -> User:
         user = await self.get_me(user_id)
-        new_roles = parse_roles(roles, actor_id=actor_id, target_id=user_id) if roles is not None else user.roles
+        new_roles = (
+            parse_roles(roles, actor_id=actor_id, target_id=user_id)
+            if roles is not None
+            else user.roles
+        )
         disabled = user.disabled if status is None else status == "disabled"
         ensure_admin_change_allowed(
-            actor_id=actor_id, target=user, new_roles=new_roles, disabled=disabled,
+            actor_id=actor_id,
+            target=user,
+            new_roles=new_roles,
+            disabled=disabled,
             active_admins=await self._users.count_active_admins(),
         )
         user.roles, user.disabled = new_roles, disabled
@@ -215,7 +243,9 @@ class IdentityService:
         await self._users.save(user)
         return user
 
-    async def create_staff(self, email: str, password: str, name: str, raw_roles: list[str]) -> User:
+    async def create_staff(
+        self, email: str, password: str, name: str, raw_roles: list[str]
+    ) -> User:
         email = normalize_email(email)
         validate_password(password)
         roles = parse_role_set(raw_roles)
@@ -224,8 +254,12 @@ class IdentityService:
         if await self._users.by_email(email):
             raise Conflict("email already registered", code="email_taken")
         user = User(
-            id=new_id(), name=name.strip() or email, email=email, email_verified=True,
-            password_hash=self._hasher.hash(password), roles=roles,
+            id=new_id(),
+            name=name.strip() or email,
+            email=email,
+            email_verified=True,
+            password_hash=self._hasher.hash(password),
+            roles=roles,
         )
         user.rename(user.name)
         await self._users.add(user)
@@ -236,8 +270,13 @@ class IdentityService:
         login = f"labeler-{secrets.token_hex(4)}@{LABELER_DOMAIN}"
         password = secrets.token_urlsafe(12)
         user = User(
-            id=new_id(), name=(name or "").strip() or login, email=login, email_verified=True,
-            password_hash=self._hasher.hash(password), roles={Role.LABELER}, is_system=True,
+            id=new_id(),
+            name=(name or "").strip() or login,
+            email=login,
+            email_verified=True,
+            password_hash=self._hasher.hash(password),
+            roles={Role.LABELER},
+            is_system=True,
         )
         await self._users.add(user)
         return user, login, password
@@ -248,6 +287,19 @@ class IdentityService:
         user.password_hash = self._hasher.hash(password)
         await self._users.save(user)
         await self._refresh.revoke_all(user_id)
+
+    async def retire_guest(self, guest_id: UUID, into_id: UUID | None = None) -> None:
+        """After a guest's progress was merged: carry its profile into `into_id`, disable it, kill its sessions."""
+        user = await self.get_me(guest_id)
+        if Role.GUEST not in user.roles:
+            raise Forbidden("user is not a guest", code="not_a_guest")
+        if into_id is not None:
+            target = await self.get_me(into_id)
+            adopt_guest_profile(target, user)
+            await self._users.save(target)
+        user.disabled = True
+        await self._users.save(user)
+        await self._refresh.revoke_all(guest_id)
 
     async def contacts(
         self, after: UUID | None, limit: int, locale: str | None = None, with_email: bool = False
@@ -344,11 +396,15 @@ class IdentityService:
         code = f"{secrets.randbelow(1_000_000):06d}"
         await self._codes.add(
             EmailCode(
-                id=new_id(), user_id=user.id, code_hash=_sha(f"{user.id}:{code}"),
+                id=new_id(),
+                user_id=user.id,
+                code_hash=_sha(f"{user.id}:{code}"),
                 expires_at=self._clock.now() + timedelta(seconds=self._cfg.code_ttl),
             )
         )
-        await self._mailer.send(user.email, "DTM AI: " + code, f"Your DTM AI {purpose} code: {code}")
+        await self._mailer.send(
+            user.email, "DTM AI: " + code, f"Your DTM AI {purpose} code: {code}"
+        )
 
     async def _issue(self, user: User) -> TokenPair:
         if user.disabled:
@@ -357,12 +413,17 @@ class IdentityService:
         raw = secrets.token_urlsafe(48)
         await self._refresh.add(
             RefreshToken(
-                id=new_id(), user_id=user.id, token_hash=_sha(raw),
+                id=new_id(),
+                user_id=user.id,
+                token_hash=_sha(raw),
                 expires_at=self._clock.now() + timedelta(seconds=self._cfg.refresh_ttl),
             )
         )
         access = encode_access_token(
-            user.id, {r.value for r in user.roles}, secret=self._cfg.jwt_secret,
-            ttl_seconds=self._cfg.access_ttl, now=self._clock.now(),
+            user.id,
+            {r.value for r in user.roles},
+            secret=self._cfg.jwt_secret,
+            ttl_seconds=self._cfg.access_ttl,
+            now=self._clock.now(),
         )
         return TokenPair(access, raw, self._cfg.access_ttl)

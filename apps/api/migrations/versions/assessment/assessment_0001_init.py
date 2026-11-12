@@ -42,13 +42,22 @@ def upgrade() -> None:
         schema=S,
     )
     op.create_index(
-        "uq_mock_attempts_one_active", "mock_attempts", ["user_id"], unique=True,
-        schema=S, postgresql_where=sa.text("status = 'in_progress'"),
+        "uq_mock_attempts_one_active",
+        "mock_attempts",
+        ["user_id"],
+        unique=True,
+        schema=S,
+        postgresql_where=sa.text("status = 'in_progress'"),
     )
-    op.create_index("ix_mock_attempts_user_started", "mock_attempts", ["user_id", "started_at"], schema=S)
     op.create_index(
-        "ix_mock_attempts_deadline", "mock_attempts", ["deadline"],
-        schema=S, postgresql_where=sa.text("status = 'in_progress'"),
+        "ix_mock_attempts_user_started", "mock_attempts", ["user_id", "started_at"], schema=S
+    )
+    op.create_index(
+        "ix_mock_attempts_deadline",
+        "mock_attempts",
+        ["deadline"],
+        schema=S,
+        postgresql_where=sa.text("status = 'in_progress'"),
     )
 
 

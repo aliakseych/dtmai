@@ -1,8 +1,9 @@
 "use client";
+import { useT, useEnum } from "@/lib/i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useToast } from "@dtmai/ui";
+import { EmptyState, Icon, useToast } from "@dtmai/ui";
 import { ApiError } from "@dtmai/api-client";
 import { useSubjects } from "@/lib/catalog";
 import { api } from "@/lib/api";
@@ -27,6 +28,7 @@ interface Done { decisionId: string | null; action: Action | "gone" }
 const fetchPassage = (id: string) => api.unwrap(api.client.GET("/v1/admin/bank/passages/{passage_id}", { params: { path: { passage_id: id } } }));
 
 export function Cockpit() {
+  const t = useT();
   const toast = useToast();
   const qc = useQueryClient();
   const { isAdmin } = useAuth();
@@ -47,6 +49,7 @@ export function Cockpit() {
   const [, tick] = useState(0);
   const filling = useRef(false);
   const shownAt = useRef(Date.now());
+  const en = useEnum();
   const gen = useRef(0); // bumps on filter change so stale fills are dropped
   const doneRef = useRef<Record<string, Done>>({});
   const pending = useRef(new Map<string, Promise<void>>());
@@ -61,25 +64,31 @@ export function Cockpit() {
   const setDoneMap = useCallback((fn: (m: Record<string, Done>) => Record<string, Done>) => { doneRef.current = fn(doneRef.current); setDone(doneRef.current); }, []);
 
   // Prefetch: keep BUFFER undecided items claimed ahead of the cursor (and their passages cached).
+  const lastFail = useRef(0);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const fill = useCallback(async () => {
-    if (filling.current || empty || conflict) return;
+    if (filling.current || empty || conflict || Date.now() - lastFail.current < 3000) return;
     filling.current = true;
     const g = gen.current;
     try {
-      for (;;) {
-        if (BUFFER - (itemsRef.current.length - idxRef.current) <= 0) break;
+      // Bounded: at most BUFFER claims per pass; the server is told what we already hold (`exclude`) so a
+      // re-served item is a protocol violation and ends the pass instead of looping.
+      for (let n = 0; n < BUFFER; n++) {
+        if (!mounted.current || BUFFER - (itemsRef.current.length - idxRef.current) <= 0) break;
         let r: Review;
-        try { r = await labeling.next(filtersRef.current); } catch (e) {
-          if (g !== gen.current) break;
+        try { r = await labeling.next(filtersRef.current, itemsRef.current.map((x) => x.question.id)); } catch (e) {
+          if (g !== gen.current || !mounted.current) break;
           if (e instanceof ApiError && e.status === 404) setEmpty(true);
           else if (e instanceof ApiError && e.status === 409) setConflict(true);
-          else toast(errMsg(e), "error");
+          else { lastFail.current = Date.now(); toast(errMsg(e), "error"); }
           break;
         }
-        if (g !== gen.current) break;
+        if (g !== gen.current || !mounted.current) break;
+        if (itemsRef.current.some((x) => x.question.id === r.question.id)) { lastFail.current = Date.now(); break; }
         const pid = r.question.passage_id;
         if (pid) void qc.prefetchQuery({ queryKey: ["labeling-passage", pid], queryFn: () => fetchPassage(pid), staleTime: 600_000 });
-        if (!itemsRef.current.some((x) => x.question.id === r.question.id)) { itemsRef.current = [...itemsRef.current, r]; setItems(itemsRef.current); }
+        itemsRef.current = [...itemsRef.current, r]; setItems(itemsRef.current);
       }
     } finally { filling.current = false; }
   }, [empty, conflict, toast, qc]);
@@ -139,12 +148,12 @@ export function Cockpit() {
         if (action !== "skip") setSession((s) => ({ ...s, n: Math.max(0, s.n - 1), ms: Math.max(0, s.ms - ms) }));
         if (e instanceof ApiError && e.status === 409) {
           setDoneMap((m) => ({ ...m, [qid]: { decisionId: null, action: "gone" } }));
-          toast("Already resolved by someone else — skipped", "info");
+          toast(t("admin.labeling.alreadyResolvedBySomeone"), "info");
           return;
         }
         setDoneMap((m) => { const n = { ...m }; delete n[qid]; return n; });
         setIdx((x) => Math.min(x, itemsRef.current.findIndex((y) => y.question.id === qid)));
-        toast(`Not saved: ${errMsg(e)}`, "error");
+        toast(t("admin.labeling.notSaved", { err: errMsg(e) }), "error");
       })
       .finally(() => { pending.current.delete(qid); });
     pending.current.set(qid, p);
@@ -153,14 +162,14 @@ export function Cockpit() {
   const confirm = useCallback(() => {
     if (!cur) return;
     if (editJson !== null) {
-      try { decide("edit", JSON.parse(editJson) as R); } catch { toast("Answer JSON is invalid", "error"); }
+      try { decide("edit", JSON.parse(editJson) as R); } catch { toast(t("admin.labeling.answerJsonIsInvalid"), "error"); }
       return;
     }
     const a = entered();
     if (a) return decide(suggested && sameAnswer(kind, a, suggested) ? "accept" : "edit", a);
-    if (typed) return toast("Answer is incomplete or invalid", "info");
+    if (typed) return toast(t("admin.labeling.answerIsIncompleteOr"), "info");
     if (suggested) return decide("accept");
-    toast(blind ? "Blind mode: pick an answer first" : "No model suggestion — pick or edit an answer", "info");
+    toast(blind ? t("admin.labeling.blindPickFirst") : t("admin.labeling.noSuggestion"), "info");
   }, [cur, editJson, picked, draft, blind, decide, toast]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startEdit = () => {
@@ -178,11 +187,12 @@ export function Cockpit() {
       const d = doneRef.current[qid];
       if (!d || d.action === "gone" || !d.decisionId) continue;
       try {
-        await labeling.undo(d.decisionId);
+        // A skip has no state to revert server-side (it only hides the item from this queue): just return to it.
+        if (d.action !== "skip") await labeling.undo(d.decisionId);
         setDoneMap((m) => { const n = { ...m }; delete n[qid]; return n; });
         setIdx(i);
         setSession((s) => ({ ...s, n: Math.max(0, s.n - (d.action === "skip" ? 0 : 1)) }));
-        toast("Undone", "success");
+        toast(t("admin.labeling.undone"), "success");
       } catch (e) { toast(errMsg(e), "error"); }
       return;
     }
@@ -232,37 +242,37 @@ export function Cockpit() {
 
   return (
     <div className="flex h-screen flex-col bg-snow text-ink">
-      <header className="flex items-center gap-3 border-b border-line bg-white px-4 py-2 text-sm">
-        <Link href="/questions/" className="font-extrabold text-blue-deep">← Admin</Link>
-        <h1 className="text-base">Labeling</h1>
-        <Select className="w-36" value={filters.subject_id ?? ""} onChange={(e) => resetQueue({ ...filters, subject_id: e.target.value || undefined })}><option value="">All subjects</option>{subjects.data?.map((s) => <option key={s.id} value={s.id}>{nm(s.names)}</option>)}</Select>
-        <Select className="w-32" value={filters.state ?? ""} onChange={(e) => resetQueue({ ...filters, state: (e.target.value || undefined) as QueueState | undefined })}><option value="">All states</option>{STATES.map((s) => <option key={s}>{s}</option>)}</Select>
-        <div className="w-24"><LangInput value={filters.language ?? ""} onChange={(v) => resetQueue({ ...filters, language: v || undefined })} /></div>
-        <label className="flex items-center gap-1.5"><input type="checkbox" className="accent-blue" checked={blind} onChange={(e) => setBlind(e.target.checked)} />Blind <kbd className="text-xs opacity-60">H</kbd></label>
-        <div className="ml-auto flex items-center gap-3">
-          {queueDepth.map(([k, v]) => <Badge key={k} tone={k === "needs_human" ? "red" : k === "escalated" ? "orange" : "green"}>{k} {v}</Badge>)}
-          <span title="This session" className="font-extrabold">{session.n} done · {rate.toFixed(1)}/min{session.n ? ` · avg ${(session.ms / session.n / 1000).toFixed(1)}s` : ""}</span>
-          {stats.data?.audit.rate != null && <Badge tone={stats.data.audit.rate >= 0.95 ? "green" : "red"}>audit {(stats.data.audit.rate * 100).toFixed(0)}% ({stats.data.audit.matched}/{stats.data.audit.audited})</Badge>}
-          {isAdmin && <Btn onClick={() => setBulk(true)}>Bulk approve</Btn>}
+      <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line bg-white px-3 py-2 text-sm sm:px-4">
+        <Link href="/questions/" className="font-extrabold text-blue-deep">{t("admin.labeling.admin")}</Link>
+        <h1 className="text-base">{t("admin.labeling.labeling")}</h1>
+        <Select className="w-full sm:w-36" value={filters.subject_id ?? ""} onChange={(e) => resetQueue({ ...filters, subject_id: e.target.value || undefined })}><option value="">{t("admin.labeling.allSubjects")}</option>{subjects.data?.map((s) => <option key={s.id} value={s.id}>{nm(s.names)}</option>)}</Select>
+        <Select className="w-full sm:w-32" value={filters.state ?? ""} onChange={(e) => resetQueue({ ...filters, state: (e.target.value || undefined) as QueueState | undefined })}><option value="">{t("admin.labeling.allStates")}</option>{STATES.map((s) => <option key={s} value={s}>{en("state", s)}</option>)}</Select>
+        <div className="w-full sm:w-24"><LangInput value={filters.language ?? ""} onChange={(v) => resetQueue({ ...filters, language: v || undefined })} /></div>
+        <label className="flex items-center gap-1.5"><input type="checkbox" className="accent-blue" checked={blind} onChange={(e) => setBlind(e.target.checked)} />{t("admin.labeling.blind")} <kbd className="text-xs opacity-60">H</kbd></label>
+        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:ml-auto sm:gap-3">
+          {queueDepth.map(([k, v]) => <Badge key={k} tone={k === "needs_human" ? "red" : k === "escalated" ? "orange" : "green"}>{en("state", k)} {v}</Badge>)}
+          <span title={t("admin.labeling.thisSession")} className="font-extrabold">{t("admin.labeling.sessionStat", { n: session.n, rate: rate.toFixed(1) })}{session.n ? t("admin.labeling.avg", { s: (session.ms / session.n / 1000).toFixed(1) }) : ""}</span>
+          {stats.data?.audit.rate != null && <Badge tone={stats.data.audit.rate >= 0.95 ? "green" : "red"}>{t("admin.labeling.auditBadge", { pct: (stats.data.audit.rate * 100).toFixed(0), m: stats.data.audit.matched, a: stats.data.audit.audited })}</Badge>}
+          {isAdmin && <Btn onClick={() => setBulk(true)}>{t("admin.labeling.bulkApprove")}</Btn>}
         </div>
       </header>
 
-      <main className="mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-[1fr_22rem] gap-6 overflow-y-auto p-6">
+      <main className="mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-1 gap-6 overflow-y-auto p-3 sm:p-6 lg:grid-cols-[1fr_22rem]">
         {!q ? (
-          <div className="col-span-2 grid place-items-center text-ink-soft">
+          <div className="col-span-2 grid place-items-center">
             {conflict ? (
-              <div className="text-center"><div className="text-3xl">🔒</div><p className="mt-2 font-extrabold">Lease conflict — the remaining items are held by other labelers.</p><p className="text-sm">Retrying automatically every 20s.</p><Btn className="mt-3" onClick={() => setConflict(false)}>Retry now</Btn></div>
-            ) : empty ? <div className="text-center"><div className="text-3xl">🎉</div><p className="mt-2 font-extrabold">Queue is empty for these filters.</p></div> : <Spinner />}
+              <EmptyState compact title={<span className="inline-flex items-center gap-2"><Icon name="lock" size={20} />{t("admin.labeling.leaseConflictTheRemaining")}</span>} body={t("admin.labeling.retryingAutomaticallyEvery20s")} action={<Btn onClick={() => setConflict(false)}>{t("admin.labeling.retryNow")}</Btn>} />
+            ) : empty ? <EmptyState compact title={<span className="inline-flex items-center gap-2"><Icon name="check" size={20} />{t("admin.labeling.queueIsEmptyFor")}</span>} /> : <Spinner />}
           </div>
         ) : (
           <>
             <section className="space-y-4">
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <Badge tone="blue">{q.kind}</Badge><Badge>{q.language}</Badge>
-                <Badge tone={cur.state === "needs_human" ? "red" : cur.state === "escalated" ? "orange" : "green"}>{cur.state}</Badge>
-                {cur.audit_sample_id && <Badge tone="gold">audit sample</Badge>}
-                {curDone && <Badge tone="gray">decided: {curDone.action}</Badge>}
-                <span className="ml-auto text-ink-soft">{idx + 1}/{items.length}+ · J/K navigate</span>
+                <Badge tone="blue">{en("kind", q.kind)}</Badge><Badge>{q.language}</Badge>
+                <Badge tone={cur.state === "needs_human" ? "red" : cur.state === "escalated" ? "orange" : "green"}>{en("state", cur.state)}</Badge>
+                {cur.audit_sample_id && <Badge tone="gold">{t("admin.labeling.auditSample")}</Badge>}
+                {curDone && <Badge tone="gray">{t("admin.labeling.decided", { action: curDone.action })}</Badge>}
+                <span className="ml-auto text-ink-soft">{t("admin.labeling.navHint", { i: idx + 1, n: items.length })}</span>
               </div>
               {passage.data && (
                 <div className="max-h-[40vh] overflow-y-auto rounded-2xl border-2 border-blue bg-blue-soft p-5 text-base">
@@ -270,38 +280,38 @@ export function Cockpit() {
                   <Md text={passage.data.text} />
                 </div>
               )}
-              {q.passage_id && !passage.data && <div className="rounded-2xl border-2 border-line bg-white p-4 text-sm text-ink-soft">{passage.isError ? "Passage failed to load" : "Loading passage…"}</div>}
+              {q.passage_id && !passage.data && <div className="rounded-2xl border-2 border-line bg-white p-4 text-sm text-ink-soft">{passage.isError ? t("admin.labeling.passageFailedToLoad") : t("admin.labeling.loadingPassage")}</div>}
               <div className="rounded-2xl border-2 border-line bg-white p-5 text-lg"><Md text={q.stem} />
-                {q.media.map((m, i) => { const k = (m as { key?: string }).key; return k ? <img key={i} alt="" src={mediaUrl(k)} className="mt-3 max-h-72 rounded-lg" /> : null; })}</div>
+                {q.media.map((m, i) => { const k = (m as { key?: string }).key; return k ? <img key={i} alt="" src={mediaUrl(k)} className="mt-3 max-h-72 rounded-xl" /> : null; })}</div>
               <QuestionBody kind={q.kind} payload={q.payload} picked={picked} suggested={sugIds} onPick={pick} />
               {typed && !curDone && editJson === null && <TypedInput key={q.id} kind={q.kind} payload={q.payload} draft={draft} onChange={setDraft} />}
               {editJson !== null && (
-                <div className="space-y-1"><label className="text-xs font-extrabold uppercase text-ink-soft">Answer JSON — Ctrl+Enter to submit, Esc to cancel</label>
+                <div className="space-y-1"><label className="text-xs font-extrabold uppercase text-ink-soft">{t("admin.labeling.answerJsonCtrlEnter")}</label>
                   <Textarea autoFocus rows={6} className="font-mono text-xs" value={editJson} onChange={(e) => setEditJson(e.target.value)} /></div>
               )}
               {flagging !== null && (
-                <div className="flex gap-2"><Input autoFocus placeholder="Flag reason — Enter to submit" value={flagging} onChange={(e) => setFlagging(e.target.value)} maxLength={200} /><Btn variant="danger" onClick={() => decide("flag", undefined, flagging || "flagged")}>Flag</Btn></div>
+                <div className="flex gap-2"><Input autoFocus placeholder={t("admin.labeling.flagReasonEnterTo")} value={flagging} onChange={(e) => setFlagging(e.target.value)} maxLength={200} /><Btn variant="danger" onClick={() => decide("flag", undefined, flagging || "flagged")}>{t("admin.labeling.flag2")}</Btn></div>
               )}
             </section>
             <aside className="space-y-4">
               <div className="rounded-xl border border-line bg-white p-4">
-                <h3 className="mb-2 text-xs font-extrabold uppercase text-ink-soft">Model consensus</h3>
-                {blind ? <p className="text-sm text-ink-soft">Hidden (blind mode, <kbd>H</kbd> to toggle). Choose independently; nothing is prefilled.</p> : (
+                <h3 className="mb-2 text-xs font-extrabold uppercase text-ink-soft">{t("admin.labeling.modelConsensus")}</h3>
+                {blind ? <p className="text-sm text-ink-soft">{t("admin.labeling.hiddenBlindMode")} <kbd>H</kbd> {t("admin.labeling.toToggleChooseIndependently")}</p> : (
                   <>
                     <div className="flex items-center gap-2"><span className="text-2xl font-extrabold">{fmtAnswer(q.kind, q.payload, cur.suggested)}</span>
-                      {conf != null && <Badge tone={conf >= 0.9 ? "green" : conf >= 0.6 ? "gold" : "red"}>{Math.round(conf * 100)}% agree</Badge>}</div>
+                      {conf != null && <Badge tone={conf >= 0.9 ? "green" : conf >= 0.6 ? "gold" : "red"}>{t("admin.labeling.agreePct", { pct: Math.round(conf * 100) })}</Badge>}</div>
                     <p className="mt-2 text-sm text-ink-soft">{cur.reason}</p>
                   </>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Btn variant="primary" disabled={!!curDone} onClick={confirm}>{entered() && !(suggested && sameAnswer(kind, entered(), suggested)) || editJson !== null ? "Submit answer" : "Accept"} <kbd className="ml-1 opacity-70">↵</kbd></Btn>
-                <Btn disabled={!!curDone} onClick={() => decide("skip")}>Skip <kbd className="opacity-60">S</kbd></Btn>
-                <Btn variant="danger" disabled={!!curDone} onClick={() => setFlagging("")}>Flag <kbd className="opacity-60">F</kbd></Btn>
-                <Btn disabled={!!curDone} onClick={startEdit}>Edit <kbd className="opacity-60">E</kbd></Btn>
-                <Btn className="col-span-2" onClick={() => void undo()}>Undo <kbd className="opacity-60">Z</kbd></Btn>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Btn variant="primary" disabled={!!curDone} onClick={confirm}>{entered() && !(suggested && sameAnswer(kind, entered(), suggested)) || editJson !== null ? t("admin.labeling.submitAnswer") : t("admin.labeling.accept")} <kbd className="ml-1 opacity-70">Enter</kbd></Btn>
+                <Btn disabled={!!curDone} onClick={() => decide("skip")}>{t("admin.labeling.skip2")} <kbd className="opacity-60">S</kbd></Btn>
+                <Btn variant="danger" disabled={!!curDone} onClick={() => setFlagging("")}>{t("admin.labeling.flag2")} <kbd className="opacity-60">F</kbd></Btn>
+                <Btn disabled={!!curDone} onClick={startEdit}>{t("admin.common.edit")} <kbd className="opacity-60">E</kbd></Btn>
+                <Btn className="col-span-2" onClick={() => void undo()}>{t("admin.labeling.undo2")} <kbd className="opacity-60">Z</kbd></Btn>
               </div>
-              <p className="text-xs text-ink-soft"><kbd>1–9</kbd>/<kbd>A–D</kbd> pick · <kbd>↵</kbd> accept/submit (typed kinds: <kbd>↵</kbd> walks the fields) · <kbd>S</kbd> skip · <kbd>F</kbd> flag · <kbd>E</kbd> edit · <kbd>H</kbd> blind on/off · <kbd>Z</kbd> undo · <kbd>J</kbd>/<kbd>K</kbd> next/prev · <kbd>Esc</kbd> leave field. Next {Math.max(0, items.length - idx - 1)} items are prefetched and leased to you for 10 min.</p>
+              <p className="text-xs text-ink-soft"><kbd>1–9</kbd>/<kbd>A–D</kbd> {t("admin.labeling.pick")} <kbd>Enter</kbd> {t("admin.labeling.acceptSubmitTypedKinds")} <kbd>Enter</kbd> {t("admin.labeling.walksTheFields")} <kbd>S</kbd> {t("admin.labeling.skip")} <kbd>F</kbd> {t("admin.labeling.flag")} <kbd>E</kbd> {t("admin.labeling.edit")} <kbd>H</kbd> {t("admin.labeling.blindOnOff")} <kbd>Z</kbd> {t("admin.labeling.undo")} <kbd>J</kbd>/<kbd>K</kbd> {t("admin.labeling.nextPrev")} <kbd>{t("admin.labeling.esc")}</kbd> {t("admin.labeling.leaveField", { n: Math.max(0, items.length - idx - 1) })}</p>
             </aside>
           </>
         )}

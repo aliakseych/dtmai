@@ -1,7 +1,7 @@
-from app.modules.identity.domain.models import normalize_email, validate_password
-from app.modules.identity.infrastructure.passwords import Argon2Hasher
 import pytest
 
+from app.modules.identity.domain.models import normalize_email, validate_password
+from app.modules.identity.infrastructure.passwords import Argon2Hasher
 from app.shared.errors import ValidationFailed
 
 

@@ -19,7 +19,9 @@ UUID = postgresql.UUID(as_uuid=True)
 
 
 def _now() -> sa.Column:
-    return sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now())
+    return sa.Column(
+        "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+    )
 
 
 def _id() -> sa.Column:
@@ -29,7 +31,8 @@ def _id() -> sa.Column:
 def upgrade() -> None:
     op.execute(f"CREATE SCHEMA IF NOT EXISTS {S}")
     op.create_table(
-        "solve_runs", _id(),
+        "solve_runs",
+        _id(),
         sa.Column("question_id", UUID, nullable=False),
         sa.Column("trigger", sa.String(20), nullable=False),
         sa.Column("outcome", sa.String(20), nullable=False),
@@ -43,7 +46,8 @@ def upgrade() -> None:
     )
     op.create_index("ix_solve_runs_question_id", "solve_runs", ["question_id"], schema=S)
     op.create_table(
-        "solver_votes", _id(),
+        "solver_votes",
+        _id(),
         sa.Column("run_id", UUID, nullable=False),
         sa.Column("stage", sa.String(12), nullable=False),
         sa.Column("model", sa.String(120), nullable=False),
@@ -54,7 +58,10 @@ def upgrade() -> None:
         sa.Column("error", sa.String(300)),
         sa.PrimaryKeyConstraint("id", name="pk_solver_votes"),
         sa.ForeignKeyConstraint(
-            ["run_id"], [f"{S}.solve_runs.id"], name="fk_solver_votes_run_id_solve_runs", ondelete="CASCADE"
+            ["run_id"],
+            [f"{S}.solve_runs.id"],
+            name="fk_solver_votes_run_id_solve_runs",
+            ondelete="CASCADE",
         ),
         schema=S,
     )
@@ -77,11 +84,14 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("question_id", name="pk_queue_items"),
         schema=S,
     )
-    op.create_index("ix_queue_open", "queue_items", ["state", "resolved_at", "confidence"], schema=S)
+    op.create_index(
+        "ix_queue_open", "queue_items", ["state", "resolved_at", "confidence"], schema=S
+    )
     op.create_index("ix_queue_items_subject_id", "queue_items", ["subject_id"], schema=S)
     op.create_index("ix_queue_items_language", "queue_items", ["language"], schema=S)
     op.create_table(
-        "decisions", _id(),
+        "decisions",
+        _id(),
         sa.Column("question_id", UUID, nullable=False),
         sa.Column("labeler_id", UUID, nullable=False),
         sa.Column("action", sa.String(10), nullable=False),
@@ -101,7 +111,8 @@ def upgrade() -> None:
     op.create_index("ix_decisions_question", "decisions", ["question_id", "created_at"], schema=S)
     op.create_index("ix_decisions_labeler", "decisions", ["labeler_id", "created_at"], schema=S)
     op.create_table(
-        "audit_samples", _id(),
+        "audit_samples",
+        _id(),
         sa.Column("batch_id", UUID, nullable=False),
         sa.Column("question_id", UUID, nullable=False),
         sa.Column("subject_id", UUID, nullable=False),
@@ -110,16 +121,21 @@ def upgrade() -> None:
         sa.Column("human_response", sa.JSON()),
         sa.Column("labeler_id", UUID),
         sa.Column("matched", sa.Boolean()),
-        sa.Column("sampled_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "sampled_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("completed_at", sa.DateTime(timezone=True)),
         sa.PrimaryKeyConstraint("id", name="pk_audit_samples"),
         schema=S,
     )
-    op.create_index("ix_audit_open", "audit_samples", ["completed_at", "subject_id", "language"], schema=S)
+    op.create_index(
+        "ix_audit_open", "audit_samples", ["completed_at", "subject_id", "language"], schema=S
+    )
     op.create_index("ix_audit_samples_batch_id", "audit_samples", ["batch_id"], schema=S)
     op.create_index("ix_audit_samples_question_id", "audit_samples", ["question_id"], schema=S)
     op.create_table(
-        "generation_runs", _id(),
+        "generation_runs",
+        _id(),
         sa.Column("subject_id", UUID, nullable=False),
         sa.Column("topic_id", UUID),
         sa.Column("type_id", UUID, nullable=False),
@@ -139,7 +155,8 @@ def upgrade() -> None:
         schema=S,
     )
     op.create_table(
-        "import_batches", _id(),
+        "import_batches",
+        _id(),
         sa.Column("source_code", sa.String(80), nullable=False),
         sa.Column("source_name", sa.String(200)),
         sa.Column("source_year", sa.Integer()),
@@ -162,7 +179,8 @@ def upgrade() -> None:
         schema=S,
     )
     op.create_table(
-        "import_files", _id(),
+        "import_files",
+        _id(),
         sa.Column("batch_id", UUID, nullable=False),
         sa.Column("path", sa.String(600), nullable=False),
         sa.Column("page", sa.Integer()),
@@ -173,7 +191,10 @@ def upgrade() -> None:
         sa.Column("processed_at", sa.DateTime(timezone=True)),
         sa.PrimaryKeyConstraint("id", name="pk_import_files"),
         sa.ForeignKeyConstraint(
-            ["batch_id"], [f"{S}.import_batches.id"], name="fk_import_files_batch_id_import_batches", ondelete="CASCADE"
+            ["batch_id"],
+            [f"{S}.import_batches.id"],
+            name="fk_import_files_batch_id_import_batches",
+            ondelete="CASCADE",
         ),
         schema=S,
     )

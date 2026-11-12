@@ -8,7 +8,9 @@ from app.modules.catalog.facade import service
 from app.shared.db import get_session
 
 
-async def get_catalog_service(session: Annotated[AsyncSession, Depends(get_session)]) -> CatalogService:
+async def get_catalog_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> CatalogService:
     return service(session)
 
 

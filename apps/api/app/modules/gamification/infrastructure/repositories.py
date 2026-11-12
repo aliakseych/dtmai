@@ -1,7 +1,8 @@
 from datetime import date, datetime
 from uuid import UUID
 
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import String, column, delete, exists, func, select, table, update
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,6 +22,23 @@ from app.modules.gamification.ports import (
     Tier,
 )
 from app.shared.ids import new_id
+
+# Read-only handle on the identity roles column: guests are anonymous throwaway accounts and
+# must never appear in public rankings. Soft reference, no ORM or FK across modules.
+_identity_users = table(
+    "users", column("id"), column("roles", ARRAY(String(20))), schema="identity"
+)
+
+
+def not_guest(user_id_col):  # type: ignore[no-untyped-def]
+    """SQL predicate: the user is not a pure guest (guest role without the student role)."""
+    return ~exists(
+        select(1).where(
+            _identity_users.c.id == user_id_col,
+            _identity_users.c.roles.contains(["guest"]),
+            ~_identity_users.c.roles.contains(["student"]),
+        )
+    )
 
 
 def _to_stats(r: orm.UserStatsRow) -> UserStats:
@@ -126,9 +144,7 @@ class SqlStatsRepository:
         if src is None:
             return
         dst = await self._s.scalar(
-            select(orm.UserStatsRow)
-            .where(orm.UserStatsRow.user_id == into_id)
-            .with_for_update()
+            select(orm.UserStatsRow).where(orm.UserStatsRow.user_id == into_id).with_for_update()
         )
         if dst is None:
             await self._s.execute(
@@ -177,7 +193,9 @@ class SqlStatsRepository:
         have = select(orm.UserAchievementRow.code).where(orm.UserAchievementRow.user_id == into_id)
         await self._s.execute(
             update(orm.UserAchievementRow)
-            .where(orm.UserAchievementRow.user_id == from_id, orm.UserAchievementRow.code.not_in(have))
+            .where(
+                orm.UserAchievementRow.user_id == from_id, orm.UserAchievementRow.code.not_in(have)
+            )
             .values(user_id=into_id)
         )
         await self._s.execute(
@@ -217,7 +235,9 @@ class SqlRewardsRepository:
         return [_to_template(r) for r in rows]
 
     async def list_templates(self) -> list[QuestTemplate]:
-        rows = await self._s.scalars(select(orm.QuestTemplateRow).order_by(orm.QuestTemplateRow.code))
+        rows = await self._s.scalars(
+            select(orm.QuestTemplateRow).order_by(orm.QuestTemplateRow.code)
+        )
         return [_to_template(r) for r in rows]
 
     async def get_template(self, template_id: UUID) -> QuestTemplate | None:
@@ -324,7 +344,9 @@ class SqlLeagueRepository:
             await self._s.execute(
                 select(orm.LeagueMemberRow, orm.LeagueCohortRow.tier_idx)
                 .join(orm.LeagueCohortRow, orm.LeagueCohortRow.id == orm.LeagueMemberRow.cohort_id)
-                .where(orm.LeagueMemberRow.user_id == user_id, orm.LeagueMemberRow.week_start == week)
+                .where(
+                    orm.LeagueMemberRow.user_id == user_id, orm.LeagueMemberRow.week_start == week
+                )
             )
         ).first()
         if row is None:
@@ -375,15 +397,16 @@ class SqlLeagueRepository:
             )
             .outerjoin(orm.UserStatsRow, orm.UserStatsRow.user_id == orm.LeagueMemberRow.user_id)
             .where(orm.LeagueMemberRow.cohort_id == cohort_id)
+            .where(not_guest(orm.LeagueMemberRow.user_id))
         )
-        return [
-            StandingRow(Standing(uid, xp, order), name or "") for uid, xp, order, name in rows
-        ]
+        return [StandingRow(Standing(uid, xp, order), name or "") for uid, xp, order, name in rows]
 
     async def unsettled(self, before_week: date) -> list[CohortRef]:
         rows = await self._s.scalars(
             select(orm.LeagueCohortRow)
-            .where(orm.LeagueCohortRow.settled.is_(False), orm.LeagueCohortRow.week_start < before_week)
+            .where(
+                orm.LeagueCohortRow.settled.is_(False), orm.LeagueCohortRow.week_start < before_week
+            )
             .order_by(orm.LeagueCohortRow.week_start)
         )
         return [CohortRef(r.id, r.week_start, r.tier_idx) for r in rows]
@@ -399,7 +422,9 @@ class SqlLeagueRepository:
                 .values(final_rank=r.rank, outcome=r.outcome.value)
             )
         await self._s.execute(
-            update(orm.LeagueCohortRow).where(orm.LeagueCohortRow.id == cohort_id).values(settled=True)
+            update(orm.LeagueCohortRow)
+            .where(orm.LeagueCohortRow.id == cohort_id)
+            .values(settled=True)
         )
 
     async def set_tier(self, user_id: UUID, tier_idx: int) -> None:
@@ -410,7 +435,22 @@ class SqlLeagueRepository:
         )
 
     async def merge(self, from_id: UUID, into_id: UUID) -> None:
-        # Keep the destination's membership for any week both have; move the rest.
+        # Weeks both have: the destination keeps its membership and gains the guest's xp; move the rest.
+        mine = {
+            m.week_start: m
+            for m in (
+                await self._s.scalars(
+                    select(orm.LeagueMemberRow).where(orm.LeagueMemberRow.user_id == into_id)
+                )
+            ).all()
+        }
+        for m in (
+            await self._s.scalars(
+                select(orm.LeagueMemberRow).where(orm.LeagueMemberRow.user_id == from_id)
+            )
+        ).all():
+            if m.week_start in mine:
+                mine[m.week_start].xp += m.xp
         have = select(orm.LeagueMemberRow.week_start).where(orm.LeagueMemberRow.user_id == into_id)
         await self._s.execute(
             update(orm.LeagueMemberRow)
@@ -419,7 +459,9 @@ class SqlLeagueRepository:
             )
             .values(user_id=into_id)
         )
-        await self._s.execute(delete(orm.LeagueMemberRow).where(orm.LeagueMemberRow.user_id == from_id))
+        await self._s.execute(
+            delete(orm.LeagueMemberRow).where(orm.LeagueMemberRow.user_id == from_id)
+        )
 
 
 class SqlSocialRepository:
@@ -451,7 +493,11 @@ class SqlSocialRepository:
             return []
         if since is None:
             rows = await self._s.execute(
-                select(orm.UserStatsRow.user_id, orm.UserStatsRow.display_name, orm.UserStatsRow.xp_total)
+                select(
+                    orm.UserStatsRow.user_id,
+                    orm.UserStatsRow.display_name,
+                    orm.UserStatsRow.xp_total,
+                )
                 .where(orm.UserStatsRow.user_id.in_(user_ids))
                 .order_by(orm.UserStatsRow.xp_total.desc())
             )
@@ -472,20 +518,29 @@ class SqlSocialRepository:
     def _lyceum_scores(self, lyceum_id: UUID, since: date | None):  # type: ignore[no-untyped-def]
         if since is None:
             score = orm.UserStatsRow.xp_total
-            return (
-                select(orm.UserStatsRow.user_id.label("user_id"),
-                       orm.UserStatsRow.display_name.label("name"), score.label("xp"))
-                .where(orm.UserStatsRow.target_lyceum_id == lyceum_id)
+            return select(
+                orm.UserStatsRow.user_id.label("user_id"),
+                orm.UserStatsRow.display_name.label("name"),
+                score.label("xp"),
+            ).where(
+                orm.UserStatsRow.target_lyceum_id == lyceum_id,
+                not_guest(orm.UserStatsRow.user_id),
             )
         xp = func.coalesce(func.sum(orm.XpLogRow.amount), 0)
         return (
-            select(orm.UserStatsRow.user_id.label("user_id"),
-                   orm.UserStatsRow.display_name.label("name"), xp.label("xp"))
+            select(
+                orm.UserStatsRow.user_id.label("user_id"),
+                orm.UserStatsRow.display_name.label("name"),
+                xp.label("xp"),
+            )
             .outerjoin(
                 orm.XpLogRow,
                 (orm.XpLogRow.user_id == orm.UserStatsRow.user_id) & (orm.XpLogRow.day >= since),
             )
-            .where(orm.UserStatsRow.target_lyceum_id == lyceum_id)
+            .where(
+                orm.UserStatsRow.target_lyceum_id == lyceum_id,
+                not_guest(orm.UserStatsRow.user_id),
+            )
             .group_by(orm.UserStatsRow.user_id, orm.UserStatsRow.display_name)
         )
 

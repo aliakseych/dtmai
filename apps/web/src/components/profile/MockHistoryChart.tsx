@@ -27,7 +27,7 @@ export function MockHistoryChart({ mocks }: { mocks: Stats["mocks"] }) {
               const p = active ? payload?.[0]?.payload : undefined;
               if (!p) return null;
               return (
-                <div className="rounded-xl border-2 border-line bg-white px-3 py-2 text-sm shadow-sm">
+                <div className="rounded-xl border-2 border-line bg-white px-3 py-2 text-sm">
                   <div className="font-extrabold text-ink">{p.label}</div>
                   <div className="text-ink-soft">
                     {t("profile.stats.score")}: {p.score}/{p.max_score} ({p.pct}%)

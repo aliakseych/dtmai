@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.billing.domain.click import Invoice, InvoiceStatus
@@ -12,9 +12,14 @@ from app.shared.ids import new_id
 
 def _plan(r: PlanRow) -> Plan:
     return Plan(
-        code=r.code, names=dict(r.names), price_uzs=r.price_uzs, period_months=r.period_months,
-        features=frozenset(r.features or []), limits={k: int(v) for k, v in (r.limits or {}).items()},
-        active=r.active, sort_order=r.sort_order,
+        code=r.code,
+        names=dict(r.names),
+        price_uzs=r.price_uzs,
+        period_months=r.period_months,
+        features=frozenset(r.features or []),
+        limits={k: int(v) for k, v in (r.limits or {}).items()},
+        active=r.active,
+        sort_order=r.sort_order,
     )
 
 
@@ -60,15 +65,25 @@ class SqlPlanRepository:
             await self._s.flush()
 
     async def has_references(self, code: str) -> bool:
-        sub = await self._s.scalar(select(SubscriptionRow.id).where(SubscriptionRow.plan_code == code).limit(1))
-        inv = await self._s.scalar(select(InvoiceRow.id).where(InvoiceRow.plan_code == code).limit(1))
+        sub = await self._s.scalar(
+            select(SubscriptionRow.id).where(SubscriptionRow.plan_code == code).limit(1)
+        )
+        inv = await self._s.scalar(
+            select(InvoiceRow.id).where(InvoiceRow.plan_code == code).limit(1)
+        )
         return sub is not None or inv is not None
 
 
 def _sub(r: SubscriptionRow) -> Subscription:
     return Subscription(
-        id=r.id, user_id=r.user_id, plan_code=r.plan_code, started_at=r.started_at, until=r.until,
-        status=SubscriptionStatus(r.status), source=GrantSource(r.source), invoice_id=r.invoice_id,
+        id=r.id,
+        user_id=r.user_id,
+        plan_code=r.plan_code,
+        started_at=r.started_at,
+        until=r.until,
+        status=SubscriptionStatus(r.status),
+        source=GrantSource(r.source),
+        invoice_id=r.invoice_id,
     )
 
 
@@ -81,10 +96,16 @@ class SqlSubscriptionRepository:
         return _sub(row) if row else None
 
     async def for_user(self, user_id: UUID) -> list[Subscription]:
-        q = select(SubscriptionRow).where(SubscriptionRow.user_id == user_id).order_by(SubscriptionRow.until.desc())
+        q = (
+            select(SubscriptionRow)
+            .where(SubscriptionRow.user_id == user_id)
+            .order_by(SubscriptionRow.until.desc())
+        )
         return [_sub(r) for r in await self._s.scalars(q)]
 
-    async def active_for_user(self, user_id: UUID, plan_code: str, now: datetime) -> Subscription | None:
+    async def active_for_user(
+        self, user_id: UUID, plan_code: str, now: datetime
+    ) -> Subscription | None:
         q = (
             select(SubscriptionRow)
             .where(
@@ -100,11 +121,20 @@ class SqlSubscriptionRepository:
         row = await self._s.scalar(q)
         return _sub(row) if row else None
 
+    async def lock(self, user_id: UUID, plan_code: str) -> None:
+        key = func.hashtextextended(f"billing.grant:{user_id}:{plan_code}", 0)
+        await self._s.execute(select(func.pg_advisory_xact_lock(key)))
+
     async def add(self, sub: Subscription) -> None:
         self._s.add(
             SubscriptionRow(
-                id=sub.id, user_id=sub.user_id, plan_code=sub.plan_code, status=sub.status.value,
-                source=sub.source.value, started_at=sub.started_at, until=sub.until,
+                id=sub.id,
+                user_id=sub.user_id,
+                plan_code=sub.plan_code,
+                status=sub.status.value,
+                source=sub.source.value,
+                started_at=sub.started_at,
+                until=sub.until,
                 invoice_id=sub.invoice_id,
             )
         )
@@ -114,14 +144,23 @@ class SqlSubscriptionRepository:
         row = await self._s.get(SubscriptionRow, sub.id)
         if row is not None:
             row.status, row.until, row.started_at = sub.status.value, sub.until, sub.started_at
+            row.source = sub.source.value
             await self._s.flush()
 
 
 def _invoice(r: InvoiceRow) -> Invoice:
     return Invoice(
-        id=r.id, seq=r.seq, user_id=r.user_id, plan_code=r.plan_code, period_months=r.period_months,
-        amount_uzs=r.amount_uzs, status=InvoiceStatus(r.status), click_trans_id=r.click_trans_id,
-        click_paydoc_id=r.click_paydoc_id, paid_at=r.paid_at, canceled_at=r.canceled_at,
+        id=r.id,
+        seq=r.seq,
+        user_id=r.user_id,
+        plan_code=r.plan_code,
+        period_months=r.period_months,
+        amount_uzs=r.amount_uzs,
+        status=InvoiceStatus(r.status),
+        click_trans_id=r.click_trans_id,
+        click_paydoc_id=r.click_paydoc_id,
+        paid_at=r.paid_at,
+        canceled_at=r.canceled_at,
     )
 
 
@@ -133,8 +172,12 @@ class SqlInvoiceRepository:
         self, *, user_id: UUID, plan_code: str, period_months: int, amount_uzs: int
     ) -> Invoice:
         row = InvoiceRow(
-            id=new_id(), user_id=user_id, plan_code=plan_code, period_months=period_months,
-            amount_uzs=amount_uzs, status=InvoiceStatus.PENDING.value,
+            id=new_id(),
+            user_id=user_id,
+            plan_code=plan_code,
+            period_months=period_months,
+            amount_uzs=amount_uzs,
+            status=InvoiceStatus.PENDING.value,
         )
         self._s.add(row)
         await self._s.flush()

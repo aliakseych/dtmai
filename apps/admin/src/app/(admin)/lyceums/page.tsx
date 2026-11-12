@@ -1,4 +1,5 @@
 "use client";
+import { useT } from "@/lib/i18n";
 import { useState } from "react";
 import { PageHeader, Tabs } from "@/components/ui/controls";
 import { AdmissionPanel } from "@/components/lyceums/AdmissionPanel";
@@ -10,16 +11,17 @@ import { RepApplications } from "@/components/lyceums/RepApplications";
 type Tab = "profiles" | "reps" | "posts" | "import" | "admission";
 
 export default function LyceumsPage() {
+  const t = useT();
   const [tab, setTab] = useState<Tab>("profiles");
   return (
     <>
-      <PageHeader title="Lyceums" sub="Profiles, representative applications, post moderation and per-year stats import." />
+      <PageHeader title={t("admin.lyceums.lyceums")} sub={t("admin.lyceums.profilesRepresentativeApplicationsPost")} />
       <Tabs value={tab} onChange={setTab} items={[
-        { id: "profiles", label: "Profiles" },
-        { id: "reps", label: "Rep applications" },
-        { id: "posts", label: "Post moderation" },
-        { id: "import", label: "Stats import" },
-        { id: "admission", label: "Admission plan" },
+        { id: "profiles", label: t("admin.lyceums.profiles") },
+        { id: "reps", label: t("admin.lyceums.repApplications") },
+        { id: "posts", label: t("admin.lyceums.postModeration") },
+        { id: "import", label: t("admin.lyceums.statsImport") },
+        { id: "admission", label: t("admin.lyceums.admissionPlan") },
       ]} />
       {tab === "profiles" && <ProfilesPanel />}
       {tab === "reps" && <RepApplications />}

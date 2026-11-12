@@ -1,5 +1,5 @@
 "use client";
-import { PrioritySlots } from "@dtmai/ui";
+import { PrioritySlots, Badge, Icon } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
 import { MAX_DREAMS, moveItem } from "@/lib/dreams";
 import { LyceumName } from "./LyceumName";
@@ -31,7 +31,10 @@ export function PriorityList({
               <LyceumName id={id} />
               {mismatch.includes(id) && (
                 <span className="flex flex-wrap items-center gap-2 text-xs font-extrabold">
-                  <span role="status" className="rounded-full bg-gold px-2 py-0.5 text-ink">⚠ {t("field.mismatch")}</span>
+                  <Badge tone="accent" role="status">
+                    <Icon name="alert" size={16} />
+                    {t("field.mismatch")}
+                  </Badge>
                   {onReplace && (
                     <button type="button" disabled={disabled} onClick={() => onReplace(id)} className="text-brand underline">
                       {t("field.replace")}

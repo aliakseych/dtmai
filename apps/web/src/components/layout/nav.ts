@@ -1,6 +1,7 @@
 import type { MessageKey } from "@dtmai/i18n";
+import type { IconName } from "@dtmai/ui";
 
-export type NavItem = { href: string; icon: string; label: MessageKey };
+export type NavItem = { href: string; icon: IconName; label: MessageKey };
 
 export const MAIN_NAV: NavItem[] = [
   { href: "/home/", icon: "home", label: "nav.home" },
@@ -14,9 +15,10 @@ export const MAIN_NAV: NavItem[] = [
   { href: "/lyceums/", icon: "lyceums", label: "nav.lyceums" },
   { href: "/premium/", icon: "premium", label: "nav.premium" },
   { href: "/temur/", icon: "temur", label: "nav.temur" },
+  { href: "/rep/", icon: "rep", label: "nav.rep" },
   { href: "/profile/", icon: "profile", label: "nav.profile" },
 ];
 
 /** Bottom tab bar on mobile; everything else lives behind the "More" sheet. */
-export const TAB_NAV = ["/home/", "/learn/", "/plan/", "/mocks/", "/profile/"];
+export const TAB_NAV = ["/home/", "/learn/", "/plan/", "/mocks/"];
 export const MORE_NAV = MAIN_NAV.filter((n) => !TAB_NAV.includes(n.href));

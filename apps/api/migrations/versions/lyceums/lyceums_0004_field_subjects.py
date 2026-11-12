@@ -21,8 +21,12 @@ def upgrade() -> None:
     op.create_table(
         "field_subjects",
         sa.Column("speciality_code", sa.String(20), nullable=False),
-        sa.Column("subject_ids", postgresql.ARRAY(postgresql.UUID(as_uuid=True)),
-                  nullable=False, server_default="{}"),
+        sa.Column(
+            "subject_ids",
+            postgresql.ARRAY(postgresql.UUID(as_uuid=True)),
+            nullable=False,
+            server_default="{}",
+        ),
         sa.PrimaryKeyConstraint("speciality_code", name="pk_field_subjects"),
         schema=S,
     )

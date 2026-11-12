@@ -1,10 +1,12 @@
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.lyceums.domain.fields import FieldView
 from app.modules.lyceums.domain.models import (
     ImportRun,
     ImportStatus,
@@ -12,6 +14,7 @@ from app.modules.lyceums.domain.models import (
     SourceLyceum,
     SourceSpeciality,
 )
+from app.modules.lyceums.domain.profile import CityView
 from app.modules.lyceums.domain.rep import (
     MembershipStatus,
     Post,
@@ -19,8 +22,6 @@ from app.modules.lyceums.domain.rep import (
     PostStatus,
     RepMembership,
 )
-from app.modules.lyceums.domain.fields import FieldView
-from app.modules.lyceums.domain.profile import CityView
 from app.modules.lyceums.infrastructure.orm import (
     CityRow,
     EducationLanguageRow,
@@ -31,6 +32,7 @@ from app.modules.lyceums.infrastructure.orm import (
     RepMembershipRow,
     YearlyStatRow,
 )
+from app.shared.db import get_sessionmaker
 from app.shared.ids import new_id
 
 
@@ -50,10 +52,16 @@ class StatView:
 def _run(row: ImportRunRow) -> ImportRun:
     counts = row.counts or {}
     return ImportRun(
-        id=row.id, year=row.year, status=ImportStatus(row.status), requested_by=row.requested_by,
-        created_at=row.created_at, finished_at=row.finished_at,
-        lyceums=counts.get("lyceums", 0), stats=counts.get("stats", 0),
-        errors=counts.get("errors", 0), error=row.error,
+        id=row.id,
+        year=row.year,
+        status=ImportStatus(row.status),
+        requested_by=row.requested_by,
+        created_at=row.created_at,
+        finished_at=row.finished_at,
+        lyceums=counts.get("lyceums", 0),
+        stats=counts.get("stats", 0),
+        errors=counts.get("errors", 0),
+        error=row.error,
     )
 
 
@@ -63,8 +71,11 @@ class SqlImportRuns:
 
     async def create(self, year: int, requested_by: UUID | None) -> ImportRun:
         row = ImportRunRow(
-            id=new_id(), year=year, status=ImportStatus.PENDING.value,
-            requested_by=requested_by, counts={},
+            id=new_id(),
+            year=year,
+            status=ImportStatus.PENDING.value,
+            requested_by=requested_by,
+            counts={},
         )
         self._s.add(row)
         await self._s.flush()
@@ -85,6 +96,42 @@ class SqlImportRuns:
         row.counts = {"lyceums": run.lyceums, "stats": run.stats, "errors": run.errors}
         await self._s.flush()
 
+    async def reset_stale(self, older_than: datetime) -> None:
+        await self._s.execute(
+            update(ImportRunRow)
+            .where(
+                ImportRunRow.status.in_([ImportStatus.PENDING.value, ImportStatus.RUNNING.value]),
+                ImportRunRow.created_at < older_than,
+            )
+            .values(status=ImportStatus.FAILED.value, error="abandoned (worker lost)")
+        )
+        await self._s.flush()
+
+    async def active(self) -> ImportRun | None:
+        await self._s.execute(
+            select(func.pg_advisory_xact_lock(func.hashtextextended("lyceums.import", 0)))
+        )
+        row = await self._s.scalar(
+            select(ImportRunRow)
+            .where(
+                ImportRunRow.status.in_([ImportStatus.PENDING.value, ImportStatus.RUNNING.value])
+            )
+            .limit(1)
+        )
+        return _run(row) if row else None
+
+    async def mark_failed(self, run_id: UUID, error: str) -> None:
+        async with get_sessionmaker()() as session, session.begin():
+            await session.execute(
+                update(ImportRunRow)
+                .where(ImportRunRow.id == run_id)
+                .values(
+                    status=ImportStatus.FAILED.value,
+                    error=error[:500],
+                    finished_at=datetime.now(UTC),
+                )
+            )
+
     async def list(self, limit: int) -> list[ImportRun]:
         rows = await self._s.scalars(
             select(ImportRunRow).order_by(ImportRunRow.created_at.desc()).limit(limit)
@@ -98,25 +145,41 @@ class SqlImportSink:
 
     async def upsert_lyceum(self, item: SourceLyceum) -> UUID:
         stmt = insert(LyceumRow).values(
-            id=new_id(), external_id=item.external_id, code=item.code,
-            name_uz=item.name_uz, name_en=item.name_en, name_ru=item.name_ru,
+            id=new_id(),
+            external_id=item.external_id,
+            code=item.code,
+            name_uz=item.name_uz,
+            name_en=item.name_en,
+            name_ru=item.name_ru,
         )
         stmt = stmt.on_conflict_do_update(
             index_elements=[LyceumRow.external_id],
-            set_={"code": item.code, "name_uz": item.name_uz,
-                  "name_en": item.name_en, "name_ru": item.name_ru},
+            set_={
+                "code": item.code,
+                "name_uz": item.name_uz,
+                "name_en": item.name_en,
+                "name_ru": item.name_ru,
+            },
         ).returning(LyceumRow.id)
         return (await self._s.execute(stmt)).scalar_one()
 
     async def upsert_language(self, item: SourceLanguage) -> UUID:
         stmt = insert(EducationLanguageRow).values(
-            id=new_id(), external_id=item.external_id, code=item.code,
-            name_uz=item.name_uz, name_en=item.name_en, name_ru=item.name_ru,
+            id=new_id(),
+            external_id=item.external_id,
+            code=item.code,
+            name_uz=item.name_uz,
+            name_en=item.name_en,
+            name_ru=item.name_ru,
         )
         stmt = stmt.on_conflict_do_update(
             index_elements=[EducationLanguageRow.external_id],
-            set_={"code": item.code, "name_uz": item.name_uz,
-                  "name_en": item.name_en, "name_ru": item.name_ru},
+            set_={
+                "code": item.code,
+                "name_uz": item.name_uz,
+                "name_en": item.name_en,
+                "name_ru": item.name_ru,
+            },
         ).returning(EducationLanguageRow.id)
         return (await self._s.execute(stmt)).scalar_one()
 
@@ -124,9 +187,14 @@ class SqlImportSink:
         self, *, lyceum_id: UUID, language_id: UUID, year: int, item: SourceSpeciality
     ) -> None:
         stmt = insert(YearlyStatRow).values(
-            id=new_id(), lyceum_id=lyceum_id, language_id=language_id, year=year,
-            speciality_code=item.code, name=item.name,
-            quota=item.quota, applications=item.applications,
+            id=new_id(),
+            lyceum_id=lyceum_id,
+            language_id=language_id,
+            year=year,
+            speciality_code=item.code,
+            name=item.name,
+            quota=item.quota,
+            applications=item.applications,
         )
         # passing_score is deliberately not touched: admins enter it manually.
         stmt = stmt.on_conflict_do_update(
@@ -150,7 +218,8 @@ class SqlLyceumQueries:
         else:
             latest = (
                 select(YearlyStatRow.lyceum_id, func.max(YearlyStatRow.year).label("y"))
-                .group_by(YearlyStatRow.lyceum_id).subquery()
+                .group_by(YearlyStatRow.lyceum_id)
+                .subquery()
             )
             totals = (
                 select(
@@ -158,21 +227,28 @@ class SqlLyceumQueries:
                     func.sum(YearlyStatRow.quota).label("quota"),
                     func.sum(YearlyStatRow.applications).label("apps"),
                 )
-                .join(latest, (latest.c.lyceum_id == YearlyStatRow.lyceum_id)
-                      & (latest.c.y == YearlyStatRow.year))
-                .group_by(YearlyStatRow.lyceum_id).subquery()
+                .join(
+                    latest,
+                    (latest.c.lyceum_id == YearlyStatRow.lyceum_id)
+                    & (latest.c.y == YearlyStatRow.year),
+                )
+                .group_by(YearlyStatRow.lyceum_id)
+                .subquery()
             )
             ratio = totals.c.apps / func.nullif(totals.c.quota, 0)
-            stmt = (
-                stmt.outerjoin(totals, totals.c.lyceum_id == LyceumRow.id)
-                .order_by(ratio.desc().nulls_last(), LyceumRow.name_uz)
+            stmt = stmt.outerjoin(totals, totals.c.lyceum_id == LyceumRow.id).order_by(
+                ratio.desc().nulls_last(), LyceumRow.name_uz
             )
         stmt = stmt.limit(limit).offset(offset)
         if q:
             like = f"%{q.strip()}%"
             stmt = stmt.where(
-                or_(LyceumRow.name_uz.ilike(like), LyceumRow.name_ru.ilike(like),
-                    LyceumRow.name_en.ilike(like), LyceumRow.code == q.strip())
+                or_(
+                    LyceumRow.name_uz.ilike(like),
+                    LyceumRow.name_ru.ilike(like),
+                    LyceumRow.name_en.ilike(like),
+                    LyceumRow.code == q.strip(),
+                )
             )
         return list(await self._s.scalars(stmt))
 
@@ -180,45 +256,53 @@ class SqlLyceumQueries:
         return await self._s.get(LyceumRow, lyceum_id)
 
     async def languages(self) -> list[EducationLanguageRow]:
-        rows = list(await self._s.scalars(select(EducationLanguageRow).order_by(
-            EducationLanguageRow.external_id)))
+        rows = list(
+            await self._s.scalars(
+                select(EducationLanguageRow).order_by(EducationLanguageRow.external_id)
+            )
+        )
         # Uzbek and Russian are the dominant instruction languages; show them first.
         first = ("o'zbek", "o‘zbek", "uzbek", "рус", "russ")
+
         def rank(r: EducationLanguageRow) -> int:
             names = f"{r.name_uz} {r.name_en} {r.name_ru}".lower()
             return next((i for i, k in enumerate(first) if k in names), len(first))
+
         return sorted(rows, key=rank)
 
     async def stats_for(self, lyceum_id: UUID) -> list[StatView]:
         rows = await self._s.scalars(
-            select(YearlyStatRow).where(YearlyStatRow.lyceum_id == lyceum_id)
+            select(YearlyStatRow)
+            .where(YearlyStatRow.lyceum_id == lyceum_id)
             .order_by(YearlyStatRow.year.desc(), YearlyStatRow.speciality_code)
         )
         return [self._view(r) for r in rows]
 
-    async def latest_year_totals(
-        self, lyceum_ids: list[UUID]
-    ) -> dict[UUID, tuple[int, int, int]]:
+    async def latest_year_totals(self, lyceum_ids: list[UUID]) -> dict[UUID, tuple[int, int, int]]:
         """lyceum_id -> (year, quota, applications) for the newest imported year."""
         if not lyceum_ids:
             return {}
         latest = (
             select(YearlyStatRow.lyceum_id, func.max(YearlyStatRow.year).label("y"))
             .where(YearlyStatRow.lyceum_id.in_(lyceum_ids))
-            .group_by(YearlyStatRow.lyceum_id).subquery()
+            .group_by(YearlyStatRow.lyceum_id)
+            .subquery()
         )
         stmt = (
             select(
-                YearlyStatRow.lyceum_id, YearlyStatRow.year,
-                func.sum(YearlyStatRow.quota), func.sum(YearlyStatRow.applications),
+                YearlyStatRow.lyceum_id,
+                YearlyStatRow.year,
+                func.sum(YearlyStatRow.quota),
+                func.sum(YearlyStatRow.applications),
             )
-            .join(latest, (latest.c.lyceum_id == YearlyStatRow.lyceum_id)
-                  & (latest.c.y == YearlyStatRow.year))
+            .join(
+                latest,
+                (latest.c.lyceum_id == YearlyStatRow.lyceum_id)
+                & (latest.c.y == YearlyStatRow.year),
+            )
             .group_by(YearlyStatRow.lyceum_id, YearlyStatRow.year)
         )
-        return {
-            r[0]: (r[1], int(r[2] or 0), int(r[3] or 0)) for r in (await self._s.execute(stmt))
-        }
+        return {r[0]: (r[1], int(r[2] or 0), int(r[3] or 0)) for r in (await self._s.execute(stmt))}
 
     async def set_passing_score(self, stat_id: UUID, score: float | None) -> StatView | None:
         row = await self._s.get(YearlyStatRow, stat_id)
@@ -230,9 +314,17 @@ class SqlLyceumQueries:
 
     @staticmethod
     def _view(r: YearlyStatRow) -> StatView:
-        return StatView(r.id, r.lyceum_id, r.language_id, r.speciality_code, r.name, r.year,
-                        r.quota, r.applications, r.passing_score)
-
+        return StatView(
+            r.id,
+            r.lyceum_id,
+            r.language_id,
+            r.speciality_code,
+            r.name,
+            r.year,
+            r.quota,
+            r.applications,
+            r.passing_score,
+        )
 
 
 class SqlLyceumProfiles:
@@ -267,7 +359,9 @@ class SqlCities:
     async def list_with_counts(self, locale: str = "uz-Latn") -> list[CityView]:
         counts = (
             select(LyceumRow.city, func.count(LyceumRow.id).label("n"))
-            .where(LyceumRow.city.is_not(None)).group_by(LyceumRow.city).subquery()
+            .where(LyceumRow.city.is_not(None))
+            .group_by(LyceumRow.city)
+            .subquery()
         )
         stmt = select(CityRow, func.coalesce(counts.c.n, 0)).outerjoin(
             counts, counts.c.city == CityRow.code
@@ -275,8 +369,12 @@ class SqlCities:
         out = [
             CityView(
                 code=c.code,
-                names={"uz-Latn": c.name_uz_latn, "uz-Cyrl": c.name_uz_cyrl,
-                       "ru": c.name_ru, "en": c.name_en},
+                names={
+                    "uz-Latn": c.name_uz_latn,
+                    "uz-Cyrl": c.name_uz_cyrl,
+                    "ru": c.name_ru,
+                    "en": c.name_en,
+                },
                 lyceum_count=int(n),
             )
             for c, n in (await self._s.execute(stmt))
@@ -297,8 +395,9 @@ class SqlFields:
     async def list_fields(self) -> list[FieldView]:
         """Distinct specialities; the name comes from the newest year that has the code."""
         rows = await self._s.execute(
-            select(YearlyStatRow.speciality_code, YearlyStatRow.name)
-            .order_by(YearlyStatRow.speciality_code, YearlyStatRow.year.desc())
+            select(YearlyStatRow.speciality_code, YearlyStatRow.name).order_by(
+                YearlyStatRow.speciality_code, YearlyStatRow.year.desc()
+            )
         )
         names: dict[str, str] = {}
         for code, name in rows:
@@ -310,16 +409,21 @@ class SqlFields:
         ]
 
     async def known_code(self, code: str) -> bool:
-        return await self._s.scalar(
-            select(YearlyStatRow.id).where(YearlyStatRow.speciality_code == code).limit(1)
-        ) is not None
+        return (
+            await self._s.scalar(
+                select(YearlyStatRow.id).where(YearlyStatRow.speciality_code == code).limit(1)
+            )
+            is not None
+        )
 
     async def set_subjects(self, code: str, subject_ids: list[UUID]) -> None:
         stmt = insert(FieldSubjectsRow).values(speciality_code=code, subject_ids=subject_ids)
-        await self._s.execute(stmt.on_conflict_do_update(
-            index_elements=[FieldSubjectsRow.speciality_code],
-            set_={"subject_ids": subject_ids},
-        ))
+        await self._s.execute(
+            stmt.on_conflict_do_update(
+                index_elements=[FieldSubjectsRow.speciality_code],
+                set_={"subject_ids": subject_ids},
+            )
+        )
 
     async def clear_subjects(self, code: str) -> None:
         await self._s.execute(
@@ -338,13 +442,18 @@ class SqlFields:
         latest = (
             select(YearlyStatRow.lyceum_id, func.max(YearlyStatRow.year).label("y"))
             .where(YearlyStatRow.lyceum_id.in_(lyceum_ids))
-            .group_by(YearlyStatRow.lyceum_id).subquery()
+            .group_by(YearlyStatRow.lyceum_id)
+            .subquery()
         )
         stmt = (
             select(YearlyStatRow.lyceum_id, YearlyStatRow.speciality_code)
-            .join(latest, (latest.c.lyceum_id == YearlyStatRow.lyceum_id)
-                  & (latest.c.y == YearlyStatRow.year))
-            .distinct().order_by(YearlyStatRow.lyceum_id, YearlyStatRow.speciality_code)
+            .join(
+                latest,
+                (latest.c.lyceum_id == YearlyStatRow.lyceum_id)
+                & (latest.c.y == YearlyStatRow.year),
+            )
+            .distinct()
+            .order_by(YearlyStatRow.lyceum_id, YearlyStatRow.speciality_code)
         )
         out: dict[UUID, list[str]] = {}
         for lid, code in await self._s.execute(stmt):
@@ -354,8 +463,12 @@ class SqlFields:
 
 def _membership(r: RepMembershipRow) -> RepMembership:
     return RepMembership(
-        user_id=r.user_id, lyceum_id=r.lyceum_id, status=MembershipStatus(r.status),
-        note=r.note, created_at=r.created_at, decided_at=r.decided_at,
+        user_id=r.user_id,
+        lyceum_id=r.lyceum_id,
+        status=MembershipStatus(r.status),
+        note=r.note,
+        created_at=r.created_at,
+        decided_at=r.decided_at,
     )
 
 
@@ -368,10 +481,14 @@ class SqlMemberships:
         return _membership(row) if row else None
 
     async def add(self, membership: RepMembership) -> None:
-        self._s.add(RepMembershipRow(
-            user_id=membership.user_id, lyceum_id=membership.lyceum_id,
-            status=membership.status.value, note=membership.note,
-        ))
+        self._s.add(
+            RepMembershipRow(
+                user_id=membership.user_id,
+                lyceum_id=membership.lyceum_id,
+                status=membership.status.value,
+                note=membership.note,
+            )
+        )
         await self._s.flush()
 
     async def save(self, membership: RepMembership) -> None:
@@ -379,29 +496,44 @@ class SqlMemberships:
         if row is None:
             return
         row.status, row.note, row.decided_at = (
-            membership.status.value, membership.note, membership.decided_at,
+            membership.status.value,
+            membership.note,
+            membership.decided_at,
         )
         await self._s.flush()
 
     async def delete(self, user_id: UUID, lyceum_id: UUID) -> None:
-        await self._s.execute(delete(RepMembershipRow).where(
-            RepMembershipRow.user_id == user_id, RepMembershipRow.lyceum_id == lyceum_id))
+        await self._s.execute(
+            delete(RepMembershipRow).where(
+                RepMembershipRow.user_id == user_id, RepMembershipRow.lyceum_id == lyceum_id
+            )
+        )
 
     async def list_pending(self, limit: int) -> list[RepMembership]:
         rows = await self._s.scalars(
             select(RepMembershipRow)
             .where(RepMembershipRow.status == MembershipStatus.PENDING.value)
-            .order_by(RepMembershipRow.created_at).limit(limit)
+            .order_by(RepMembershipRow.created_at)
+            .limit(limit)
         )
         return [_membership(r) for r in rows]
 
 
 def _post(r: LyceumPostRow) -> Post:
     return Post(
-        id=r.id, lyceum_id=r.lyceum_id, author_id=r.author_id, kind=PostKind(r.kind),
-        title=r.title, body=r.body, starts_at=r.starts_at, link=r.link,
-        status=PostStatus(r.status), reject_reason=r.reject_reason, created_at=r.created_at,
-        updated_at=r.updated_at, published_at=r.published_at,
+        id=r.id,
+        lyceum_id=r.lyceum_id,
+        author_id=r.author_id,
+        kind=PostKind(r.kind),
+        title=r.title,
+        body=r.body,
+        starts_at=r.starts_at,
+        link=r.link,
+        status=PostStatus(r.status),
+        reject_reason=r.reject_reason,
+        created_at=r.created_at,
+        updated_at=r.updated_at,
+        published_at=r.published_at,
     )
 
 
@@ -441,23 +573,29 @@ class SqlPosts:
 
     async def list_for_lyceum(self, lyceum_id: UUID) -> list[Post]:
         rows = await self._s.scalars(
-            select(LyceumPostRow).where(LyceumPostRow.lyceum_id == lyceum_id)
+            select(LyceumPostRow)
+            .where(LyceumPostRow.lyceum_id == lyceum_id)
             .order_by(LyceumPostRow.created_at.desc())
         )
         return [_post(r) for r in rows]
 
     async def list_published(self, lyceum_id: UUID, limit: int) -> list[Post]:
         rows = await self._s.scalars(
-            select(LyceumPostRow).where(
+            select(LyceumPostRow)
+            .where(
                 LyceumPostRow.lyceum_id == lyceum_id,
                 LyceumPostRow.status == PostStatus.PUBLISHED.value,
-            ).order_by(LyceumPostRow.published_at.desc()).limit(limit)
+            )
+            .order_by(LyceumPostRow.published_at.desc())
+            .limit(limit)
         )
         return [_post(r) for r in rows]
 
     async def list_by_status(self, status: PostStatus, limit: int) -> list[Post]:
         rows = await self._s.scalars(
-            select(LyceumPostRow).where(LyceumPostRow.status == status.value)
-            .order_by(LyceumPostRow.created_at).limit(limit)
+            select(LyceumPostRow)
+            .where(LyceumPostRow.status == status.value)
+            .order_by(LyceumPostRow.created_at)
+            .limit(limit)
         )
         return [_post(r) for r in rows]

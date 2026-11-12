@@ -55,7 +55,9 @@ def subscribe(name: str) -> Callable[[Handler], Handler]:
 
 async def publish(session: AsyncSession, event: Event) -> None:
     session.add(
-        OutboxRow(id=event.id, name=event.name, payload=event.payload, occurred_at=event.occurred_at)
+        OutboxRow(
+            id=event.id, name=event.name, payload=event.payload, occurred_at=event.occurred_at
+        )
     )
 
 

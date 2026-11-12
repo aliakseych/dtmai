@@ -48,5 +48,5 @@ export function StatChip({
 type V = { value: ReactNode; label: string; className?: string; onClick?: () => void };
 export const HeartsStat = (p: V) => <StatChip icon={<HeartIcon />} tone="text-red-deep" {...p} />;
 export const GemsStat = (p: V) => <StatChip icon={<GemIcon />} tone="text-brand" {...p} />;
-export const XpStat = (p: V) => <StatChip icon={<XpIcon />} tone="text-gold-deep" {...p} />;
+export const XpStat = (p: V) => <StatChip icon={<XpIcon />} tone="text-accent-ink" {...p} />;
 export const StreakStat = (p: V) => <StatChip icon={<FlameIcon />} tone="text-ink" {...p} />;

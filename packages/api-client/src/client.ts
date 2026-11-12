@@ -36,7 +36,15 @@ export interface ApiClient {
   raw<T>(method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", path: string, opts?: RawOptions): Promise<T>;
 }
 
-const NO_RETRY = ["/v1/identity/login", "/v1/identity/register", "/v1/identity/refresh"];
+const NO_RETRY = [
+  "/v1/identity/login",
+  "/v1/identity/register",
+  "/v1/identity/refresh",
+  "/v1/identity/email/verify",
+  "/v1/identity/email/resend",
+  "/v1/identity/password/forgot",
+  "/v1/identity/password/reset",
+];
 
 export function createApiClient(opts: ApiClientOptions): ApiClient {
   const baseUrl = opts.baseUrl.replace(/\/+$/, "");

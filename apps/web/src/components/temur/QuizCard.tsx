@@ -30,7 +30,7 @@ export function QuizCard({ quiz }: { quiz: TutorQuiz }) {
       </OptionGroup>
       {done && (
         <div role="status" className="flex flex-col gap-1">
-          <strong className={picked === quiz.correct_index ? "text-green-deep" : "text-red-deep"}>
+          <strong className={picked === quiz.correct_index ? "text-brand" : "text-red-deep"}>
             {picked === quiz.correct_index ? t("lesson.correct") : t("lesson.incorrect")}
           </strong>
           {quiz.explanation && (

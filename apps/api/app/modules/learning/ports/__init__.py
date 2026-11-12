@@ -40,6 +40,7 @@ class LessonRef:
     count: int
     language: str
     unit_count: int
+    path_units: list[list[UUID]] = field(default_factory=list)  # lesson ids per unit, path order
 
 
 class ContentPort(Protocol):
@@ -47,8 +48,15 @@ class ContentPort(Protocol):
 
     async def items(self, ids: Sequence[UUID]) -> list[Item]: ...
     async def pick(
-        self, *, subject_id: UUID, topic_ids: Sequence[UUID] | None, type_ids: Sequence[UUID] | None,
-        language: str, n: int, exclude_ids: Sequence[UUID] = (), difficulty: float | None = None,
+        self,
+        *,
+        subject_id: UUID,
+        topic_ids: Sequence[UUID] | None,
+        type_ids: Sequence[UUID] | None,
+        language: str,
+        n: int,
+        exclude_ids: Sequence[UUID] = (),
+        difficulty: float | None = None,
     ) -> list[Item]: ...
     async def grade(self, question_id: UUID, response: dict[str, Any]) -> Graded: ...
     async def lesson(self, lesson_id: UUID, language: str | None) -> LessonRef | None: ...

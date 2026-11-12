@@ -52,7 +52,7 @@ export function MocksView() {
                 type="button"
                 aria-pressed={kind === k}
                 onClick={() => setKind(k)}
-                className={`rounded-xl border-2 px-3 py-1.5 font-bold ${kind === k ? "border-blue bg-blue text-white" : "border-line text-ink-soft"}`}
+                className={`rounded-xl border-2 px-3 py-1.5 font-bold ${kind === k ? "border-brand bg-brand text-white" : "border-line text-ink-soft"}`}
               >
                 {k === "all" ? t("mocks.filterAll") : t(`mocks.kind.${k}`)}
               </button>
@@ -93,7 +93,7 @@ export function MocksView() {
                           setKind("all");
                           document.getElementById("mocks-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
                         }}
-                        className={`flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-card border-2 px-5 py-3 text-left hover:border-blue ${on ? "border-blue bg-snow" : "border-line bg-white"}`}
+                        className={`flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-card border-2 px-5 py-3 text-left hover:border-brand ${on ? "border-brand bg-snow" : "border-line bg-white"}`}
                       >
                         <span className="min-w-0 break-words font-bold">{pick(b.names, locale)}</span>
                         <span className="text-sm text-ink-soft">

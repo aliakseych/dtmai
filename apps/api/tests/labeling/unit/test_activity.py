@@ -6,7 +6,13 @@ from app.shared.errors import ValidationFailed
 
 @pytest.mark.parametrize(
     ("decision", "expected"),
-    [("accept", "approve"), ("edit", "edit"), ("flag", "reject"), ("skip", "skip"), ("bulk", "approve")],
+    [
+        ("accept", "approve"),
+        ("edit", "edit"),
+        ("flag", "reject"),
+        ("skip", "skip"),
+        ("bulk", "approve"),
+    ],
 )
 def test_activity_action_mapping(decision, expected):
     assert activity_action(decision) == expected

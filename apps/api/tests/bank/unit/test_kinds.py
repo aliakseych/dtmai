@@ -49,7 +49,9 @@ def test_short_text_normalisation():
     ans = {"accepted": ["Tashkent", "Toshkent"]}
     assert g("short_text", {}, ans, {"text": "  toshkent "}).correct
     assert not g("short_text", {}, ans, {"text": "samarkand"}).correct
-    assert not g("short_text", {}, {"accepted": ["Abc"], "case_sensitive": True}, {"text": "abc"}).correct
+    assert not g(
+        "short_text", {}, {"accepted": ["Abc"], "case_sensitive": True}, {"text": "abc"}
+    ).correct
     assert normalize_text("A  b") == "a b"
 
 

@@ -40,8 +40,8 @@ export function GuestNudge() {
   if (!done || dismissed) return null;
   const s = state.status === "ready" ? state.data : null;
   return (
-    <div role="status" className="flex flex-col gap-1 bg-blue-soft px-4 py-3 text-sm">
-      <div className="flex flex-wrap items-center justify-center gap-3 font-bold text-blue-deep">
+    <div role="status" className="flex flex-col gap-1 bg-brand-soft px-4 py-3 text-sm">
+      <div className="flex flex-wrap items-center justify-center gap-3 font-bold text-brand">
         <span>{t("guest.nudge.text")}</span>
         <Link href="/register/" className="underline">
           {t("guest.nudge.cta")}

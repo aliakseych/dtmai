@@ -46,10 +46,12 @@ class ProfileService:
                 fields[key] = code
             elif key == "gallery_urls":
                 fields[key] = validate_string_list(
-                    value or [], limit=MAX_GALLERY, code="too_many_gallery_urls")
+                    value or [], limit=MAX_GALLERY, code="too_many_gallery_urls"
+                )
             elif key == "courses":
                 fields[key] = validate_string_list(
-                    value or [], limit=MAX_COURSES, code="too_many_courses")
+                    value or [], limit=MAX_COURSES, code="too_many_courses"
+                )
             elif key == "description":
                 fields[key] = validate_description(value or {})
             elif key == "contacts":

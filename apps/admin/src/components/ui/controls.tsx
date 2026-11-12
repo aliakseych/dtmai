@@ -1,8 +1,10 @@
 "use client";
 import { cn } from "@dtmai/ui";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { useT } from "@/lib/i18n";
+import { errMsg } from "@/lib/util";
 
-const field = "w-full rounded-md border border-line bg-white px-2 py-1.5 text-[13px] outline-none focus:border-blue focus:ring-1 focus:ring-blue disabled:bg-snow";
+const field = "w-full rounded-xl border border-line bg-white px-2 py-1.5 text-sm outline-none focus:border-blue focus:ring-1 focus:ring-blue disabled:bg-snow";
 
 export function Input({ className, ...p }: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...p} className={cn(field, className)} />;
@@ -21,17 +23,17 @@ export function Select({ className, children, ...p }: SelectHTMLAttributes<HTMLS
 export function Field({ label, hint, error, children, className }: { label: string; hint?: string; error?: string; children: ReactNode; className?: string }) {
   return (
     <label className={cn("block", className)}>
-      <span className="mb-0.5 block text-[11px] font-extrabold uppercase tracking-wide text-ink-soft">{label}</span>
+      <span className="mb-0.5 block text-xs font-extrabold uppercase tracking-wide text-ink-soft">{label}</span>
       {children}
-      {hint && <span className="mt-0.5 block text-[11px] font-semibold text-ink-soft">{hint}</span>}
-      {error && <span className="mt-0.5 block text-[11px] font-bold text-red-deep">{error}</span>}
+      {hint && <span className="mt-0.5 block text-xs font-semibold text-ink-soft">{hint}</span>}
+      {error && <span role="alert" className="mt-0.5 block text-xs font-bold text-red-deep">{error}</span>}
     </label>
   );
 }
 
 export function Check({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label?: string }) {
   return (
-    <label className="inline-flex cursor-pointer items-center gap-1.5 text-[13px]">
+    <label className="inline-flex cursor-pointer items-center gap-1.5 text-sm">
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="size-4 accent-blue" />
       {label}
     </label>
@@ -50,7 +52,7 @@ export function Btn({ variant = "default", className, ...p }: ButtonHTMLAttribut
     <button
       type="button"
       {...p}
-      className={cn("inline-flex items-center justify-center gap-1 rounded-md border px-2.5 py-1.5 text-[13px] font-extrabold disabled:cursor-not-allowed disabled:opacity-50", V[variant], className)}
+      className={cn("inline-flex items-center justify-center gap-1 rounded-xl border px-2.5 py-1.5 text-sm font-extrabold disabled:cursor-not-allowed disabled:opacity-50", V[variant], className)}
     />
   );
 }
@@ -65,7 +67,7 @@ const T: Record<Tone, string> = {
   orange: "bg-orange-50 text-orange-deep border-orange",
 };
 export function Badge({ tone = "gray", children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
-  return <span className={cn("inline-flex items-center rounded border px-1.5 py-px text-[11px] font-extrabold", T[tone], className)}>{children}</span>;
+  return <span className={cn("inline-flex items-center rounded-xl border px-1.5 py-px text-xs font-extrabold", T[tone], className)}>{children}</span>;
 }
 
 const STATUS_TONE: Record<string, Tone> = {
@@ -75,36 +77,40 @@ const STATUS_TONE: Record<string, Tone> = {
   escalated: "orange", needs_human: "gold",
   failed: "red", archived: "gray",
 };
-export const StatusBadge = ({ status }: { status: string }) => <Badge tone={STATUS_TONE[status] ?? "gray"}>{status}</Badge>;
+export function StatusBadge({ status }: { status: string }) {
+  const t = useT();
+  const label = t(`admin.status.${status}`);
+  return <Badge tone={STATUS_TONE[status] ?? "gray"}>{label === `admin.status.${status}` ? status : label}</Badge>;
+}
 
 export function Spinner() {
   return <span className="inline-block size-4 animate-spin rounded-full border-2 border-line border-t-blue" />;
 }
 export function PageHeader({ title, sub, actions }: { title: string; sub?: string; actions?: ReactNode }) {
   return (
-    <div className="flex items-end justify-between gap-3 border-b border-line bg-white px-5 py-3">
-      <div>
+    <div className="flex flex-col gap-2 border-b border-line bg-white px-3 py-3 sm:flex-row sm:items-end sm:justify-between sm:gap-3 sm:px-5">
+      <div className="min-w-0">
         <h1 className="text-lg leading-tight">{title}</h1>
         {sub && <p className="text-xs text-ink-soft">{sub}</p>}
       </div>
-      <div className="flex items-center gap-2">{actions}</div>
+      <div className="flex flex-wrap items-center gap-2">{actions}</div>
     </div>
   );
 }
 export function Toolbar({ children }: { children: ReactNode }) {
-  return <div className="flex flex-wrap items-end gap-2 border-b border-line bg-white px-5 py-2">{children}</div>;
+  return <div className="flex flex-wrap items-end gap-2 border-b border-line bg-white px-3 py-2 sm:px-5 max-sm:[&>label]:min-w-[40%] max-sm:[&>label]:flex-1">{children}</div>;
 }
 export function Empty({ children }: { children: ReactNode }) {
   return <div className="p-8 text-center text-ink-soft">{children}</div>;
 }
 export function ErrorBox({ error }: { error: unknown }) {
-  return <div className="m-4 rounded-md border border-red bg-red-soft px-3 py-2 text-red-deep">{error instanceof Error ? error.message : String(error)}</div>;
+  return <div role="alert" className="m-4 rounded-xl border border-red bg-red-soft px-3 py-2 text-red-deep">{errMsg(error)}</div>;
 }
 export function Tabs<T extends string>({ value, onChange, items }: { value: T; onChange: (v: T) => void; items: { id: T; label: string }[] }) {
   return (
-    <div className="flex gap-1 border-b border-line bg-white px-5">
+    <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-line bg-white px-3 sm:px-5">
       {items.map((i) => (
-        <button key={i.id} type="button" onClick={() => onChange(i.id)} className={cn("-mb-px border-b-2 px-3 py-2 text-[13px] font-extrabold", value === i.id ? "border-blue text-blue-deep" : "border-transparent text-ink-soft hover:text-ink")}>
+        <button key={i.id} type="button" role="tab" aria-selected={value === i.id} onClick={() => onChange(i.id)} className={cn("-mb-px shrink-0 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-extrabold", value === i.id ? "border-blue text-blue-deep" : "border-transparent text-ink-soft hover:text-ink")}>
           {i.label}
         </button>
       ))}

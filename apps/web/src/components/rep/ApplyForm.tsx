@@ -40,7 +40,7 @@ export function ApplyForm({ lyceumId, rejected, onApplied }: { lyceumId: string;
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder={t("rep.apply.proofHint")}
-            className="rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-blue focus:bg-white"
+            className="rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-brand focus:bg-white"
           />
         </label>
         {err && <p role="alert" className="text-sm font-bold text-red-deep">{err}</p>}

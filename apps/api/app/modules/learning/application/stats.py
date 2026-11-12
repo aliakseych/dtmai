@@ -15,7 +15,10 @@ def _now() -> datetime:
 
 class StatsService:
     def __init__(
-        self, answers: AnswerStatsPort, progress: ProgressPort, mocks: MockResultsPort,
+        self,
+        answers: AnswerStatsPort,
+        progress: ProgressPort,
+        mocks: MockResultsPort,
         clock: Callable[[], datetime] = _now,
     ) -> None:
         self._answers = answers

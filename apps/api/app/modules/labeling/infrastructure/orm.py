@@ -105,7 +105,10 @@ class DecisionRow(Base):
 
 class AuditSampleRow(Base):
     __tablename__ = "audit_samples"
-    __table_args__ = (Index("ix_audit_open", "completed_at", "subject_id", "language"), {"schema": SCHEMA})
+    __table_args__ = (
+        Index("ix_audit_open", "completed_at", "subject_id", "language"),
+        {"schema": SCHEMA},
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(_UUID, primary_key=True)
     batch_id: Mapped[uuid.UUID] = mapped_column(_UUID, index=True)
@@ -152,7 +155,9 @@ class GenerationRunRow(Base):
     requested: Mapped[int] = mapped_column(Integer)
     difficulty: Mapped[float | None] = mapped_column(Float)
     prompt_template: Mapped[str | None] = mapped_column(Text)
-    status: Mapped[str] = mapped_column(String(12), default="pending")  # pending|running|done|failed
+    status: Mapped[str] = mapped_column(
+        String(12), default="pending"
+    )  # pending|running|done|failed
     created_count: Mapped[int] = mapped_column(Integer, default=0)
     failed_count: Mapped[int] = mapped_column(Integer, default=0)
     error: Mapped[str | None] = mapped_column(Text)
@@ -172,11 +177,15 @@ class ImportBatchRow(Base):
     subject_id: Mapped[uuid.UUID] = mapped_column(_UUID)
     language: Mapped[str] = mapped_column(String(10))
     base: Mapped[str | None] = mapped_column(String(120))  # mock/paper name
-    topic_id: Mapped[uuid.UUID | None] = mapped_column(_UUID)  # default topic for extracted questions
+    topic_id: Mapped[uuid.UUID | None] = mapped_column(
+        _UUID
+    )  # default topic for extracted questions
     type_ids: Mapped[dict[str, str]] = mapped_column(JSON, default=dict)  # kind -> question type id
     has_answer_key: Mapped[bool] = mapped_column(Boolean, default=False)
     root: Mapped[str] = mapped_column(String(500))  # local path or s3://bucket/prefix
-    status: Mapped[str] = mapped_column(String(12), default="pending")  # pending|running|done|failed
+    status: Mapped[str] = mapped_column(
+        String(12), default="pending"
+    )  # pending|running|done|failed
     files_total: Mapped[int] = mapped_column(Integer, default=0)
     files_done: Mapped[int] = mapped_column(Integer, default=0)
     questions_created: Mapped[int] = mapped_column(Integer, default=0)
@@ -197,7 +206,9 @@ class ImportFileRow(Base):
     path: Mapped[str] = mapped_column(String(600))
     page: Mapped[int | None] = mapped_column(Integer)
     status: Mapped[str] = mapped_column(String(12), default="pending")  # pending|done|failed
-    extracted: Mapped[dict[str, Any] | None] = mapped_column(JSON)  # raw parsed extraction (per page)
+    extracted: Mapped[dict[str, Any] | None] = mapped_column(
+        JSON
+    )  # raw parsed extraction (per page)
     question_ids: Mapped[list[str]] = mapped_column(JSON, default=list)
     error: Mapped[str | None] = mapped_column(Text)
     processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

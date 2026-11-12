@@ -35,7 +35,7 @@ export function LyceumsView() {
           onChange={(e) => setQ(e.target.value)}
           placeholder={t("lyceums.search")}
           aria-label={t("lyceums.search")}
-          className="w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-blue focus:bg-white"
+          className="w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-brand focus:bg-white"
         />
         <ChoiceDropdown
           className="sm:w-56"

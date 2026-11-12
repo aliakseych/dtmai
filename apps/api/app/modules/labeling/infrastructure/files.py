@@ -74,7 +74,10 @@ class S3FileStore:
         s = get_settings()
         self._bucket = s.s3_bucket
         self._c = boto3.client(
-            "s3", endpoint_url=s.s3_endpoint, aws_access_key_id=s.s3_access_key, aws_secret_access_key=s.s3_secret_key
+            "s3",
+            endpoint_url=s.s3_endpoint,
+            aws_access_key_id=s.s3_access_key,
+            aws_secret_access_key=s.s3_secret_key,
         )
 
     @staticmethod
@@ -88,7 +91,9 @@ class S3FileStore:
 
         def run() -> list[str]:
             out: list[str] = []
-            for page in self._c.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix=prefix):
+            for page in self._c.get_paginator("list_objects_v2").paginate(
+                Bucket=bucket, Prefix=prefix
+            ):
                 for o in page.get("Contents", []):
                     if Path(o["Key"]).suffix.lower() in SUPPORTED_EXT:
                         out.append(f"s3://{bucket}/{o['Key']}")
@@ -102,13 +107,17 @@ class S3FileStore:
         return await asyncio.to_thread(obj["Body"].read)
 
     async def put_public(self, key: str, data: bytes, mime: str) -> str | None:
-        await asyncio.to_thread(self._c.put_object, Bucket=self._bucket, Key=key, Body=data, ContentType=mime)
+        await asyncio.to_thread(
+            self._c.put_object, Bucket=self._bucket, Key=key, Body=data, ContentType=mime
+        )
         return key
 
     async def put(self, root: str, name: str, data: bytes, mime: str) -> None:
         bucket, prefix = self.split(root)
         key = f"{prefix.rstrip('/')}/{name}"
-        await asyncio.to_thread(self._c.put_object, Bucket=bucket, Key=key, Body=data, ContentType=mime)
+        await asyncio.to_thread(
+            self._c.put_object, Bucket=bucket, Key=key, Body=data, ContentType=mime
+        )
 
 
 def store_for(root: str) -> LocalFileStore | S3FileStore:
@@ -124,7 +133,9 @@ def upload_root(batch_uuid: str) -> str:
         return f"s3://{s.s3_bucket}/uploads/{batch_uuid}"
     from app.modules.labeling.infrastructure.config import get_labeling_settings
 
-    return str((Path(get_labeling_settings().labeling_upload_dir) / "uploads" / batch_uuid).resolve())
+    return str(
+        (Path(get_labeling_settings().labeling_upload_dir) / "uploads" / batch_uuid).resolve()
+    )
 
 
 class DefaultRenderer:

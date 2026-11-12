@@ -51,6 +51,7 @@ export const getToday = () => orNull(api.unwrap(api.client.GET("/v1/study-plan/t
 export const getWeek = (start?: string) => api.unwrap(api.client.GET("/v1/study-plan/week", { params: { query: { start } } }));
 export const getMonth = (year: number, month: number) => api.unwrap(api.client.GET("/v1/study-plan/month", { params: { query: { year, month } } }));
 export const completeTask = (task_id: string) => api.unwrap(api.client.POST("/v1/study-plan/tasks/{task_id}/complete", { params: { path: { task_id } } }));
+export const uncompleteTask = (task_id: string) => api.unwrap(api.client.POST("/v1/study-plan/tasks/{task_id}/uncomplete", { params: { path: { task_id } } }));
 export const getAnalytics = () => api.unwrap(api.client.GET("/v1/study-plan/analytics"));
 export const getDailyQuestions = () => api.unwrap(api.client.GET("/v1/study-plan/daily-questions"));
 export const answerDailyQuestion = (question_id: string, response: S["DailyAnswerIn"]["response"]) =>
@@ -63,3 +64,7 @@ export function taskHref(kind: TaskKind): string {
 
 /** Localized profile name with the same fallback chain as catalog names. */
 export const profileName = (p: Pick<ExamProfile, "names" | "code">, l: Locale) => pick(p.names as Names, l) || p.code;
+
+export type DreamGap = S["DreamGapOut"];
+/** Predicted score vs the dream lyceum's passing score (or just its competition ratio). */
+export const getDreamGap = () => api.unwrap(api.client.GET("/v1/study-plan/dream-gap"));

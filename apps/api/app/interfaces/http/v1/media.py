@@ -19,7 +19,15 @@ ERR: dict[int | str, dict[str, Any]] = {
     403: {"model": ProblemDetails, "description": "Forbidden"},
     422: {"model": ProblemDetails, "description": "Validation failed"},
 }
-ALLOWED = {"image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml", "audio/mpeg", "application/pdf"}
+ALLOWED = {
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "image/gif",
+    "image/svg+xml",
+    "audio/mpeg",
+    "application/pdf",
+}
 
 
 class MediaOut(BaseModel):
@@ -30,7 +38,9 @@ class MediaOut(BaseModel):
 async def upload(file: UploadFile, who: Admin) -> MediaOut:
     mime = file.content_type or mimetypes.guess_type(file.filename or "")[0] or ""
     if mime not in ALLOWED:
-        raise ValidationFailed(f"unsupported media type: {mime or 'unknown'}", code="unsupported_media")
+        raise ValidationFailed(
+            f"unsupported media type: {mime or 'unknown'}", code="unsupported_media"
+        )
     limit = MediaSettings().media_max_bytes
     data = await file.read(limit + 1)
     if len(data) > limit:

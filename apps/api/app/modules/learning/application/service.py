@@ -19,6 +19,7 @@ from app.modules.learning.domain.session import (
     SessionRec,
     can_start,
     costs_hearts,
+    lesson_unlocked,
     validate_count,
     xp_base,
 )
@@ -129,7 +130,8 @@ class LearningService:
         if not items:
             raise Conflict("no questions available", code="no_questions")
         now = self._now()
-        await self._r.abandon_open(user_id, mode, now)
+        for stale in await self._r.open_sessions(user_id, mode):
+            await self._close(stale)  # earned xp of an unfinished rush/drill is never dropped
         rec = SessionRec(
             id=new_id(),
             user_id=user_id,
@@ -171,6 +173,11 @@ class LearningService:
         ref = await self._c.lesson(lesson_id, language)
         if ref is None:
             raise NotFound("lesson not found", code="lesson_not_found")
+        done, start_unit = await self.path_progress(
+            user_id, ref.subject_id, [lid for unit in ref.path_units for lid in unit]
+        )
+        if not lesson_unlocked(ref.path_units, done, start_unit, lesson_id):
+            raise Conflict("finish the previous lessons first", code="lesson_locked")
         items = await self._c.pick(
             subject_id=ref.subject_id,
             topic_ids=ref.topic_ids,
@@ -305,6 +312,9 @@ class LearningService:
         return await self._view(rec, [i for i in pool if i.id == first.id])
 
     async def skip_placement(self, user_id: UUID, subject_id: UUID) -> PlacementView:
+        earned = await self._r.placement(user_id, subject_id)
+        if earned is not None:  # never overwrite an earned (or earlier) placement
+            return PlacementView(earned.start_unit_index, earned.ability, earned.skipped)
         await self._r.set_placement(user_id, subject_id, 0, None, True)
         return PlacementView(0, None, True)
 
@@ -389,7 +399,7 @@ class LearningService:
                 item.difficulty,
                 graded.correct,
                 level_for(item.difficulty, official=item.official),
-                (time_ms / 1000) if time_ms else None,
+                (time_ms / 1000) if time_ms is not None else None,
             )
         if not await self._r.add_attempt(
             session_id=rec.id,
@@ -442,6 +452,8 @@ class LearningService:
             if nxt:
                 next_item = (await self._c.items([nxt.id]) or [None])[0]
         await self._r.save_session(rec)
+        if rec.mode is not Mode.PLACEMENT and rec.done:
+            await self._complete(rec)
 
         await publish(
             self._s,
@@ -504,41 +516,56 @@ class LearningService:
             return rush.xp(rec.correct, int(rec.meta.get("best", 0)))
         return xp_base(rec.mode, rec.correct, rec.total)
 
+    async def _complete(self, rec: SessionRec) -> None:
+        """Mark a played session completed and emit SessionCompleted (xp is settled downstream)."""
+        rec.status = COMPLETED
+        rec.finished_at = self._now()
+        await self._r.save_session(rec)
+        # Rush is judged on what was answered, so the xp ceiling is per answered item.
+        scored_total = rec.answered if rec.mode is Mode.RUSH else rec.total
+        await publish(
+            self._s,
+            Event(
+                "SessionCompleted",
+                {
+                    "user_id": str(rec.user_id),
+                    "session_id": str(rec.id),
+                    "mode": rec.mode.value,
+                    "xp_base": self._xp(rec),
+                    "correct": rec.correct,
+                    "total": scored_total,
+                },
+            ),
+        )
+
+    async def _close(self, rec: SessionRec) -> int | None:
+        """Settle an in-progress session: complete it when played, abandon otherwise.
+        Returns the placement start unit when one was earned."""
+        unit: int | None = None
+        if rec.mode is Mode.PLACEMENT:
+            state = self._state(rec)
+            if state.finished and rec.subject_id:
+                units = await self._c.unit_count(rec.subject_id, rec.language)
+                unit = start_unit_index(state.theta, units)
+                await self._r.set_placement(rec.user_id, rec.subject_id, unit, state.theta, False)
+                rec.status = COMPLETED
+            else:
+                rec.status = ABANDONED
+            rec.finished_at = self._now()
+            await self._r.save_session(rec)
+        elif rec.done or (rec.mode is Mode.RUSH and rec.answered > 0):
+            await self._complete(rec)
+        else:
+            rec.status = ABANDONED
+            rec.finished_at = self._now()
+            await self._r.save_session(rec)
+        return unit
+
     async def finish(self, user_id: UUID, session_id: UUID) -> FinishView:
         rec = await self._owned(user_id, session_id, lock=True)
         unit: int | None = None
         if rec.status == IN_PROGRESS:
-            rec.finished_at = self._now()
-            if rec.mode is Mode.PLACEMENT:
-                state = self._state(rec)
-                if state.asked and rec.subject_id:
-                    units = await self._c.unit_count(rec.subject_id, rec.language)
-                    unit = start_unit_index(state.theta, units)
-                    await self._r.set_placement(user_id, rec.subject_id, unit, state.theta, False)
-                    rec.status = COMPLETED
-                else:
-                    rec.status = ABANDONED
-            elif rec.done or (rec.mode is Mode.RUSH and rec.answered > 0):
-                rec.status = COMPLETED
-                # Rush is judged on what was answered, so the xp ceiling is per answered item.
-                scored_total = rec.answered if rec.mode is Mode.RUSH else rec.total
-                await publish(
-                    self._s,
-                    Event(
-                        "SessionCompleted",
-                        {
-                            "user_id": str(user_id),
-                            "session_id": str(rec.id),
-                            "mode": rec.mode.value,
-                            "xp_base": self._xp(rec),
-                            "correct": rec.correct,
-                            "total": scored_total,
-                        },
-                    ),
-                )
-            else:
-                rec.status = ABANDONED
-            await self._r.save_session(rec)
+            unit = await self._close(rec)
         elif rec.mode is Mode.PLACEMENT and rec.subject_id:
             p = await self._r.placement(user_id, rec.subject_id)
             unit = p.start_unit_index if p else None

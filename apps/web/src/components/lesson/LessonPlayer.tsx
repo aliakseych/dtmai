@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@dtmai/api-client";
-import { Button, buttonClass, ConfirmModal, HeartsStat, Mascot, ProgressBar, Sheet } from "@dtmai/ui";
+import { Button, buttonClass, ConfirmModal, HeartsStat, Mascot, ProgressBar, Sheet, Icon } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
 import { GoalRing } from "@/components/GoalRing";
@@ -46,7 +46,7 @@ export function LessonPlayer({ load, exitHref, doneHref, lessonId }: { load: () 
   const { state, reload } = useAsync(start, [start]);
   if (state.status === "error" && isNoHearts(state.error)) return <HeartsGate exitHref={exitHref} onRetry={reload} />;
   return (
-    <AsyncView state={state} onRetry={reload} isEmpty={(s) => s.items.length === 0 && s.answered === 0}>
+    <AsyncView state={state} onRetry={reload} exitHref={exitHref} isEmpty={(s) => s.items.length === 0 && s.answered === 0}>
       {(s) => <TheoryFirst session={s} lessonId={lessonId} exitHref={exitHref} doneHref={doneHref ?? exitHref} />}
     </AsyncView>
   );
@@ -248,8 +248,8 @@ function Runner({ session, exitHref, doneHref, theory }: { session: SessionOut; 
   return (
     <div className="mx-auto flex min-h-dvh max-w-3xl flex-col px-4">
       <header className="flex items-center gap-4 py-5">
-        <button type="button" aria-label={t("lesson.exit")} className="text-3xl font-extrabold text-ink-soft" onClick={askExit}>
-          ×
+        <button type="button" aria-label={t("lesson.exit")} className="grid size-10 shrink-0 place-items-center rounded-xl text-ink-soft hover:bg-snow" onClick={askExit}>
+          <Icon name="close" />
         </button>
         <ProgressBar value={Math.min(session.answered + index + (phase === "feedback" ? 1 : 0), result?.total ?? session.total)} max={result?.total ?? session.total} label={t("lesson.progress")} />
         {costs && <HeartsStat value={unlimited ? "∞" : (hearts ?? 0)} label={t("stat.hearts")} />}

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { buttonClass, Card, cn } from "@dtmai/ui";
+import { buttonClass, Card, cn, Icon } from "@dtmai/ui";
 import { useLocale, useT, type MessageKey } from "@dtmai/i18n";
 import { api } from "@/lib/api";
 import { useBilling } from "@/lib/billing";
@@ -52,7 +52,7 @@ function PlanCard({ id, featured, count }: { id: "free" | "premium"; featured?: 
       <ul className="flex flex-1 flex-col gap-2 text-ink">
         {Array.from({ length: count }, (_, i) => (
           <li key={i} className="flex gap-2">
-            <span className="text-green">✓</span>
+            <Icon name="check" size={20} className="mt-0.5 text-brand" />
             {t(`plan.${id}.f${i + 1}` as MessageKey)}
           </li>
         ))}

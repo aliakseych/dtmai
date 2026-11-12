@@ -11,15 +11,33 @@ class Message:
 
 _CATALOG: dict[Kind, dict[str, Message]] = {
     Kind.STREAK_REMINDER: {
-        "uz-Latn": Message("Seriyangizni saqlang! 🔥", "Bugun {streak} kunlik seriya xavf ostida. 5 daqiqa mashq qiling."),
-        "uz-Cyrl": Message("Серияингизни сақланг! 🔥", "Бугун {streak} кунлик серия хавф остида. 5 дақиқа машқ қилинг."),
-        "ru": Message("Сохраните серию! 🔥", "Серия в {streak} дн. под угрозой. Позанимайтесь 5 минут."),
-        "en": Message("Save your streak! 🔥", "Your {streak}-day streak is at risk. Practise for 5 minutes."),
+        "uz-Latn": Message(
+            "Seriyangizni saqlang! 🔥",
+            "Bugun {streak} kunlik seriya xavf ostida. 5 daqiqa mashq qiling.",
+        ),
+        "uz-Cyrl": Message(
+            "Серияингизни сақланг! 🔥",
+            "Бугун {streak} кунлик серия хавф остида. 5 дақиқа машқ қилинг.",
+        ),
+        "ru": Message(
+            "Сохраните серию! 🔥", "Серия в {streak} дн. под угрозой. Позанимайтесь 5 минут."
+        ),
+        "en": Message(
+            "Save your streak! 🔥", "Your {streak}-day streak is at risk. Practise for 5 minutes."
+        ),
     },
     Kind.LEAGUE_ENDING: {
-        "uz-Latn": Message("Liga tugashiga oz qoldi ⏳", "Haftalik liga tez orada yakunlanadi. O‘rningizni mustahkamlang!"),
-        "uz-Cyrl": Message("Лига тугашига оз қолди ⏳", "Ҳафталик лига тез орада якунланади. Ўрнингизни мустаҳкамланг!"),
-        "ru": Message("Лига скоро закончится ⏳", "Недельная лига скоро завершится. Закрепите своё место!"),
+        "uz-Latn": Message(
+            "Liga tugashiga oz qoldi ⏳",
+            "Haftalik liga tez orada yakunlanadi. O‘rningizni mustahkamlang!",
+        ),
+        "uz-Cyrl": Message(
+            "Лига тугашига оз қолди ⏳",
+            "Ҳафталик лига тез орада якунланади. Ўрнингизни мустаҳкамланг!",
+        ),
+        "ru": Message(
+            "Лига скоро закончится ⏳", "Недельная лига скоро завершится. Закрепите своё место!"
+        ),
         "en": Message("League ends soon ⏳", "The weekly league ends soon. Secure your spot!"),
     },
     Kind.DAILY_QUESTION: {

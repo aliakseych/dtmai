@@ -52,6 +52,7 @@ def pick_templates(
     templates: list[QuestTemplate], user_id: UUID, day: date, count: int
 ) -> list[QuestTemplate]:
     """Stable pseudo-random choice so a user sees the same quests all day."""
+
     def key(t: QuestTemplate) -> str:
         return sha256(f"{user_id}:{day.isoformat()}:{t.code}".encode()).hexdigest()
 

@@ -1,4 +1,5 @@
 "use client";
+import { useT } from "@/lib/i18n";
 import { Input } from "@/components/ui/controls";
 import { Md } from "@/components/ui/markdown";
 import { optsOf } from "./answer";
@@ -82,24 +83,25 @@ export function sameAnswer(kind: string, a: R | null | undefined, b: R | null | 
  * required input on Enter and to confirm when all are filled. The first input autofocuses on mount (parent keys by question id).
  */
 export function TypedInput({ kind, payload, draft, onChange }: { kind: string; payload: R; draft: Draft; onChange: (d: Draft) => void }) {
+  const t = useT();
   const set = (k: string, v: string) => onChange({ ...draft, [k]: v });
   const label = "text-xs font-extrabold uppercase text-ink-soft";
   if (kind === "numeric") {
     return (
       <div className="flex gap-3">
-        <label className="flex-1 space-y-1"><span className={label}>Value</span><Input autoFocus data-answer="req" inputMode="decimal" value={draft.value ?? ""} onChange={(e) => set("value", e.target.value)} /></label>
-        <label className="w-40 space-y-1"><span className={label}>± tolerance</span><Input data-answer="opt" inputMode="decimal" value={draft.tolerance ?? ""} onChange={(e) => set("tolerance", e.target.value)} /></label>
+        <label className="flex-1 space-y-1"><span className={label}>{t("admin.common.value")}</span><Input autoFocus data-answer="req" inputMode="decimal" value={draft.value ?? ""} onChange={(e) => set("value", e.target.value)} /></label>
+        <label className="w-full space-y-1 sm:w-40"><span className={label}>{t("admin.labeling.tolerance")}</span><Input data-answer="opt" inputMode="decimal" value={draft.tolerance ?? ""} onChange={(e) => set("tolerance", e.target.value)} /></label>
       </div>
     );
   }
   if (kind === "short_text") {
-    return <label className="block space-y-1"><span className={label}>Accepted answers — separate variants with |</span><Input autoFocus data-answer="req" value={draft.text ?? ""} onChange={(e) => set("text", e.target.value)} /></label>;
+    return <label className="block space-y-1"><span className={label}>{t("admin.labeling.acceptedAnswersSeparateVariants")}</span><Input autoFocus data-answer="req" value={draft.text ?? ""} onChange={(e) => set("text", e.target.value)} /></label>;
   }
   if (kind === "matching") {
     const left = optsOf(payload, "left");
     return (
       <div className="space-y-2">
-        <span className={label}>Type the right-hand id for each left item — Enter moves on</span>
+        <span className={label}>{t("admin.labeling.typeTheRightHand")}</span>
         {left.map((l, i) => (
           <label key={l.id} className="flex items-center gap-3">
             <code className="w-8">{l.id}</code>
@@ -111,7 +113,7 @@ export function TypedInput({ kind, payload, draft, onChange }: { kind: string; p
     );
   }
   if (kind === "ordering") {
-    return <label className="block space-y-1"><span className={label}>Correct order — item ids separated by space or comma</span><Input autoFocus data-answer="req" value={draft.text ?? ""} onChange={(e) => set("text", e.target.value)} /></label>;
+    return <label className="block space-y-1"><span className={label}>{t("admin.labeling.correctOrderItemIds")}</span><Input autoFocus data-answer="req" value={draft.text ?? ""} onChange={(e) => set("text", e.target.value)} /></label>;
   }
   return null;
 }

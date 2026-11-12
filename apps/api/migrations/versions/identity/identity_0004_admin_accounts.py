@@ -18,8 +18,16 @@ S = "identity"
 
 def upgrade() -> None:
     op.add_column("users", sa.Column("telegram_username", sa.String(64), nullable=True), schema=S)
-    op.add_column("users", sa.Column("status", sa.String(10), nullable=False, server_default="active"), schema=S)
-    op.add_column("users", sa.Column("is_system", sa.Boolean(), nullable=False, server_default="false"), schema=S)
+    op.add_column(
+        "users",
+        sa.Column("status", sa.String(10), nullable=False, server_default="active"),
+        schema=S,
+    )
+    op.add_column(
+        "users",
+        sa.Column("is_system", sa.Boolean(), nullable=False, server_default="false"),
+        schema=S,
+    )
 
 
 def downgrade() -> None:

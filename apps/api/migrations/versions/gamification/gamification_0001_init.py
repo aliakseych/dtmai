@@ -21,7 +21,9 @@ _UUID = sa.Uuid()
 
 def _ts(name: str, nullable: bool = False, default: bool = True) -> sa.Column:
     return sa.Column(
-        name, sa.DateTime(timezone=True), nullable=nullable,
+        name,
+        sa.DateTime(timezone=True),
+        nullable=nullable,
         server_default=sa.func.now() if default else None,
     )
 
@@ -143,7 +145,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name="pk_league_cohorts"),
         schema=S,
     )
-    op.create_index("ix_league_cohorts_week_tier", "league_cohorts", ["week_start", "tier_idx"], schema=S)
+    op.create_index(
+        "ix_league_cohorts_week_tier", "league_cohorts", ["week_start", "tier_idx"], schema=S
+    )
 
     op.create_table(
         "league_members",
@@ -156,8 +160,10 @@ def upgrade() -> None:
         sa.Column("outcome", sa.String(10)),
         sa.PrimaryKeyConstraint("cohort_id", "user_id", name="pk_league_members"),
         sa.ForeignKeyConstraint(
-            ["cohort_id"], [f"{S}.league_cohorts.id"],
-            name="fk_league_members_cohort_id_league_cohorts", ondelete="CASCADE",
+            ["cohort_id"],
+            [f"{S}.league_cohorts.id"],
+            name="fk_league_members_cohort_id_league_cohorts",
+            ondelete="CASCADE",
         ),
         sa.UniqueConstraint("user_id", "week_start", name="uq_league_members_user_week"),
         schema=S,
@@ -202,52 +208,160 @@ def upgrade() -> None:
         schema=S,
     )
 
-    op.bulk_insert(game_config, [{"id": 1, "values": {
-        "heart_refill_minutes": 60, "xp_daily_cap": 600, "xp_session_cap": 150, "xp_per_item_cap": 10,
-        "mock_xp": 50, "freeze_cost_gems": 50, "freeze_max": 2, "review_correct_per_heart": 3,
-        "daily_quest_count": 3,
-    }}])
+    op.bulk_insert(
+        game_config,
+        [
+            {
+                "id": 1,
+                "values": {
+                    "heart_refill_minutes": 60,
+                    "xp_daily_cap": 600,
+                    "xp_session_cap": 150,
+                    "xp_per_item_cap": 10,
+                    "mock_xp": 50,
+                    "freeze_cost_gems": 50,
+                    "freeze_max": 2,
+                    "review_correct_per_heart": 3,
+                    "daily_quest_count": 3,
+                },
+            }
+        ],
+    )
 
-    tiers = [("bronze", "Bronza", "Бронза", "Bronze"), ("silver", "Kumush", "Серебро", "Silver"),
-             ("gold", "Oltin", "Золото", "Gold"), ("platinum", "Platina", "Платина", "Platinum"),
-             ("diamond", "Olmos", "Алмаз", "Diamond")]
-    op.bulk_insert(league_tiers, [
-        {"idx": i, "code": c, "name": {"uz-Latn": u, "uz-Cyrl": u, "ru": r, "en": e},
-         "cohort_size": 30, "promote_count": 5, "demote_count": 0 if i == 0 else 5}
-        for i, (c, u, r, e) in enumerate(tiers)
-    ])
+    tiers = [
+        ("bronze", "Bronza", "Бронза", "Bronze"),
+        ("silver", "Kumush", "Серебро", "Silver"),
+        ("gold", "Oltin", "Золото", "Gold"),
+        ("platinum", "Platina", "Платина", "Platinum"),
+        ("diamond", "Olmos", "Алмаз", "Diamond"),
+    ]
+    op.bulk_insert(
+        league_tiers,
+        [
+            {
+                "idx": i,
+                "code": c,
+                "name": {"uz-Latn": u, "uz-Cyrl": u, "ru": r, "en": e},
+                "cohort_size": 30,
+                "promote_count": 5,
+                "demote_count": 0 if i == 0 else 5,
+            }
+            for i, (c, u, r, e) in enumerate(tiers)
+        ],
+    )
 
     def t(uz: str, ru: str, en: str) -> dict[str, str]:
         return {"uz-Latn": uz, "uz-Cyrl": uz, "ru": ru, "en": en}
 
     quests = [
-        ("earn_50_xp", "xp_earned", 50, 5, 0, t("50 XP to'plang", "Заработайте 50 XP", "Earn 50 XP")),
-        ("earn_100_xp", "xp_earned", 100, 10, 0, t("100 XP to'plang", "Заработайте 100 XP", "Earn 100 XP")),
-        ("complete_1_lesson", "lessons_completed", 1, 5, 0, t("1 ta dars tugating", "Пройдите 1 урок", "Complete 1 lesson")),
-        ("complete_3_lessons", "lessons_completed", 3, 10, 0, t("3 ta dars tugating", "Пройдите 3 урока", "Complete 3 lessons")),
-        ("correct_15", "correct_answers", 15, 5, 0, t("15 ta to'g'ri javob", "15 правильных ответов", "Get 15 answers right")),
-        ("perfect_session", "perfect_sessions", 1, 10, 0, t("Xatosiz dars", "Урок без ошибок", "Finish a lesson with no mistakes")),
-        ("review_session", "review_sessions", 1, 5, 0, t("Xatolar ustida ishlang", "Повторите ошибки", "Review your mistakes")),
+        (
+            "earn_50_xp",
+            "xp_earned",
+            50,
+            5,
+            0,
+            t("50 XP to'plang", "Заработайте 50 XP", "Earn 50 XP"),
+        ),
+        (
+            "earn_100_xp",
+            "xp_earned",
+            100,
+            10,
+            0,
+            t("100 XP to'plang", "Заработайте 100 XP", "Earn 100 XP"),
+        ),
+        (
+            "complete_1_lesson",
+            "lessons_completed",
+            1,
+            5,
+            0,
+            t("1 ta dars tugating", "Пройдите 1 урок", "Complete 1 lesson"),
+        ),
+        (
+            "complete_3_lessons",
+            "lessons_completed",
+            3,
+            10,
+            0,
+            t("3 ta dars tugating", "Пройдите 3 урока", "Complete 3 lessons"),
+        ),
+        (
+            "correct_15",
+            "correct_answers",
+            15,
+            5,
+            0,
+            t("15 ta to'g'ri javob", "15 правильных ответов", "Get 15 answers right"),
+        ),
+        (
+            "perfect_session",
+            "perfect_sessions",
+            1,
+            10,
+            0,
+            t("Xatosiz dars", "Урок без ошибок", "Finish a lesson with no mistakes"),
+        ),
+        (
+            "review_session",
+            "review_sessions",
+            1,
+            5,
+            0,
+            t("Xatolar ustida ishlang", "Повторите ошибки", "Review your mistakes"),
+        ),
     ]
-    op.bulk_insert(quest_templates, [
-        {"id": uuid.uuid4(), "code": c, "metric": m, "target": n, "reward_gems": g, "reward_xp": x,
-         "title": ti, "active": True}
-        for c, m, n, g, x, ti in quests
-    ])
+    op.bulk_insert(
+        quest_templates,
+        [
+            {
+                "id": uuid.uuid4(),
+                "code": c,
+                "metric": m,
+                "target": n,
+                "reward_gems": g,
+                "reward_xp": x,
+                "title": ti,
+                "active": True,
+            }
+            for c, m, n, g, x, ti in quests
+        ],
+    )
 
     ach = [
         ("streak_7", "streak_longest", 7, 20, t("7 kunlik seriya", "Серия 7 дней", "7-day streak")),
-        ("streak_30", "streak_longest", 30, 100, t("30 kunlik seriya", "Серия 30 дней", "30-day streak")),
+        (
+            "streak_30",
+            "streak_longest",
+            30,
+            100,
+            t("30 kunlik seriya", "Серия 30 дней", "30-day streak"),
+        ),
         ("xp_1000", "xp_total", 1000, 20, t("1000 XP", "1000 XP", "1000 XP")),
         ("xp_10000", "xp_total", 10000, 100, t("10 000 XP", "10 000 XP", "10,000 XP")),
         ("lessons_10", "lessons_completed", 10, 20, t("10 ta dars", "10 уроков", "10 lessons")),
-        ("correct_500", "correct_total", 500, 50, t("500 to'g'ri javob", "500 правильных ответов", "500 correct answers")),
-        ("first_mock", "mocks_submitted", 1, 20, t("Birinchi mock", "Первый пробный экзамен", "First mock exam")),
+        (
+            "correct_500",
+            "correct_total",
+            500,
+            50,
+            t("500 to'g'ri javob", "500 правильных ответов", "500 correct answers"),
+        ),
+        (
+            "first_mock",
+            "mocks_submitted",
+            1,
+            20,
+            t("Birinchi mock", "Первый пробный экзамен", "First mock exam"),
+        ),
     ]
-    op.bulk_insert(achievement_defs, [
-        {"code": c, "metric": m, "threshold": n, "reward_gems": g, "title": ti, "active": True}
-        for c, m, n, g, ti in ach
-    ])
+    op.bulk_insert(
+        achievement_defs,
+        [
+            {"code": c, "metric": m, "threshold": n, "reward_gems": g, "title": ti, "active": True}
+            for c, m, n, g, ti in ach
+        ],
+    )
 
 
 def downgrade() -> None:

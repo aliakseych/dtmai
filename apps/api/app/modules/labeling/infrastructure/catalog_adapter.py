@@ -108,6 +108,10 @@ async def ordered_topics(session: AsyncSession, subject_id: UUID) -> list[tuple[
         if not _s(t, "active", default=True):
             continue
         names = _s(t, "names", default={}) or {}
-        label = names.get("en") or next(iter(names.values()), "") if isinstance(names, dict) else str(names)
+        label = (
+            names.get("en") or next(iter(names.values()), "")
+            if isinstance(names, dict)
+            else str(names)
+        )
         out.append((_s(t, "id"), str(label or _s(t, "code", default=""))))
     return out

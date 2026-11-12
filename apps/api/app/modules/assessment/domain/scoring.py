@@ -44,14 +44,24 @@ def score(items: list[Scored], weights: list[float]) -> ScoreResult:
     subjects: dict[str, float] = defaultdict(float)
     for idx, group in per_section.items():
         w = weights[idx]
-        subjects[group[0].subject_id] += sum(g.correct for g in group) / len(group) * POINTS_PER_SECTION * w
+        subjects[group[0].subject_id] += (
+            sum(g.correct for g in group) / len(group) * POINTS_PER_SECTION * w
+        )
     cells: dict[tuple[str | None, str], list[int]] = defaultdict(lambda: [0, 0])
     for it in items:
         c = cells[(it.topic_id, it.type_id)]
         c[0] += 1 if it.correct else 0
         c[1] += 1
-    rows = [BreakdownRow(t, ty, c, n) for (t, ty), (c, n) in sorted(cells.items(), key=lambda kv: str(kv[0]))]
+    rows = [
+        BreakdownRow(t, ty, c, n)
+        for (t, ty), (c, n) in sorted(cells.items(), key=lambda kv: str(kv[0]))
+    ]
     sub = {k: round(v, 2) for k, v in subjects.items()}
     return ScoreResult(
-        round(sum(subjects.values()), 2), max_score(weights), sub, sum(i.correct for i in items), len(items), rows
+        round(sum(subjects.values()), 2),
+        max_score([weights[i] for i in per_section]),
+        sub,
+        sum(i.correct for i in items),
+        len(items),
+        rows,
     )

@@ -14,11 +14,17 @@ from app.shared.db import get_session, get_sessionmaker
 
 def build_assessment_service(session: AsyncSession) -> AssessmentService:
     return AssessmentService(
-        SqlAttemptRepository(session), FacadeContent(session), FacadeUsers(session), get_benchmark_port, session
+        SqlAttemptRepository(session),
+        FacadeContent(session),
+        FacadeUsers(session),
+        get_benchmark_port,
+        session,
     )
 
 
-async def get_assessment_service(session: Annotated[AsyncSession, Depends(get_session)]) -> AssessmentService:
+async def get_assessment_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> AssessmentService:
     return build_assessment_service(session)
 
 

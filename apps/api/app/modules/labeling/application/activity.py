@@ -13,19 +13,30 @@ from app.modules.labeling.infrastructure.orm import ActivityRow
 from app.shared.errors import ValidationFailed
 from app.shared.ids import new_id
 
-ACTIVITY_SORTS = {"created_at": ActivityRow.created_at, "duration_ms": ActivityRow.duration_ms,
-                  "action": ActivityRow.action}
+ACTIVITY_SORTS = {
+    "created_at": ActivityRow.created_at,
+    "duration_ms": ActivityRow.duration_ms,
+    "action": ActivityRow.action,
+}
 LEADERBOARD_SORTS = ("labeled", "approved", "rejected", "avg_duration")
 
 
 def record_activity(
-    session: AsyncSession, actor: UUID, action: str, question_id: UUID | None,
-    payload: dict[str, Any] | None = None, duration_ms: int | None = None,
+    session: AsyncSession,
+    actor: UUID,
+    action: str,
+    question_id: UUID | None,
+    payload: dict[str, Any] | None = None,
+    duration_ms: int | None = None,
 ) -> ActivityRow:
     """Queue one activity row on the caller's transaction (flushed with the surrounding work)."""
     row = ActivityRow(
-        id=new_id(), actor_user_id=actor, action=action, question_id=question_id,
-        payload=payload or {}, duration_ms=duration_ms,
+        id=new_id(),
+        actor_user_id=actor,
+        action=action,
+        question_id=question_id,
+        payload=payload or {},
+        duration_ms=duration_ms,
     )
     session.add(row)
     return row
@@ -54,8 +65,16 @@ class ActivityService:
         self._s = session
 
     async def list_activity(
-        self, *, actor_id: UUID | None, action: str | None, start: datetime | None, end: datetime | None,
-        sort: str, descending: bool, page: int, size: int,
+        self,
+        *,
+        actor_id: UUID | None,
+        action: str | None,
+        start: datetime | None,
+        end: datetime | None,
+        sort: str,
+        descending: bool,
+        page: int,
+        size: int,
     ) -> tuple[int, list[ActivityRow]]:
         if action is not None and action not in ACTIONS:
             raise ValidationFailed(f"unknown action {action}", code="bad_action")
@@ -68,11 +87,19 @@ class ActivityService:
         if action is not None:
             conds.append(ActivityRow.action == action)
         base = _window(select(ActivityRow).where(*conds), start, end)
-        total = (await self._s.execute(select(func.count()).select_from(base.subquery()))).scalar_one()
+        total = (
+            await self._s.execute(select(func.count()).select_from(base.subquery()))
+        ).scalar_one()
         order = column.desc() if descending else column.asc()
         rows = (
-            await self._s.execute(base.order_by(order, ActivityRow.id).limit(size).offset((page - 1) * size))
-        ).scalars().all()
+            (
+                await self._s.execute(
+                    base.order_by(order, ActivityRow.id).limit(size).offset((page - 1) * size)
+                )
+            )
+            .scalars()
+            .all()
+        )
         return total, list(rows)
 
     async def leaderboard(
@@ -91,14 +118,19 @@ class ActivityService:
                 func.avg(case((is_decision, a.duration_ms))),
                 func.max(a.created_at),
             ).group_by(a.actor_user_id),
-            start, end,
+            start,
+            end,
         )
-        entries = [LeaderboardEntry(r[0], r[1], r[2], r[3], None if r[4] is None else float(r[4]), r[5])
-                   for r in (await self._s.execute(stmt)).all()]
+        entries = [
+            LeaderboardEntry(r[0], r[1], r[2], r[3], None if r[4] is None else float(r[4]), r[5])
+            for r in (await self._s.execute(stmt)).all()
+        ]
         return sort_leaderboard(entries, sort, descending)
 
 
-def sort_leaderboard(entries: list[LeaderboardEntry], sort: str, descending: bool) -> list[LeaderboardEntry]:
+def sort_leaderboard(
+    entries: list[LeaderboardEntry], sort: str, descending: bool
+) -> list[LeaderboardEntry]:
     """Missing averages sort last in either direction."""
     key = {
         "labeled": lambda e: e.labeled,

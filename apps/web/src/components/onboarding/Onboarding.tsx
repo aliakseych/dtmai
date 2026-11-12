@@ -25,13 +25,14 @@ export function Onboarding() {
   const t = useT();
   const { locale } = useLocale();
   const router = useRouter();
-  const { isGuest, reloadMe } = useAuth();
-  const [i, setI] = useState(0);
-  const [city, setCity] = useState<CityChoice>(undefined);
-  const [lyceumIds, setLyceumIds] = useState<string[]>([]);
-  const [languageId, setLanguageId] = useState<string | null>(null);
-  const [subjectIds, setSubjectIds] = useState<string[]>([]);
-  const [fieldCode, setFieldCode] = useState<string | null>(null);
+  const { isGuest, reloadMe, me } = useAuth();
+  // Resume: prefill from the saved profile and open the first unanswered step.
+  const [i, setI] = useState(() => (!me?.city ? 0 : !me.education_language_id ? 1 : me.dream_lyceum_ids.length === 0 ? 2 : !me.field_code ? 3 : 6));
+  const [city, setCity] = useState<CityChoice>(me?.city ?? undefined);
+  const [lyceumIds, setLyceumIds] = useState<string[]>(me?.dream_lyceum_ids ?? []);
+  const [languageId, setLanguageId] = useState<string | null>(me?.education_language_id ?? null);
+  const [subjectIds, setSubjectIds] = useState<string[]>(me?.subject_ids ?? []);
+  const [fieldCode, setFieldCode] = useState<string | null>(me?.field_code ?? null);
   const [placing, setPlacing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [saveError, setSaveError] = useState(false);

@@ -57,7 +57,9 @@ class QuestionRow(Base):
     answer: Mapped[dict[str, Any]] = mapped_column(JSONB)
     answer_official: Mapped[bool] = mapped_column(Boolean, default=False)
     difficulty: Mapped[float] = mapped_column(Float, default=1000.0)
-    passage_id: Mapped[UUID | None] = mapped_column(Uuid, ForeignKey(f"{S}.passages.id"), index=True)
+    passage_id: Mapped[UUID | None] = mapped_column(
+        Uuid, ForeignKey(f"{S}.passages.id"), index=True
+    )
     parent_id: Mapped[UUID | None] = mapped_column(Uuid, index=True)
     source_id: Mapped[UUID | None] = mapped_column(Uuid, index=True)
     source_ref: Mapped[dict[str, Any] | None] = mapped_column(JSONB)

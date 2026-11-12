@@ -24,6 +24,7 @@ __all__ = [
     "evaluate_exemptions",
     "list_events",
     "list_faq",
+    "list_profiles",
     "profile_for_direction",
 ]
 
@@ -31,6 +32,11 @@ __all__ = [
 async def profile_for_direction(session: AsyncSession, direction_code: str) -> ExamProfile | None:
     """Latest active profile (sections, certificate rules, subject choices) of a direction."""
     return await build_service(session).profile_for_direction(direction_code)
+
+
+async def list_profiles(session: AsyncSession) -> list[ExamProfile]:
+    """Active exam profiles (tracks/fields), newest year first."""
+    return await build_service(session).list_profiles(active_only=True)
 
 
 async def evaluate_exemptions(

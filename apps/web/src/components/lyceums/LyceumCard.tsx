@@ -22,7 +22,7 @@ export function LyceumCard({ summary, title, cityName, open, onToggle }: { summa
   const ratio = summary.competition;
   const year = summary.competition_year;
   return (
-    <Card className="p-3 sm:p-4">
+    <Card pad="none" className="p-3 sm:p-4">
       <button type="button" aria-expanded={open} onClick={onToggle} className="block w-full text-left">
         <div className="pb-5">
           <LyceumCover photo={summary.campus_photo_url} logo={summary.logo_url} className="h-28 sm:h-36" />

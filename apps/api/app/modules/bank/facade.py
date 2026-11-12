@@ -18,6 +18,7 @@ __all__ = [
     "QuestionDTO",
     "content_min_pool",
     "count_verified",
+    "count_verified_by_source",
     "create_passage",
     "create_question",
     "AnswerInfo",
@@ -95,7 +96,9 @@ def to_dto(q: Question) -> QuestionDTO:
 
 
 async def _with_children(svc: BankService, qs: list[Question]) -> list[QuestionDTO]:
-    child_ids = [UUID(c) for q in qs if q.kind == "passage_group" for c in q.payload.get("child_ids", [])]
+    child_ids = [
+        UUID(c) for q in qs if q.kind == "passage_group" for c in q.payload.get("child_ids", [])
+    ]
     kids = {k.id: k for k in await svc.get_many(child_ids)}
     out: list[QuestionDTO] = []
     for q in qs:
@@ -216,6 +219,16 @@ async def count_verified(
     language: str,
 ) -> int:
     return await service(session).count_verified(subject_id, topic_ids, type_ids, language)
+
+
+async def count_verified_by_source(session: AsyncSession, source_id: UUID) -> int:
+    """Verified, learner-servable questions that belong to one question base."""
+    from app.modules.bank.domain.models import QuestionFilter
+
+    _, total = await service(session).search(
+        QuestionFilter(source_id=source_id, status="verified"), 1, 0
+    )
+    return total
 
 
 def content_min_pool() -> int:

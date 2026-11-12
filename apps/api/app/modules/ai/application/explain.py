@@ -7,7 +7,11 @@ from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.ai.application.errors import AIUpstreamFailed, ExplanationLimitReached
+from app.modules.ai.application.errors import (
+    AIUpstreamFailed,
+    ExplanationLimitReached,
+    ensure_registered,
+)
 from app.modules.ai.application.gateway import AIGateway
 from app.modules.ai.domain.budget import within_quota
 from app.modules.ai.domain.locale import language_name
@@ -15,32 +19,53 @@ from app.modules.ai.domain.routing import Task
 from app.modules.ai.infrastructure.clock import tashkent_today
 from app.modules.ai.infrastructure.config import get_ai_settings
 from app.modules.ai.infrastructure.orm import ExplainUsageRow
-from app.modules.ai.ports import LLMMessage
+from app.modules.ai.ports import ActiveMockChecker, LLMMessage
 from app.modules.bank import facade as bank
 from app.shared.entitlements import entitlements_for
-from app.shared.errors import NotFound
+from app.shared.errors import Forbidden, NotFound
 
 SYSTEM = (
     "You are a patient exam tutor for the Uzbekistan lyceum entrance exam. Explain why the given "
     "correct answer is right and, briefly, why common wrong choices fail. Use Markdown with KaTeX "
-    "($...$) for math. Be concise (under 180 words). Reply ONLY with JSON: {\"explanation\": \"...\"}."
+    '($...$) for math. Be concise (under 180 words). Reply ONLY with JSON: {"explanation": "..."}.'
 )
 
 
 class ExplainService:
-    def __init__(self, gateway: AIGateway) -> None:
+    def __init__(self, gateway: AIGateway, mock_checker: ActiveMockChecker) -> None:
         self._gw = gateway
+        self._mocks = mock_checker
 
     async def explain(
-        self, session: AsyncSession, user_id: UUID, question_id: UUID, locale: str
+        self,
+        session: AsyncSession,
+        user_id: UUID,
+        roles: frozenset[str],
+        question_id: UUID,
+        locale: str,
     ) -> tuple[str, bool, str | None]:
-        """Returns (text, cached, model)."""
+        """Returns (text, cached, model). Registered users only, and never during a mock."""
+        ensure_registered(roles)
+        if await self._mocks.has_active_mock(user_id):
+            raise Forbidden(
+                "AI explanations are unavailable during a mock exam",
+                code="explain_locked_during_mock",
+            )
         ent = await entitlements_for(user_id)
-        unlimited = ent.has("ai_unlimited_explanations") or ent.limit("ai_explanations_per_day", 0) < 0
+        unlimited = (
+            ent.has("ai_unlimited_explanations") or ent.limit("ai_explanations_per_day", 0) < 0
+        )
         today = tashkent_today()
 
         if not unlimited:
-            limit = ent.limit("ai_explanations_per_day", get_ai_settings().ai_explanations_per_day_default)
+            # Serialize this user's quota check + insert for the day (released at commit).
+            await session.execute(
+                text("SELECT pg_advisory_xact_lock(hashtext('explain:' || :uid || ':' || :day))"),
+                {"uid": str(user_id), "day": today.isoformat()},
+            )
+            limit = ent.limit(
+                "ai_explanations_per_day", get_ai_settings().ai_explanations_per_day_default
+            )
             inserted = await session.execute(
                 insert(ExplainUsageRow)
                 .values(user_id=user_id, day=today, question_id=question_id)
@@ -57,7 +82,9 @@ class ExplainService:
             return cached, True, None
 
         # One generation per (question, locale) even under concurrent requests.
-        key = int.from_bytes(hashlib.sha256(f"{question_id}:{locale}".encode()).digest()[:8], "big", signed=True)
+        key = int.from_bytes(
+            hashlib.sha256(f"{question_id}:{locale}".encode()).digest()[:8], "big", signed=True
+        )
         await session.execute(text("SELECT pg_advisory_xact_lock(:k)"), {"k": key})
         cached = await bank.get_explanation(session, question_id, locale)
         if cached:

@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { buttonClass, Mascot } from "@dtmai/ui";
 import { useLocale, useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
+import { useAuth } from "@/lib/auth";
 import { PageTitle } from "@/components/PageTitle";
 import { ProgressRing, TaskCard } from "@/components/planner/parts";
 import { QuestItem } from "@/components/quests/QuestItem";
@@ -14,6 +15,8 @@ import { useAsync } from "@/lib/useAsync";
 import { useCountdown } from "@/lib/useCountdown";
 import { AnalyticsCard } from "./AnalyticsCard";
 import { DailyQuestions } from "./DailyQuestions";
+import { DreamCard } from "./DreamCard";
+import { GapMeter } from "./GapMeter";
 
 const getQuests = () => api.unwrap(api.client.GET("/v1/gamification/quests"));
 
@@ -23,7 +26,9 @@ export function HomeView() {
     <>
       <PageTitle>{t("home.title")}</PageTitle>
       <div className="flex flex-col gap-5">
+        <DreamCard />
         <Hero />
+        <GapMeter />
         <DailyQuestions />
         <Quests />
         <TodayPlan />
@@ -36,6 +41,7 @@ export function HomeView() {
 function Hero() {
   const t = useT();
   const { locale } = useLocale();
+  const hasField = !!useAuth().me?.field_code;
   const home = useAsync(getHome, []);
   const h = home.state.status === "ready" ? home.state.data : null;
   const examDate = h?.exam_date ?? null;
@@ -76,10 +82,15 @@ function Hero() {
                 </div>
               ))}
             </div>
-            <p className="text-sm text-ink-soft">{formatDay(examDate, locale, { day: "numeric", month: "long", year: "numeric" })}</p>
+            <p className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
+              {formatDay(examDate, locale, { day: "numeric", month: "long", year: "numeric" })}
+              {h && !h.exam_date_verified && (
+                <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-extrabold uppercase text-ink">{t("home.approx")}</span>
+              )}
+            </p>
           </>
         ) : (
-          <p className="text-ink-soft">{t("home.noDate")}</p>
+          <p className="text-ink-soft">{hasField ? t("home.noPlan") : t("home.noDate")}</p>
         )}
       </div>
       <div className="flex flex-col items-center gap-1 self-center">
@@ -89,8 +100,8 @@ function Hero() {
         </ProgressRing>
         <span className="text-sm font-bold">{t("home.predicted")}</span>
         {max === null && (
-          <Link href="/plan/setup/" className="text-sm font-extrabold text-blue-deep underline">
-            {t("home.setField")}
+          <Link href="/plan/setup/" className="text-sm font-extrabold text-brand underline">
+            {hasField ? t("home.buildPlan") : t("home.setField")}
           </Link>
         )}
       </div>
@@ -105,7 +116,7 @@ function Quests() {
     <section className="flex flex-col gap-2" aria-label={t("home.quests")}>
       <div className="flex items-baseline justify-between">
         <h2 className="text-lg">{t("home.quests")}</h2>
-        <Link href="/quests/" className="text-sm font-extrabold text-blue-deep">
+        <Link href="/quests/" className="text-sm font-extrabold text-brand">
           {t("home.all")}
         </Link>
       </div>
@@ -129,7 +140,7 @@ function TodayPlan() {
     <section className="flex flex-col gap-2" aria-label={t("home.today")}>
       <div className="flex items-baseline justify-between">
         <h2 className="text-lg">{t("home.today")}</h2>
-        <Link href="/plan/" className="text-sm font-extrabold text-blue-deep">
+        <Link href="/plan/" className="text-sm font-extrabold text-brand">
           {t("home.openPlan")}
         </Link>
       </div>

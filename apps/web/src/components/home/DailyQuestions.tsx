@@ -19,10 +19,11 @@ export function DailyQuestions() {
   const { state, reload } = useAsync(getDailyQuestions, []);
   // No plan yet: the countdown card already prompts to pick a field; nothing to practise.
   if (state.status === "error" && state.error instanceof ApiError && state.error.code === "plan_not_found") return null;
+  if (state.status === "ready" && state.data.questions.length === 0) return null;
   return (
     <section className="flex flex-col gap-2" aria-label={t("plan.home.dailyQuestions")}>
       <h2 className="text-lg">{t("plan.home.dailyQuestions")}</h2>
-      <AsyncView state={state} onRetry={reload} isEmpty={(d) => d.questions.length === 0} emptyText={t("quests.empty")}>
+      <AsyncView state={state} onRetry={reload}>
         {(d) => <Deck questions={d.questions} />}
       </AsyncView>
     </section>

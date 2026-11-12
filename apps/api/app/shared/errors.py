@@ -1,6 +1,13 @@
+import logging
+
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.responses import Response
+
+log = logging.getLogger(__name__)
 
 
 class DomainError(Exception):
@@ -64,3 +71,43 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(DomainError)
     async def _handle(_: Request, exc: DomainError) -> JSONResponse:
         return problem_response(exc)
+
+    @app.exception_handler(RequestValidationError)
+    async def _handle_validation(_: Request, exc: RequestValidationError) -> JSONResponse:
+        errors = [
+            {"loc": [str(p) for p in e["loc"]], "msg": e["msg"], "type": e["type"]}
+            for e in exc.errors()
+        ]
+        return JSONResponse(
+            {
+                "type": "urn:dtmai:error:validation_failed",
+                "title": "ValidationFailed",
+                "status": 422,
+                "code": "validation_failed",
+                "detail": "request validation failed",
+                "errors": errors,
+            },
+            status_code=422,
+            media_type="application/problem+json",
+        )
+
+
+class UnhandledErrorMiddleware(BaseHTTPMiddleware):
+    """Turns unexpected exceptions into problem+json inside the app, so CORSMiddleware (added after) still wraps them."""
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        try:
+            return await call_next(request)
+        except Exception:
+            log.exception("unhandled error on %s %s", request.method, request.url.path)
+            return JSONResponse(
+                {
+                    "type": "urn:dtmai:error:internal_error",
+                    "title": "InternalError",
+                    "status": 500,
+                    "code": "internal_error",
+                    "detail": "internal server error",
+                },
+                status_code=500,
+                media_type="application/problem+json",
+            )

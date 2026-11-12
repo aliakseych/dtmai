@@ -11,7 +11,9 @@ SECRET = "unit-test-secret-unit-test-secret"
 
 def test_roundtrip() -> None:
     uid = uuid4()
-    p = decode_access_token(encode_access_token(uid, ["admin", "student"], secret=SECRET), secret=SECRET)
+    p = decode_access_token(
+        encode_access_token(uid, ["admin", "student"], secret=SECRET), secret=SECRET
+    )
     assert p.user_id == uid
     assert p.roles == {"admin", "student"}
 

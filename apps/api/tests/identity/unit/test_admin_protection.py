@@ -13,7 +13,9 @@ def _admin() -> User:
 def test_admin_cannot_disable_self():
     me = _admin()
     with pytest.raises(ValidationFailed) as e:
-        ensure_admin_change_allowed(actor_id=me.id, target=me, new_roles={Role.ADMIN}, disabled=True, active_admins=3)
+        ensure_admin_change_allowed(
+            actor_id=me.id, target=me, new_roles={Role.ADMIN}, disabled=True, active_admins=3
+        )
     assert e.value.code == "self_disable"
 
 

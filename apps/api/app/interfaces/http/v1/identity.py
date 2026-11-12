@@ -295,7 +295,9 @@ async def admin_list_users(
 
 
 @admin_router.post("", status_code=201, operation_id="identity_admin_create_user", responses=ERR)
-async def admin_create_user(body: AdminUserCreate, svc: IdentityServiceDep, who: Admin) -> AdminUserOut:
+async def admin_create_user(
+    body: AdminUserCreate, svc: IdentityServiceDep, who: Admin
+) -> AdminUserOut:
     """Create a verified staff account (admin, labeler, editor, lyceum_rep...)."""
     user = await svc.create_staff(body.email, body.password, body.display_name, body.roles)
     audit_admin(who, "users.create", target_id=str(user.id), roles=body.roles)
@@ -316,13 +318,22 @@ async def admin_update_user(
         who.user_id, user_id, roles=body.roles, status=body.status, display_name=body.display_name
     )
     audit_admin(
-        who, "users.update", target_id=str(user_id), roles=body.roles, status=body.status,
+        who,
+        "users.update",
+        target_id=str(user_id),
+        roles=body.roles,
+        status=body.status,
         display_name=body.display_name,
     )
     return _admin_user(user)
 
 
-@admin_router.post("/{user_id}/reset-password", status_code=204, operation_id="identity_admin_reset_password", responses=ERR)
+@admin_router.post(
+    "/{user_id}/reset-password",
+    status_code=204,
+    operation_id="identity_admin_reset_password",
+    responses=ERR,
+)
 async def admin_reset_password(
     user_id: UUID, body: AdminPasswordIn, svc: IdentityServiceDep, who: Admin
 ) -> Response:
@@ -333,7 +344,9 @@ async def admin_reset_password(
 
 @admin_router.get("/{user_id}/stats", operation_id="identity_admin_user_stats", responses=ERR)
 async def admin_user_stats(
-    user_id: UUID, svc: IdentityServiceDep, who: Admin,
+    user_id: UUID,
+    svc: IdentityServiceDep,
+    who: Admin,
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> StatsOut:
     await svc.get_me(user_id)  # 404 for unknown users
@@ -344,8 +357,12 @@ async def admin_user_stats(
 labelers_router = APIRouter(tags=["identity-admin"])
 
 
-@labelers_router.post("", status_code=201, operation_id="identity_admin_create_labeler", responses=ERR)
-async def admin_create_labeler(body: LabelerCreate, svc: IdentityServiceDep, who: Admin) -> LabelerCreated:
+@labelers_router.post(
+    "", status_code=201, operation_id="identity_admin_create_labeler", responses=ERR
+)
+async def admin_create_labeler(
+    body: LabelerCreate, svc: IdentityServiceDep, who: Admin
+) -> LabelerCreated:
     """Create a system labeler; the generated login/password are returned once."""
     user, login, password = await svc.create_labeler(body.display_name)
     audit_admin(who, "labelers.create", target_id=str(user.id))

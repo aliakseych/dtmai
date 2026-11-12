@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ApiError } from "@dtmai/api-client";
-import { Button, Card } from "@dtmai/ui";
+import { Button, Card, Icon } from "@dtmai/ui";
 import { useLocale, useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
 import { PageTitle } from "@/components/PageTitle";
@@ -65,7 +65,8 @@ export function RepPortal() {
       {lyceumId ? (
         <div className="flex flex-col gap-4">
           <div>
-            <Button variant="ghost" onClick={() => setLyceumId(null)}>← {t("rep.change")}</Button>
+            <Button variant="ghost" onClick={() => setLyceumId(null)}><Icon name="arrow-left" size={20} />
+              {t("rep.change")}</Button>
           </div>
           <LyceumRep lyceumId={lyceumId} />
         </div>
@@ -78,7 +79,7 @@ export function RepPortal() {
             onChange={(e) => setQ(e.target.value)}
             placeholder={t("lyceums.search")}
             aria-label={t("lyceums.search")}
-            className="mb-4 w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-blue focus:bg-white"
+            className="mb-4 w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-brand focus:bg-white"
           />
           <AsyncView state={state} onRetry={reload} isEmpty={(d) => d.length === 0} emptyText={t("lyceums.none")}>
             {(list) => (

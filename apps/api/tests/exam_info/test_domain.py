@@ -1,3 +1,4 @@
+from dataclasses import replace
 from decimal import Decimal
 from uuid import uuid4
 
@@ -77,6 +78,19 @@ def test_creative_section_is_not_in_app() -> None:
     validate_profile(p)
     assert creative not in p.planned_sections
     assert total_points(p.planned_sections) == D("84")
+
+
+def test_section_without_catalog_subject_is_unavailable() -> None:
+    iq = sec("iq", 0)
+    no_subject = sec("subject", 1)
+    with_subject = replace(sec("subject", 2), subject_id=uuid4())
+    grouped = sec("subject", 3, group="foreign_language")
+    creative = Section(uuid4(), "creative", 4, T, max_points=D("62"), exemptible=False)
+    assert iq.available
+    assert with_subject.available
+    assert grouped.available
+    assert not no_subject.available
+    assert not creative.available
 
 
 def test_iq_never_exempt_even_with_rule_and_claim() -> None:

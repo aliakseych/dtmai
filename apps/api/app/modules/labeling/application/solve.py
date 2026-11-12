@@ -51,7 +51,12 @@ def _vote_from_json(model: str, data: dict[str, Any]) -> SolverVote:
 
 class SolveService:
     def __init__(
-        self, session: AsyncSession, gateway: AIGateway, *, min_models: int = 2, min_confidence: float = 0.7
+        self,
+        session: AsyncSession,
+        gateway: AIGateway,
+        *,
+        min_models: int = 2,
+        min_confidence: float = 0.7,
     ) -> None:
         self._s = session
         self._gw = gateway
@@ -86,7 +91,11 @@ class SolveService:
             votes = await self._merge_equivalent(q.kind, q.stem, votes, question_id)
 
         decision = evaluate_solve(
-            q.kind, votes, official_key=official, min_models=self._min_models, min_confidence=self._min_conf
+            q.kind,
+            votes,
+            official_key=official,
+            min_models=self._min_models,
+            min_confidence=self._min_conf,
         )
         if (
             trigger == "generation"
@@ -95,7 +104,9 @@ class SolveService:
             and decision.response is not None
             and canonical(q.kind, decision.response) != canonical(q.kind, info.response)
         ):
-            decision = Decision(Status.ESCALATED, decision.response, decision.confidence * 0.5, "stored_mismatch")
+            decision = Decision(
+                Status.ESCALATED, decision.response, decision.confidence * 0.5, "stored_mismatch"
+            )
 
         if decision.status is Status.ESCALATED:
             adj = await self._adjudicate(q.kind, q.stem, q.payload, passage, votes, question_id)
@@ -105,15 +116,26 @@ class SolveService:
 
         run_id = await self._persist(question_id, trigger, decision, stages)
         await self._apply(q, info.response, decision, run_id)
-        return SolveOutcome(question_id, run_id, decision.status.value, decision.reason, decision.confidence)
+        return SolveOutcome(
+            question_id, run_id, decision.status.value, decision.reason, decision.confidence
+        )
 
     # -- model calls ------------------------------------------------------------------
     async def _solve_once(
-        self, route: ModelRoute, kind: str, stem: str, payload: dict[str, Any], passage: str | None, qid: UUID
+        self,
+        route: ModelRoute,
+        kind: str,
+        stem: str,
+        payload: dict[str, Any],
+        passage: str | None,
+        qid: UUID,
     ) -> SolverVote | AIBudgetExhausted:
         try:
             data, _ = await self._gw.complete_json(
-                route, prompts.solve_messages(kind, stem, payload, passage), purpose="labeling.solve", ref=str(qid)
+                route,
+                prompts.solve_messages(kind, stem, payload, passage),
+                purpose="labeling.solve",
+                ref=str(qid),
             )
         except AIBudgetExhausted as e:
             return e
@@ -131,7 +153,9 @@ class SolveService:
     async def _merge_equivalent(
         self, kind: str, stem: str, votes: list[SolverVote], qid: UUID
     ) -> list[SolverVote]:
-        valid = [v for v in votes if v.ok and v.response is not None and canonical(kind, v.response)]
+        valid = [
+            v for v in votes if v.ok and v.response is not None and canonical(kind, v.response)
+        ]
         distinct: dict[str, SolverVote] = {}
         for v in valid:
             distinct.setdefault(canonical(kind, v.response or {}) or "", v)
@@ -173,8 +197,13 @@ class SolveService:
         return out
 
     async def _adjudicate(
-        self, kind: str, stem: str, payload: dict[str, Any], passage: str | None,
-        votes: list[SolverVote], qid: UUID,
+        self,
+        kind: str,
+        stem: str,
+        payload: dict[str, Any],
+        passage: str | None,
+        votes: list[SolverVote],
+        qid: UUID,
     ) -> SolverVote | None:
         route = await self._judge_route(1)
         if route is None:
@@ -182,8 +211,10 @@ class SolveService:
         answers = [v.response for v in votes if v.ok and v.response is not None]
         try:
             data, _ = await self._gw.complete_json(
-                route, prompts.adjudicate_messages(kind, stem, payload, passage, answers),
-                purpose="labeling.adjudicate", ref=str(qid),
+                route,
+                prompts.adjudicate_messages(kind, stem, payload, passage, answers),
+                purpose="labeling.adjudicate",
+                ref=str(qid),
             )
         except AIBudgetExhausted:
             raise
@@ -198,22 +229,35 @@ class SolveService:
         run_id = new_id()
         self._s.add(
             SolveRunRow(
-                id=run_id, question_id=qid, trigger=trigger, outcome=d.status.value,
-                confidence=d.confidence, reason=d.reason, key_conflict=d.key_conflict, response=d.response,
+                id=run_id,
+                question_id=qid,
+                trigger=trigger,
+                outcome=d.status.value,
+                confidence=d.confidence,
+                reason=d.reason,
+                key_conflict=d.key_conflict,
+                response=d.response,
             )
         )
         await self._s.flush()
         for stage, v in stages:
             self._s.add(
                 SolverVoteRow(
-                    id=new_id(), run_id=run_id, stage=stage, model=v.model, response=v.response,
-                    confidence=v.confidence, ok=v.ok,
+                    id=new_id(),
+                    run_id=run_id,
+                    stage=stage,
+                    model=v.model,
+                    response=v.response,
+                    confidence=v.confidence,
+                    ok=v.ok,
                 )
             )
         await self._s.flush()
         return run_id
 
-    async def _apply(self, q: bank.QuestionDTO, stored: dict[str, Any], d: Decision, run_id: UUID) -> None:
+    async def _apply(
+        self, q: bank.QuestionDTO, stored: dict[str, Any], d: Decision, run_id: UUID
+    ) -> None:
         official = d.reason == "official_key"
         if official and q.options_generated:
             # The key is official but the distractors are AI-made: a human must review the options.
@@ -222,13 +266,17 @@ class SolveService:
         if q.status in PROTECTED_STATUSES and not official:
             return  # never downgrade human-reviewed / hidden content
         if official:
-            await bank.set_status(self._s, q.id, "verified", MACHINE_ACTOR, f"official key (run {run_id})")
+            await bank.set_status(
+                self._s, q.id, "verified", MACHINE_ACTOR, f"official key (run {run_id})"
+            )
             await self._drop_queue(q.id)
             return
         if d.status is Status.AUTO_AGREED and d.response is not None:
             if canonical(q.kind, d.response) != canonical(q.kind, stored):
                 await bank.set_answer(self._s, q.id, d.response, MACHINE_ACTOR)
-        await bank.set_status(self._s, q.id, d.status.value, MACHINE_ACTOR, f"{d.reason} (run {run_id})")
+        await bank.set_status(
+            self._s, q.id, d.status.value, MACHINE_ACTOR, f"{d.reason} (run {run_id})"
+        )
         row = await self._s.get(QueueItemRow, q.id)
         if row is None:
             row = QueueItemRow(question_id=q.id, subject_id=q.subject_id, language=q.language)

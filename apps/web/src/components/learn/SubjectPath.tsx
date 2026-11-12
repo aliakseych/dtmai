@@ -1,5 +1,7 @@
 "use client";
+import Link from "next/link";
 import { useLocale, useT } from "@dtmai/i18n";
+import { EmptyState } from "@dtmai/ui";
 import { AsyncView } from "@/components/AsyncView";
 import { api, type Path } from "@/lib/api";
 import { useLearnLanguage } from "@/lib/auth";
@@ -26,8 +28,14 @@ export function SubjectPath({ subjectId }: { subjectId: string }) {
     [subjectId, language, locale],
   );
   return (
-    <AsyncView state={state} onRetry={reload} isEmpty={(d) => d.units.length === 0} emptyText={t("learn.empty")}>
-      {(path) => <Units path={path} />}
+    <AsyncView state={state} onRetry={reload}>
+      {(path) =>
+        path.units.length === 0 ? (
+          <EmptyState title={t("learn.empty")} action={<Link href="/practice/" className="font-extrabold text-brand">{t("nav.practice")}</Link>} />
+        ) : (
+          <Units path={path} />
+        )
+      }
     </AsyncView>
   );
 }

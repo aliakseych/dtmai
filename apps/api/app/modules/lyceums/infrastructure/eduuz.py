@@ -26,9 +26,13 @@ class EduUzSource:
         for attempt in range(6):
             try:
                 resp = await self._client.get(path, params=params)
-                if resp.status_code == 429:  # edu.uz rate-limits bursts; honour Retry-After or back off
+                if (
+                    resp.status_code == 429
+                ):  # edu.uz rate-limits bursts; honour Retry-After or back off
                     retry_after = resp.headers.get("Retry-After", "")
-                    await asyncio.sleep(float(retry_after) if retry_after.isdigit() else 2.0 * 2**attempt)
+                    await asyncio.sleep(
+                        float(retry_after) if retry_after.isdigit() else 2.0 * 2**attempt
+                    )
                     last = httpx.HTTPStatusError("429", request=resp.request, response=resp)
                     continue
                 resp.raise_for_status()
@@ -41,16 +45,26 @@ class EduUzSource:
     async def lyceums(self) -> list[SourceLyceum]:
         rows = await self._get("/admission/lyceum/overview/tm/", {"service_id": SERVICE_ID})
         return [
-            SourceLyceum(int(r["id"]), str(r.get("code", "")), r.get("name_uz") or "",
-                         r.get("name_en") or "", r.get("name_ru") or "")
+            SourceLyceum(
+                int(r["id"]),
+                str(r.get("code", "")),
+                r.get("name_uz") or "",
+                r.get("name_en") or "",
+                r.get("name_ru") or "",
+            )
             for r in rows
         ]
 
     async def languages(self) -> list[SourceLanguage]:
         rows = await self._get("/classifier/cached/", {"classifier": "education-language"})
         return [
-            SourceLanguage(int(r["id"]), str(r.get("code", "")), r.get("name_uz") or "",
-                           r.get("name_en") or "", r.get("name_ru") or "")
+            SourceLanguage(
+                int(r["id"]),
+                str(r.get("code", "")),
+                r.get("name_uz") or "",
+                r.get("name_en") or "",
+                r.get("name_ru") or "",
+            )
             for r in rows
         ]
 
@@ -67,8 +81,10 @@ class EduUzSource:
         )
         return [
             SourceSpeciality(
-                str(r["speciality_code"]), r.get("speciality_name") or "",
-                int(r.get("total_quota") or 0), int(r.get("total_application") or 0),
+                str(r["speciality_code"]),
+                r.get("speciality_name") or "",
+                int(r.get("total_quota") or 0),
+                int(r.get("total_application") or 0),
             )
             for r in rows
         ]

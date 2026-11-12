@@ -30,17 +30,22 @@ async def classify_topics(
     for i in range(0, len(question_ids), CHUNK):
         qs = await bank.get_questions(session, question_ids[i : i + CHUNK])
         data, _ = await gw.complete_json(
-            route, classify_messages(labels, [q.stem for q in qs]),
-            purpose="labeling.classify", ref=str(qs[0].id),
+            route,
+            classify_messages(labels, [q.stem for q in qs]),
+            purpose="labeling.classify",
+            ref=str(qs[0].id),
         )
         picks = parse_classification(data, len(qs))
         for pos, q in enumerate(qs):
             tid = pick_topic(picks.get(pos), topic_ids, None)
             if tid is None or tid == q.topic_id:
                 continue
-            await session.execute(text("UPDATE bank.questions SET topic_id=:t WHERE id=:q"), {"t": tid, "q": q.id})
             await session.execute(
-                text("UPDATE labeling.queue_items SET topic_id=:t WHERE question_id=:q"), {"t": tid, "q": q.id}
+                text("UPDATE bank.questions SET topic_id=:t WHERE id=:q"), {"t": tid, "q": q.id}
+            )
+            await session.execute(
+                text("UPDATE labeling.queue_items SET topic_id=:t WHERE question_id=:q"),
+                {"t": tid, "q": q.id},
             )
             changed[q.id] = tid
         await session.commit()

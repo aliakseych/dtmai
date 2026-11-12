@@ -20,7 +20,7 @@ export function GoalRing({ done, goal, size = 64 }: { done: number; goal: number
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - pct)}
-          className={pct >= 1 ? "stroke-gold-deep" : "stroke-green-deep"}
+          className={pct >= 1 ? "stroke-accent-ink" : "stroke-brand"}
         />
       </svg>
       <span className="absolute text-xs font-extrabold">{Math.round(pct * 100)}%</span>

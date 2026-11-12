@@ -3,16 +3,18 @@ from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
-from app.modules.gamification.domain.config import GameConfig
 from app.modules.gamification.domain.achievements import newly_earned
+from app.modules.gamification.domain.config import GameConfig
 from app.modules.gamification.domain.league import (
-    next_tier,
     choose_cohort,
+    next_tier,
     settle_cohort,
     week_start,
 )
 from app.modules.gamification.domain.quests import (
     METRICS as QUEST_METRICS,
+)
+from app.modules.gamification.domain.quests import (
     QuestProgress,
     QuestTemplate,
     UserQuest,
@@ -62,6 +64,7 @@ class StatsView:
     hearts: HeartsView
     league_tier: Tier | None
     daily_goal_xp: int = 20
+    freeze_cost_gems: int = 50
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,7 +142,9 @@ class GamificationService:
         if amount <= 0:
             return 0
         if capped:
-            amount = within_daily_cap(amount, await self._stats.xp_on_day(stats.user_id, day), cfg.xp_daily_cap)
+            amount = within_daily_cap(
+                amount, await self._stats.xp_on_day(stats.user_id, day), cfg.xp_daily_cap
+            )
         if amount <= 0 or not await self._stats.log_xp(stats.user_id, day, amount, ref):
             return 0
         stats.xp_total += amount
@@ -153,7 +158,9 @@ class GamificationService:
             if not tiers:
                 return
             idx = min(max(stats.league_tier, 0), len(tiers) - 1)
-            cohort = choose_cohort(await self._leagues.open_cohorts(week, idx), tiers[idx].cohort_size)
+            cohort = choose_cohort(
+                await self._leagues.open_cohorts(week, idx), tiers[idx].cohort_size
+            )
             if cohort is None:
                 cohort = await self._leagues.create_cohort(week, idx)
             await self._leagues.add_member(cohort, stats.user_id, week)
@@ -163,9 +170,21 @@ class GamificationService:
         existing = await self._rewards.quests_for_day(stats.user_id, day)
         if existing:
             return existing
-        chosen = pick_templates(await self._rewards.active_templates(), stats.user_id, day, cfg.daily_quest_count)
+        chosen = pick_templates(
+            await self._rewards.active_templates(), stats.user_id, day, cfg.daily_quest_count
+        )
         fresh = [
-            UserQuest(new_id(), t.id, t.code, t.metric, dict(t.title), 0, t.target, t.reward_gems, t.reward_xp)
+            UserQuest(
+                new_id(),
+                t.id,
+                t.code,
+                t.metric,
+                dict(t.title),
+                0,
+                t.target,
+                t.reward_gems,
+                t.reward_xp,
+            )
             for t in chosen
         ]
         await self._rewards.add_quests(stats.user_id, day, fresh)
@@ -186,11 +205,15 @@ class GamificationService:
             if done:
                 await self._grant_gems(stats, q.reward_gems, "quest", f"quest:{q.id}")
                 if q.reward_xp:
-                    await self._award_xp(stats, cfg, day, q.reward_xp, f"quest:{q.id}", capped=False)
+                    await self._award_xp(
+                        stats, cfg, day, q.reward_xp, f"quest:{q.id}", capped=False
+                    )
 
     async def _achievements(self, stats: UserStats) -> None:
         defs = await self._rewards.achievement_defs()
-        for d in newly_earned(defs, stats.metrics(), await self._rewards.earned_codes(stats.user_id)):
+        for d in newly_earned(
+            defs, stats.metrics(), await self._rewards.earned_codes(stats.user_id)
+        ):
             if await self._rewards.add_achievement(stats.user_id, d.code):
                 await self._grant_gems(stats, d.reward_gems, "achievement", f"ach:{d.code}")
 
@@ -200,7 +223,14 @@ class GamificationService:
 
     # ---------- event handlers ----------
     async def on_session_completed(
-        self, event_id: UUID, user_id: UUID, session_id: str, mode: str, xp_base: int, correct: int, total: int
+        self,
+        event_id: UUID,
+        user_id: UUID,
+        session_id: str,
+        mode: str,
+        xp_base: int,
+        correct: int,
+        total: int,
     ) -> None:
         stats, cfg, hearts_max, _, now = await self._load(user_id)
         if not await self._stats.mark_event(event_id, "session_completed"):
@@ -212,7 +242,9 @@ class GamificationService:
         await self._touch_streak(stats, cfg, day)
         if mode in ("lesson", "drill", "placement"):
             stats.lessons_completed += 1 if mode != "placement" else 0
-            await self._advance(stats, cfg, day, "lessons_completed", 1 if mode != "placement" else 0)
+            await self._advance(
+                stats, cfg, day, "lessons_completed", 1 if mode != "placement" else 0
+            )
             if total and correct == total and mode != "placement":
                 await self._advance(stats, cfg, day, "perfect_sessions", 1)
         if mode == "review":
@@ -232,13 +264,20 @@ class GamificationService:
             await self._achievements(stats)
         await self._stats.save(stats)
 
-    async def on_mock_submitted(self, event_id: UUID, user_id: UUID, attempt_id: str) -> None:
+    async def on_mock_submitted(
+        self, event_id: UUID, user_id: UUID, attempt_id: str, rewardable: bool = True
+    ) -> None:
         stats, cfg, _, _, now = await self._load(user_id)
         if not await self._stats.mark_event(event_id, "mock_submitted"):
             return
+        if not rewardable:  # empty/tiny submits earn nothing
+            await self._stats.save(stats)
+            return
         day = tashkent_day(now)
         await self._sync_profile(stats, now)
-        gained = await self._award_xp(stats, cfg, day, cfg.mock_xp, f"mock:{attempt_id}", capped=True)
+        gained = await self._award_xp(
+            stats, cfg, day, cfg.mock_xp, f"mock:{attempt_id}", capped=True
+        )
         stats.mocks_submitted += 1
         await self._touch_streak(stats, cfg, day)
         await self._advance(stats, cfg, day, "mocks_submitted", 1)
@@ -253,7 +292,9 @@ class GamificationService:
         await self._stats.save(stats)
 
     # ---------- hearts / streak freeze ----------
-    def _hearts_view(self, stats: UserStats, cfg: GameConfig, hearts_max: int, unlimited: bool) -> HeartsView:
+    def _hearts_view(
+        self, stats: UserStats, cfg: GameConfig, hearts_max: int, unlimited: bool
+    ) -> HeartsView:
         return HeartsView(
             stats.hearts.count,
             hearts_max,
@@ -278,7 +319,9 @@ class GamificationService:
             raise Conflict("freeze limit reached", code="freeze_limit")
         stats.spend_gems(cfg.freeze_cost_gems)
         stats.streak.add_freeze(cfg.freeze_max)
-        await self._stats.ledger_gems(user_id, -cfg.freeze_cost_gems, "freeze", f"freeze:{new_id()}")
+        await self._stats.ledger_gems(
+            user_id, -cfg.freeze_cost_gems, "freeze", f"freeze:{new_id()}"
+        )
         await self._stats.save(stats)
         return await self._view(stats, cfg)
 
@@ -305,6 +348,7 @@ class GamificationService:
             self._hearts_view(stats, cfg, hearts_max, ent.has("unlimited_hearts")),
             tier,
             stats.daily_goal_xp,
+            cfg.freeze_cost_gems,
         )
 
     async def set_daily_goal(self, user_id: UUID, xp: int) -> StatsView:
@@ -349,15 +393,23 @@ class GamificationService:
         ranked = rank_standings([r.standing for r in rows])
         n = len(ranked)
         can_promote = m.tier_idx < len(tiers) - 1
-        demote_n = tier.demote_count if m.tier_idx > 0 and n > tier.promote_count + tier.demote_count else 0
+        demote_n = (
+            tier.demote_count
+            if m.tier_idx > 0 and n > tier.promote_count + tier.demote_count
+            else 0
+        )
         out = []
         for i, s in enumerate(ranked, start=1):
             zone = (
-                "promote" if can_promote and i <= tier.promote_count and s.xp > 0
-                else "demote" if demote_n and i > n - demote_n
+                "promote"
+                if can_promote and i <= tier.promote_count and s.xp > 0
+                else "demote"
+                if demote_n and i > n - demote_n
                 else "safe"
             )
-            out.append(LeagueRow(s.user_id, names.get(s.user_id, ""), s.xp, i, s.user_id == user_id, zone))
+            out.append(
+                LeagueRow(s.user_id, names.get(s.user_id, ""), s.xp, i, s.user_id == user_id, zone)
+            )
         ends = datetime.combine(week + timedelta(days=7), datetime.min.time(), tzinfo=tashkent_tz())
         return LeagueView(tier, week, ends.astimezone(UTC), out)
 
@@ -407,11 +459,17 @@ class GamificationService:
                 continue
             rows = await self._leagues.standings(cohort.id)
             results = settle_cohort(
-                [r.standing for r in rows], cohort.tier_idx, len(tiers), tier.promote_count, tier.demote_count
+                [r.standing for r in rows],
+                cohort.tier_idx,
+                len(tiers),
+                tier.promote_count,
+                tier.demote_count,
             )
             await self._leagues.settle(cohort.id, results)
             for r in results:
-                await self._leagues.set_tier(r.user_id, next_tier(cohort.tier_idx, r.outcome, len(tiers)))
+                await self._leagues.set_tier(
+                    r.user_id, next_tier(cohort.tier_idx, r.outcome, len(tiers))
+                )
             settled += 1
         return settled
 
@@ -428,8 +486,16 @@ class GamificationService:
         return await self._rewards.list_templates()
 
     async def save_template(
-        self, template_id: UUID | None, *, code: str, metric: str, target: int,
-        reward_gems: int, reward_xp: int, title: dict[str, str], active: bool,
+        self,
+        template_id: UUID | None,
+        *,
+        code: str,
+        metric: str,
+        target: int,
+        reward_gems: int,
+        reward_xp: int,
+        title: dict[str, str],
+        active: bool,
     ) -> QuestTemplate:
         if metric not in QUEST_METRICS:
             raise ValidationFailed(f"unknown metric {metric}", code="unknown_metric")
@@ -437,7 +503,9 @@ class GamificationService:
             raise ValidationFailed("invalid quest numbers", code="invalid_quest")
         if template_id is not None and await self._rewards.get_template(template_id) is None:
             raise NotFound("quest template not found", code="quest_template_not_found")
-        t = QuestTemplate(template_id or new_id(), code, metric, target, reward_gems, reward_xp, title, active)
+        t = QuestTemplate(
+            template_id or new_id(), code, metric, target, reward_gems, reward_xp, title, active
+        )
         await self._rewards.save_template(t)
         return t
 
@@ -456,8 +524,16 @@ class GamificationService:
         return await self._config.get()
 
     async def set_config(self, config: GameConfig) -> GameConfig:
-        if min(config.heart_refill_minutes, config.xp_daily_cap, config.xp_session_cap,
-               config.xp_per_item_cap, config.review_correct_per_heart) < 1:
+        if (
+            min(
+                config.heart_refill_minutes,
+                config.xp_daily_cap,
+                config.xp_session_cap,
+                config.xp_per_item_cap,
+                config.review_correct_per_heart,
+            )
+            < 1
+        ):
             raise ValidationFailed("config values must be positive", code="invalid_config")
         await self._config.save(replace(config))
         return config

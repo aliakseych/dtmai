@@ -1,7 +1,15 @@
 from app.shared.errors import Conflict, DomainError, NotFound, ValidationFailed
 
-__all__ = ["AuditAgreementLow", "NothingToReview", "QueueItemGone", "UndoNotAllowed", "Conflict", "NotFound",
-           "ValidationFailed", "DomainError"]
+__all__ = [
+    "AuditAgreementLow",
+    "NothingToReview",
+    "QueueItemGone",
+    "UndoNotAllowed",
+    "Conflict",
+    "NotFound",
+    "ValidationFailed",
+    "DomainError",
+]
 
 
 class NothingToReview(DomainError):

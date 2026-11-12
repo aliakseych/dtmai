@@ -49,19 +49,36 @@ def _md5(*parts: str) -> str:
 
 
 def sign_prepare(
-    click_trans_id: str, service_id: str, secret: str, merchant_trans_id: str,
-    amount: str, action: str, sign_time: str,
+    click_trans_id: str,
+    service_id: str,
+    secret: str,
+    merchant_trans_id: str,
+    amount: str,
+    action: str,
+    sign_time: str,
 ) -> str:
     return _md5(click_trans_id, service_id, secret, merchant_trans_id, amount, action, sign_time)
 
 
 def sign_complete(
-    click_trans_id: str, service_id: str, secret: str, merchant_trans_id: str,
-    merchant_prepare_id: str, amount: str, action: str, sign_time: str,
+    click_trans_id: str,
+    service_id: str,
+    secret: str,
+    merchant_trans_id: str,
+    merchant_prepare_id: str,
+    amount: str,
+    action: str,
+    sign_time: str,
 ) -> str:
     return _md5(
-        click_trans_id, service_id, secret, merchant_trans_id,
-        merchant_prepare_id, amount, action, sign_time,
+        click_trans_id,
+        service_id,
+        secret,
+        merchant_trans_id,
+        merchant_prepare_id,
+        amount,
+        action,
+        sign_time,
     )
 
 
@@ -81,8 +98,15 @@ class ClickRequest:
 
     @classmethod
     def parse(cls, raw: dict[str, str]) -> "ClickRequest":
-        required = ("click_trans_id", "service_id", "merchant_trans_id", "amount", "action",
-                    "sign_time", "sign_string")
+        required = (
+            "click_trans_id",
+            "service_id",
+            "merchant_trans_id",
+            "amount",
+            "action",
+            "sign_time",
+            "sign_string",
+        )
         if any(not str(raw.get(k, "")).strip() for k in required):
             raise ValidationFailed("missing click parameters", code="click_bad_request")
         try:
@@ -90,10 +114,15 @@ class ClickRequest:
         except ValueError as e:
             raise ValidationFailed("bad error field", code="click_bad_request") from e
         return cls(
-            click_trans_id=raw["click_trans_id"], service_id=raw["service_id"],
-            merchant_trans_id=raw["merchant_trans_id"], amount=raw["amount"],
-            action=raw["action"], sign_time=raw["sign_time"], sign_string=raw["sign_string"],
-            error=error, click_paydoc_id=raw.get("click_paydoc_id", ""),
+            click_trans_id=raw["click_trans_id"],
+            service_id=raw["service_id"],
+            merchant_trans_id=raw["merchant_trans_id"],
+            amount=raw["amount"],
+            action=raw["action"],
+            sign_time=raw["sign_time"],
+            sign_string=raw["sign_string"],
+            error=error,
+            click_paydoc_id=raw.get("click_paydoc_id", ""),
             merchant_prepare_id=raw.get("merchant_prepare_id", ""),
             error_note=raw.get("error_note", ""),
         )
@@ -101,12 +130,23 @@ class ClickRequest:
     def expected_sign(self, secret: str) -> str:
         if self.action == str(ACTION_COMPLETE):
             return sign_complete(
-                self.click_trans_id, self.service_id, secret, self.merchant_trans_id,
-                self.merchant_prepare_id, self.amount, self.action, self.sign_time,
+                self.click_trans_id,
+                self.service_id,
+                secret,
+                self.merchant_trans_id,
+                self.merchant_prepare_id,
+                self.amount,
+                self.action,
+                self.sign_time,
             )
         return sign_prepare(
-            self.click_trans_id, self.service_id, secret, self.merchant_trans_id,
-            self.amount, self.action, self.sign_time,
+            self.click_trans_id,
+            self.service_id,
+            secret,
+            self.merchant_trans_id,
+            self.amount,
+            self.action,
+            self.sign_time,
         )
 
     def sign_is_valid(self, secret: str) -> bool:

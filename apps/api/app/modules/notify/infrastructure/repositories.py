@@ -28,9 +28,13 @@ class SqlNotifyRepo:
         if row is None:
             return Preferences(user_id=user_id)
         return Preferences(
-            user_id=user_id, enabled=row.enabled,
-            channels={Channel(c) for c in row.channels}, kinds={Kind(k) for k in row.kinds},
-            quiet_start=row.quiet_start, quiet_end=row.quiet_end, max_per_day=row.max_per_day,
+            user_id=user_id,
+            enabled=row.enabled,
+            channels={Channel(c) for c in row.channels},
+            kinds={Kind(k) for k in row.kinds},
+            quiet_start=row.quiet_start,
+            quiet_end=row.quiet_end,
+            max_per_day=row.max_per_day,
         )
 
     async def save_preferences(self, p: Preferences) -> None:
@@ -63,23 +67,28 @@ class SqlNotifyRepo:
         await self._s.execute(delete(DeviceRow).where(DeviceRow.token == token))
 
     async def device_tokens(self, user_id: UUID) -> list[str]:
-        return list(await self._s.scalars(select(DeviceRow.token).where(DeviceRow.user_id == user_id)))
+        return list(
+            await self._s.scalars(select(DeviceRow.token).where(DeviceRow.user_id == user_id))
+        )
 
     # telegram chats + linking
     async def upsert_chat(self, chat_id: int, locale: str) -> None:
         stmt = insert(TelegramChatRow).values(chat_id=chat_id, locale=locale)
         await self._s.execute(
-            stmt.on_conflict_do_update(index_elements=[TelegramChatRow.chat_id],
-                                       set_={"locale": locale})
+            stmt.on_conflict_do_update(
+                index_elements=[TelegramChatRow.chat_id], set_={"locale": locale}
+            )
         )
 
     async def chat(self, chat_id: int) -> TelegramChatRow | None:
         return await self._s.get(TelegramChatRow, chat_id)
 
     async def linked_chat_ids(self, user_id: UUID) -> list[int]:
-        return list(await self._s.scalars(
-            select(TelegramChatRow.chat_id).where(TelegramChatRow.user_id == user_id)
-        ))
+        return list(
+            await self._s.scalars(
+                select(TelegramChatRow.chat_id).where(TelegramChatRow.user_id == user_id)
+            )
+        )
 
     async def user_for_chat(self, chat_id: int) -> UUID | None:
         row = await self._s.get(TelegramChatRow, chat_id)
@@ -87,8 +96,9 @@ class SqlNotifyRepo:
 
     async def create_link_code(self, user_id: UUID, ttl_seconds: int, now: datetime) -> str:
         code = secrets.token_urlsafe(12)
-        self._s.add(LinkCodeRow(code=code, user_id=user_id,
-                                expires_at=now + timedelta(seconds=ttl_seconds)))
+        self._s.add(
+            LinkCodeRow(code=code, user_id=user_id, expires_at=now + timedelta(seconds=ttl_seconds))
+        )
         await self._s.flush()
         return code
 
@@ -101,7 +111,9 @@ class SqlNotifyRepo:
         if expires < now:
             return None
         await self._s.execute(
-            update(TelegramChatRow).where(TelegramChatRow.chat_id == chat_id).values(user_id=user_id)
+            update(TelegramChatRow)
+            .where(TelegramChatRow.chat_id == chat_id)
+            .values(user_id=user_id)
         )
         return user_id
 
@@ -117,12 +129,15 @@ class SqlNotifyRepo:
             row.last_day = today
         await self._s.flush()
 
-    async def at_risk(self, today: date, limit: int, after: UUID | None) -> list[tuple[UUID, int, date]]:
+    async def at_risk(
+        self, today: date, limit: int, after: UUID | None
+    ) -> list[tuple[UUID, int, date]]:
         """Users with a streak who have not practised on `today` (keyset-paged by user_id)."""
         stmt = (
             select(ActivityRow.user_id, ActivityRow.streak, ActivityRow.last_day)
             .where(ActivityRow.last_day < today, ActivityRow.streak > 0)
-            .order_by(ActivityRow.user_id).limit(limit)
+            .order_by(ActivityRow.user_id)
+            .limit(limit)
         )
         if after is not None:
             stmt = stmt.where(ActivityRow.user_id > after)
@@ -130,8 +145,10 @@ class SqlNotifyRepo:
 
     async def opted_in_users(self, limit: int, after: UUID | None) -> list[UUID]:
         stmt = (
-            select(PreferencesRow.user_id).where(PreferencesRow.enabled.is_(True))
-            .order_by(PreferencesRow.user_id).limit(limit)
+            select(PreferencesRow.user_id)
+            .where(PreferencesRow.enabled.is_(True))
+            .order_by(PreferencesRow.user_id)
+            .limit(limit)
         )
         if after is not None:
             stmt = stmt.where(PreferencesRow.user_id > after)
@@ -140,15 +157,17 @@ class SqlNotifyRepo:
     # deliveries
     async def counts_today(self, user_id: UUID, day: date, kind: Kind) -> tuple[int, bool]:
         rows = await self._s.execute(
-            select(DeliveryRow.kind, func.count()).where(
-                DeliveryRow.user_id == user_id, DeliveryRow.day == day
-            ).group_by(DeliveryRow.kind)
+            select(DeliveryRow.kind, func.count())
+            .where(DeliveryRow.user_id == user_id, DeliveryRow.day == day)
+            .group_by(DeliveryRow.kind)
         )
         by_kind = {k: n for k, n in rows}
         return sum(by_kind.values()), by_kind.get(kind.value, 0) > 0
 
     async def record_delivery(self, user_id: UUID, kind: Kind, channel: Channel, day: date) -> None:
-        self._s.add(DeliveryRow(id=new_id(), user_id=user_id, kind=kind.value,
-                                channel=channel.value, day=day))
+        self._s.add(
+            DeliveryRow(
+                id=new_id(), user_id=user_id, kind=kind.value, channel=channel.value, day=day
+            )
+        )
         await self._s.flush()
-

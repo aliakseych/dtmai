@@ -4,6 +4,7 @@ import { ApiError } from "@dtmai/api-client";
 import { useToast } from "@dtmai/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "./api";
+import { useT } from "./i18n";
 import { errMsg } from "./util";
 
 type S = components["schemas"];
@@ -33,25 +34,26 @@ export const users = {
 
 /** Messages for the stable protection error codes; falls back to the server text. */
 const CODE_MSG: Record<string, string> = {
-  account_disabled: "This account is disabled.",
-  last_admin: "You can't remove or disable the last active admin.",
-  self_disable: "You can't disable your own account.",
-  self_demotion: "You can't remove your own admin role.",
-  invalid_role: "One of the selected roles is not valid.",
-  email_taken: "This email is already used by another account.",
+  account_disabled: "admin.usersErr.account_disabled",
+  last_admin: "admin.usersErr.last_admin",
+  self_disable: "admin.usersErr.self_disable",
+  self_demotion: "admin.usersErr.self_demotion",
+  invalid_role: "admin.usersErr.invalid_role",
+  email_taken: "admin.usersErr.email_taken",
 };
-export const userErrMsg = (e: unknown) => (e instanceof ApiError && CODE_MSG[e.code]) || errMsg(e);
+export const userErrMsg = (e: unknown, t: (k: string) => string) => (e instanceof ApiError && CODE_MSG[e.code] ? t(CODE_MSG[e.code]!) : errMsg(e));
 
 /** Mutation that invalidates the given query keys and surfaces (protection) errors as toasts. */
 export function useUserAct<A, R>(fn: (a: A) => Promise<R>, invalidate: readonly (readonly unknown[])[], ok?: string) {
   const qc = useQueryClient();
   const toast = useToast();
+  const t = useT();
   return useMutation({
     mutationFn: fn,
     onSuccess: () => {
       for (const k of invalidate) void qc.invalidateQueries({ queryKey: k as unknown[] });
-      if (ok) toast(ok, "success");
+      if (ok) toast(t(ok), "success");
     },
-    onError: (e) => toast(userErrMsg(e), "error"),
+    onError: (e) => toast(userErrMsg(e, t), "error"),
   });
 }

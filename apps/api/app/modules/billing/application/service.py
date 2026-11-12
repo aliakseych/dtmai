@@ -15,7 +15,9 @@ from app.modules.billing.domain.click import (
 )
 from app.modules.billing.domain.plans import (
     FREE_PLAN_CODE,
+    FREE_WHILE_PAYMENTS_OFF,
     GrantSource,
+    PaymentsMisconfigured,
     Plan,
     Subscription,
     add_months,
@@ -29,7 +31,7 @@ from app.modules.billing.ports import (
 )
 from app.modules.billing.settings import BillingSettings
 from app.shared.entitlements import Entitlements
-from app.shared.errors import Conflict, NotFound, ValidationFailed
+from app.shared.errors import Conflict, Forbidden, NotFound, ValidationFailed
 from app.shared.events import Event, publish
 from app.shared.ids import new_id
 
@@ -83,7 +85,9 @@ class BillingService:
         if await self._plans.get(code) is None:
             raise NotFound("plan not found", code="plan_not_found")
         if await self._plans.has_references(code):
-            raise Conflict("plan is used by subscriptions; deactivate it instead", code="plan_in_use")
+            raise Conflict(
+                "plan is used by subscriptions; deactivate it instead", code="plan_in_use"
+            )
         await self._plans.delete(code)
 
     # --- entitlements -------------------------------------------------------
@@ -92,6 +96,8 @@ class BillingService:
         subs = await self._subs.for_user(user_id)
         plans = await self._plans.all_by_code()
         ent = resolve_entitlements(subs, plans, now)
+        if not self._settings.payments_enabled:
+            ent = Entitlements(ent.plan_code, ent.features | FREE_WHILE_PAYMENTS_OFF, ent.limits)
         current = next((s for s in subs if s.is_active(now) and s.plan_code == ent.plan_code), None)
         return MyBilling(ent, current)
 
@@ -109,12 +115,14 @@ class BillingService:
         """Grant/extend a plan; prepaid periods stack. Publishes EntitlementGranted."""
         now = now or datetime.now(UTC)
         plan = await self._plans.get(plan_code)
-        if plan is None or plan.is_free:
+        # A Click-paid invoice is fulfilled from its snapshot even if the admin zeroed the price since.
+        if plan is None or (plan.is_free and source is not GrantSource.CLICK):
             raise NotFound("paid plan not found", code="plan_not_found")
         if (months is None) == (until is None):
             raise ValidationFailed("give exactly one of months or until", code="invalid_grant")
         if until is not None and until <= now:
             raise ValidationFailed("until must be in the future", code="invalid_grant")
+        await self._subs.lock(user_id, plan_code)
         existing = await self._subs.active_for_user(user_id, plan_code, now)
         if existing is not None:
             if months is not None:
@@ -126,9 +134,13 @@ class BillingService:
             sub = existing
         else:
             sub = Subscription(
-                id=new_id(), user_id=user_id, plan_code=plan_code, started_at=now,
+                id=new_id(),
+                user_id=user_id,
+                plan_code=plan_code,
+                started_at=now,
                 until=until if until is not None else add_months(now, months or 0),
-                source=source, invoice_id=invoice_id,
+                source=source,
+                invoice_id=invoice_id,
             )
             await self._subs.add(sub)
         await publish(
@@ -155,19 +167,31 @@ class BillingService:
     def ensure_payments_enabled(self) -> None:
         if not self._settings.payments_enabled:
             raise NotFound("payments are not available", code="payments_disabled")
+        if not self._settings.click_secret_key:
+            raise PaymentsMisconfigured(
+                "click_secret_key is not configured", code="payments_misconfigured"
+            )
 
-    async def checkout(self, user_id: UUID, plan_code: str) -> tuple[Invoice, str]:
+    async def checkout(
+        self, user_id: UUID, plan_code: str, *, is_guest: bool = False
+    ) -> tuple[Invoice, str]:
         self.ensure_payments_enabled()
+        if is_guest:
+            raise Forbidden("sign in to buy a plan", code="guest_checkout_forbidden")
         plan = await self._plans.get(plan_code)
         if plan is None or not plan.active or plan.is_free:
             raise NotFound("plan not found", code="plan_not_found")
         invoice = await self._invoices.create(
-            user_id=user_id, plan_code=plan.code, period_months=plan.period_months,
+            user_id=user_id,
+            plan_code=plan.code,
+            period_months=plan.period_months,
             amount_uzs=plan.price_uzs,
         )
         return invoice, self._provider.checkout_url(invoice)
 
-    async def process_click(self, raw: dict[str, str], now: datetime | None = None) -> dict[str, Any]:
+    async def process_click(
+        self, raw: dict[str, str], now: datetime | None = None
+    ) -> dict[str, Any]:
         """One Click prepare/complete callback; always answers with a Click error envelope."""
         self.ensure_payments_enabled()
         now = now or datetime.now(UTC)
@@ -181,16 +205,25 @@ class BillingService:
         except ValueError:
             invoice = None
         outcome = handle_click(
-            req, invoice,
-            secret=self._settings.click_secret_key, service_id=self._settings.click_service_id,
+            req,
+            invoice,
+            secret=self._settings.click_secret_key,
+            service_id=self._settings.click_service_id,
             now=now,
         )
-        if invoice is not None and outcome.error in (ClickError.SUCCESS, ClickError.TRANSACTION_CANCELED):
+        if invoice is not None and outcome.error in (
+            ClickError.SUCCESS,
+            ClickError.TRANSACTION_CANCELED,
+        ):
             await self._invoices.save(invoice)
         if outcome.paid and invoice is not None:
             await self.grant(
-                invoice.user_id, invoice.plan_code, months=invoice.period_months,
-                source=GrantSource.CLICK, invoice_id=invoice.id, now=now,
+                invoice.user_id,
+                invoice.plan_code,
+                months=invoice.period_months,
+                source=GrantSource.CLICK,
+                invoice_id=invoice.id,
+                now=now,
             )
         return _envelope(raw, invoice, outcome, complete=req.action == str(ACTION_COMPLETE))
 

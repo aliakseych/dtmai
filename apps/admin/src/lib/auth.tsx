@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useRouter } from "next/navigation";
 import type { components } from "@dtmai/api-client";
 import { api, setUnauthorizedHandler } from "./api";
+import { useT } from "./i18n";
 import { readTokens, writeTokens } from "./session";
 
 export type Me = components["schemas"]["MeOut"];
@@ -76,18 +77,22 @@ export function useAuth(): Ctx {
 export function RequireAdmin({ children }: { children: ReactNode }) {
   const { me, loading, canEdit, logout } = useAuth();
   const router = useRouter();
+  const t = useT();
   useEffect(() => {
-    if (!loading && !me) router.replace("/login/");
+    if (!loading && !me) {
+      const here = window.location.pathname + window.location.search;
+      router.replace(here === "/" || here.startsWith("/login") ? "/login/" : `/login/?next=${encodeURIComponent(here)}`);
+    }
   }, [loading, me, router]);
-  if (loading || !me) return <div className="grid h-screen place-items-center text-ink-soft">Loading…</div>;
+  if (loading || !me) return <div className="grid h-screen place-items-center text-ink-soft">{t("admin.common.loading")}</div>;
   if (!canEdit)
     return (
       <div className="grid h-screen place-items-center">
         <div className="text-center">
-          <h1 className="text-xl">No access</h1>
-          <p className="mt-1 text-ink-soft">{me.email} has no admin or editor role.</p>
-          <button className="mt-3 rounded-md border border-line bg-white px-3 py-1.5" onClick={() => void logout()}>
-            Sign out
+          <h1 className="text-xl">{t("admin.auth.noAccess")}</h1>
+          <p className="mt-1 text-ink-soft">{t("admin.auth.noRole", { email: me.email ?? "" })}</p>
+          <button className="mt-3 rounded-xl border border-line bg-white px-3 py-1.5" onClick={() => void logout()}>
+            {t("admin.common.signOut")}
           </button>
         </div>
       </div>

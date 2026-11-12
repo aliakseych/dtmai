@@ -30,7 +30,7 @@ export function UnitSection({ unit, index, fresh }: { unit: Path["units"][number
 
   return (
     <section className="flex flex-col items-center">
-      <div className={cn("sticky top-0 z-10 flex w-full items-center justify-between gap-3 rounded-card p-4 shadow-md", style.banner)}>
+      <div className={cn("sticky top-0 z-10 flex w-full items-center justify-between gap-3 rounded-card p-4", style.banner)}>
         <div className="min-w-0">
           <p className="text-sm font-extrabold uppercase tracking-wide opacity-80">
             {t("learn.unit", { n: index + 1 })} · {unit.progress.completed_lessons}/{unit.progress.total_lessons}

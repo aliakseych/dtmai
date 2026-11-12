@@ -8,21 +8,31 @@ from app.modules.learning.application.stats import StatsService
 from app.modules.learning.infrastructure.content import FacadeContent
 from app.modules.learning.infrastructure.hearts import FacadeHearts
 from app.modules.learning.infrastructure.repositories import SqlLearningRepository
-from app.modules.learning.infrastructure.stats import FacadeMockResults, FacadeProgress, SqlAnswerStats
+from app.modules.learning.infrastructure.stats import (
+    FacadeMockResults,
+    FacadeProgress,
+    SqlAnswerStats,
+)
 from app.shared.db import get_session
 from app.shared.events import Event, subscribe
 
 
 def build_learning_service(session: AsyncSession) -> LearningService:
-    return LearningService(SqlLearningRepository(session), FacadeContent(session), FacadeHearts(session), session)
+    return LearningService(
+        SqlLearningRepository(session), FacadeContent(session), FacadeHearts(session), session
+    )
 
 
-async def get_learning_service(session: Annotated[AsyncSession, Depends(get_session)]) -> LearningService:
+async def get_learning_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> LearningService:
     return build_learning_service(session)
 
 
 def build_stats_service(session: AsyncSession) -> StatsService:
-    return StatsService(SqlAnswerStats(session), FacadeProgress(session), FacadeMockResults(session))
+    return StatsService(
+        SqlAnswerStats(session), FacadeProgress(session), FacadeMockResults(session)
+    )
 
 
 LearningServiceDep = Annotated[LearningService, Depends(get_learning_service)]

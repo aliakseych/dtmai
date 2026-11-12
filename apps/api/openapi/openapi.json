@@ -1398,7 +1398,7 @@
             "title": "Base"
           },
           "files": {
-            "description": "PDF/PNG/JPEG/WebP, max 50 files, 25 MB each",
+            "description": "PDF/PNG/JPEG/WebP, max 50 files, 100 MB each",
             "items": {
               "contentMediaType": "application/octet-stream",
               "type": "string"
@@ -2322,7 +2322,7 @@
             "items": {
               "type": "string"
             },
-            "maxItems": 5,
+            "maxItems": 8,
             "title": "Phones",
             "type": "array"
           },
@@ -2821,6 +2821,182 @@
         "title": "DeviceIn",
         "type": "object"
       },
+      "DreamGapOut": {
+        "properties": {
+          "competition_ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Competition Ratio"
+          },
+          "gap": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Points still missing; <= 0 when at the bar",
+            "title": "Gap"
+          },
+          "lyceum_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None: no dream lyceum chosen yet",
+            "title": "Lyceum Id"
+          },
+          "max_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Score"
+          },
+          "milestone": {
+            "description": "Large gap: frame it as the next milestone",
+            "title": "Milestone",
+            "type": "boolean"
+          },
+          "next_points": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Points"
+          },
+          "next_questions": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Questions"
+          },
+          "on_track": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "On Track"
+          },
+          "passing_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passing Score"
+          },
+          "predicted_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predicted Score"
+          },
+          "weakest_subject_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weakest Subject Id"
+          },
+          "weakest_topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weakest Topic Id"
+          },
+          "weakest_topic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weakest Topic Name"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Admission year the benchmark comes from",
+            "title": "Year"
+          }
+        },
+        "required": [
+          "lyceum_id",
+          "year",
+          "predicted_score",
+          "max_score",
+          "passing_score",
+          "competition_ratio",
+          "gap",
+          "on_track",
+          "milestone",
+          "next_points",
+          "next_questions",
+          "weakest_topic_id",
+          "weakest_topic_name",
+          "weakest_subject_id"
+        ],
+        "title": "DreamGapOut",
+        "type": "object"
+      },
       "DrillStartIn": {
         "properties": {
           "count": {
@@ -3225,6 +3401,10 @@
       },
       "ExamSectionOut": {
         "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
           "choice_group": {
             "anyOf": [
               {
@@ -3326,7 +3506,8 @@
           "points_per_question",
           "max_points",
           "exemptible",
-          "in_app"
+          "in_app",
+          "available"
         ],
         "title": "ExamSectionOut",
         "type": "object"
@@ -4124,6 +4305,11 @@
             ],
             "title": "Exam Date"
           },
+          "exam_date_verified": {
+            "description": "False: the exam date is an estimate",
+            "title": "Exam Date Verified",
+            "type": "boolean"
+          },
           "max_score": {
             "anyOf": [
               {
@@ -4200,7 +4386,8 @@
           "today_done",
           "today_total",
           "today_minutes",
-          "tasks"
+          "tasks",
+          "exam_date_verified"
         ],
         "title": "HomeOut",
         "type": "object"
@@ -4835,7 +5022,7 @@
           },
           "question_count": {
             "default": 10,
-            "maximum": 100.0,
+            "maximum": 30.0,
             "minimum": 1.0,
             "title": "Question Count",
             "type": "integer"
@@ -4990,7 +5177,7 @@
           "question_count": {
             "anyOf": [
               {
-                "maximum": 100.0,
+                "maximum": 30.0,
                 "minimum": 1.0,
                 "type": "integer"
               },
@@ -9464,6 +9651,28 @@
             "description": "Defaults to today",
             "title": "Start Date"
           },
+          "study_days": {
+            "default": [],
+            "description": "Weekdays 0=Mon..6=Sun; empty = every day",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Study Days",
+            "type": "array"
+          },
+          "study_time": {
+            "anyOf": [
+              {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Planned study time, HH:MM",
+            "title": "Study Time"
+          },
           "target_lyceum_ids": {
             "default": [],
             "items": {
@@ -9555,6 +9764,24 @@
             "title": "Start Date",
             "type": "string"
           },
+          "study_days": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Study Days",
+            "type": "array"
+          },
+          "study_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Study Time"
+          },
           "target_lyceum_ids": {
             "items": {
               "format": "uuid",
@@ -9575,6 +9802,8 @@
           "target_lyceum_ids",
           "certificates",
           "choice_subject_id",
+          "study_time",
+          "study_days",
           "exempt_section_ids",
           "sections"
         ],
@@ -10173,6 +10402,10 @@
             "additionalProperties": true,
             "title": "Target",
             "type": "object"
+          },
+          "undoable": {
+            "title": "Undoable",
+            "type": "boolean"
           }
         },
         "required": [
@@ -10185,7 +10418,8 @@
           "target",
           "est_minutes",
           "status",
-          "done_at"
+          "done_at",
+          "undoable"
         ],
         "title": "TaskOut",
         "type": "object"
@@ -11285,6 +11519,10 @@
             "title": "Daily Goal Xp",
             "type": "integer"
           },
+          "freeze_cost_gems": {
+            "title": "Freeze Cost Gems",
+            "type": "integer"
+          },
           "gems": {
             "title": "Gems",
             "type": "integer"
@@ -11358,7 +11596,8 @@
           "hearts",
           "league_tier",
           "today_xp",
-          "daily_goal_xp"
+          "daily_goal_xp",
+          "freeze_cost_gems"
         ],
         "title": "StatsOut",
         "type": "object"
@@ -28848,8 +29087,30 @@
     },
     "/v1/labeling/queue/next": {
       "post": {
+        "description": "Claim the next item; `exclude` lists question ids the client already holds.",
         "operationId": "labeling_next_item",
         "parameters": [
+          {
+            "in": "query",
+            "name": "exclude",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "maxItems": 50,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exclude"
+            }
+          },
           {
             "in": "query",
             "name": "subject_id",
@@ -32326,6 +32587,90 @@
         ]
       }
     },
+    "/v1/study-plan/dream-gap": {
+      "get": {
+        "operationId": "study_plan_dream_gap",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "accept-language",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Accept-Language"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DreamGapOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Dream Gap",
+        "tags": [
+          "study-plan"
+        ]
+      }
+    },
     "/v1/study-plan/generate": {
       "post": {
         "operationId": "study_plan_generate",
@@ -32879,6 +33224,100 @@
           }
         ],
         "summary": "Complete Task",
+        "tags": [
+          "study-plan"
+        ]
+      }
+    },
+    "/v1/study-plan/tasks/{task_id}/uncomplete": {
+      "post": {
+        "operationId": "study_plan_uncomplete_task",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "accept-language",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Accept-Language"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Uncomplete Task",
         "tags": [
           "study-plan"
         ]

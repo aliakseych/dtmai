@@ -3,6 +3,7 @@ from datetime import date, datetime
 from typing import Any
 from uuid import UUID
 
+from app.modules.study_plan.domain.gap import DreamGap
 from app.modules.study_plan.domain.models import PlanSettings, Task, TaskKind, TaskStatus
 from app.modules.study_plan.ports import DailyQuestion
 
@@ -18,6 +19,8 @@ class SettingsCmd:
     choice_subject_id: UUID | None = None
     exam_date: date | None = None  # defaults to the exam profile's date
     start_date: date | None = None  # defaults to today
+    study_time: str | None = None  # "HH:MM" implementation intention
+    study_days: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,6 +35,7 @@ class TaskView:
     est_minutes: int
     status: TaskStatus
     done_at: datetime | None
+    undoable: bool = False
 
     @classmethod
     def of(cls, t: Task, subject_name: str | None) -> "TaskView":
@@ -46,6 +50,7 @@ class TaskView:
             t.est_minutes,
             t.status,
             t.done_at,
+            t.undoable,
         )
 
 
@@ -108,6 +113,17 @@ class HomeView:
     today_total: int = 0
     today_minutes: int = 0
     tasks: tuple[TaskView, ...] = ()
+    exam_date_verified: bool = False  # the exam date is confirmed by the admin, not an estimate
+
+
+@dataclass(frozen=True, slots=True)
+class DreamGapView:
+    lyceum_id: UUID | None  # None: no dream lyceum chosen yet
+    year: int | None
+    gap: DreamGap | None
+    weakest_topic_id: UUID | None = None
+    weakest_topic_name: str | None = None
+    weakest_subject_id: UUID | None = None
 
 
 @dataclass(frozen=True, slots=True)

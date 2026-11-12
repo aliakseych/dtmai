@@ -2,9 +2,17 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.study_plan.infrastructure.repositories import SqlPlanRepository
 from app.modules.study_plan.wiring import build_plan_service
 
-__all__ = ["today_summary"]
+__all__ = ["study_schedules", "today_summary"]
+
+
+async def study_schedules(
+    session: AsyncSession, user_ids: list[UUID]
+) -> dict[UUID, tuple[str, tuple[int, ...]]]:
+    """Learners' chosen (study_time "HH:MM", weekdays) for reminders; absent = none chosen."""
+    return await SqlPlanRepository(session).study_schedules(user_ids)
 
 
 async def today_summary(session: AsyncSession, user_id: UUID) -> tuple[int, int]:

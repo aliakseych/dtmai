@@ -60,7 +60,7 @@ export function PersonalMockCard() {
         <p role="status" className="font-bold text-ink">
           {t("mock.premiumNote")}{" "}
           {canBuy && (
-            <Link href="/premium/" className="text-blue-deep underline">
+            <Link href="/premium/" className="text-brand underline">
               {t("mock.premiumGo")}
             </Link>
           )}

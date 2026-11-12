@@ -19,14 +19,12 @@ export function QuestionNavigator({ cells, current, onGo }: { cells: NavCell[]; 
                 aria-label={t("mock.navLabel", { n: i + 1, state })}
                 aria-current={i === current ? "step" : undefined}
                 className={`relative h-11 w-full rounded-xl border-2 font-extrabold ${
-                  c.answered ? "border-blue-deep bg-blue-soft text-blue-deep" : "border-line bg-white text-ink-soft"
+                  c.answered ? "border-brand bg-brand-soft text-brand" : "border-line bg-white text-ink-soft"
                 } ${i === current ? "ring-2 ring-brand ring-offset-1" : ""}`}
               >
                 {i + 1}
                 {c.flagged && (
-                  <span aria-hidden className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-orange text-[10px] text-white">
-                    ⚑
-                  </span>
+                  <span aria-hidden className="absolute -right-1 -top-1 size-3 rounded-full border-2 border-white bg-ink" />
                 )}
               </button>
             </li>
@@ -35,11 +33,11 @@ export function QuestionNavigator({ cells, current, onGo }: { cells: NavCell[]; 
       </ul>
       <p className="mt-3 flex flex-wrap gap-4 text-xs font-bold text-ink-soft">
         <span className="flex items-center gap-1">
-          <span aria-hidden className="h-3 w-3 rounded border-2 border-blue-deep bg-blue-soft" />
+          <span aria-hidden className="h-3 w-3 rounded border-2 border-brand bg-brand-soft" />
           {t("mock.legendAnswered")}
         </span>
         <span className="flex items-center gap-1">
-          <span aria-hidden className="h-3 w-3 rounded-full bg-orange" />
+          <span aria-hidden className="h-3 w-3 rounded-full bg-ink" />
           {t("mock.legendFlagged")}
         </span>
       </p>

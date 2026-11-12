@@ -69,7 +69,9 @@ class RepMembership:
     decided_at: datetime | None = None
 
     @classmethod
-    def apply(cls, user_id: UUID, lyceum_id: UUID, note: str | None, *, is_guest: bool) -> "RepMembership":
+    def apply(
+        cls, user_id: UUID, lyceum_id: UUID, note: str | None, *, is_guest: bool
+    ) -> "RepMembership":
         if is_guest:
             raise Forbidden("sign in to apply", code="guest_cannot_apply")
         note = (note or "").strip()[:1000] or None
@@ -131,8 +133,14 @@ class Post:
         if self.status is PostStatus.DRAFT:
             raise Conflict("draft posts are not editable", code="post_state")
         candidate = Post(
-            id=self.id, lyceum_id=self.lyceum_id, author_id=self.author_id, kind=kind,
-            title=title, body=body, starts_at=starts_at, link=link,
+            id=self.id,
+            lyceum_id=self.lyceum_id,
+            author_id=self.author_id,
+            kind=kind,
+            title=title,
+            body=body,
+            starts_at=starts_at,
+            link=link,
         )  # re-runs field validation
         self.kind, self.title, self.body = candidate.kind, candidate.title, candidate.body
         self.starts_at, self.link = candidate.starts_at, candidate.link

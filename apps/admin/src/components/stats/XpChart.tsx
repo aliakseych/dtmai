@@ -1,4 +1,5 @@
 "use client";
+import { useT } from "@/lib/i18n";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { DailyStat } from "./types";
 import { useReducedMotion } from "./useReducedMotion";
@@ -7,11 +8,12 @@ const short = (d: string) => d.slice(5);
 
 /** 30-day XP bars; tooltip also shows answered/correct. */
 export function XpChart({ daily }: { daily: DailyStat[] }) {
+  const t = useT();
   const reduced = useReducedMotion();
   const total = daily.reduce((s, d) => s + d.xp, 0);
   return (
-    <section aria-label="XP over the last 30 days">
-      <h3 className="mb-1 text-sm">XP, last {daily.length} days <span className="font-semibold text-ink-soft">· {total.toLocaleString("en")} total</span></h3>
+    <section aria-label={t("admin.stats.xpOverTheLast")}>
+      <h3 className="mb-1 text-sm">{t("admin.stats.xpLast", { n: daily.length })} <span className="font-semibold text-ink-soft">{t("admin.stats.totalN", { n: total.toLocaleString("en") })}</span></h3>
       <div className="h-48 w-full rounded-xl border-2 border-line bg-white p-2">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={daily} margin={{ top: 4, right: 4, bottom: 0, left: -16 }}>

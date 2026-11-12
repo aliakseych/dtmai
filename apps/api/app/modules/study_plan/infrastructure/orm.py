@@ -72,3 +72,4 @@ class DailySetRow(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(Uuid)
     day: Mapped[date] = mapped_column(Date)
     question_ids: Mapped[list[str]] = mapped_column(JSON)
+    answered: Mapped[list[str]] = mapped_column(JSON, default=list, server_default="[]")

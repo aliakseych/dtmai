@@ -47,7 +47,7 @@ export function ChoiceDropdown({
         aria-expanded={open}
         aria-label={label}
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2 rounded-2xl border-2 border-line bg-snow px-4 py-3 text-left font-bold text-ink focus:border-blue focus:bg-white"
+        className="flex w-full items-center gap-2 rounded-2xl border-2 border-line bg-snow px-4 py-3 text-left font-bold text-ink focus:border-brand focus:bg-white"
       >
         <span className="min-w-0 flex-1 truncate">{current?.label ?? label}</span>
         <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden className={cn("shrink-0 transition-transform", open && "rotate-180")}>

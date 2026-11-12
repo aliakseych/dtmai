@@ -64,14 +64,18 @@ def upgrade() -> None:
         _ts("created_at"),
         _ts("updated_at"),
         sa.PrimaryKeyConstraint("id", name="pk_questions"),
-        sa.ForeignKeyConstraint(["passage_id"], [f"{S}.passages.id"], name="fk_questions_passage_id_passages"),
+        sa.ForeignKeyConstraint(
+            ["passage_id"], [f"{S}.passages.id"], name="fk_questions_passage_id_passages"
+        ),
         sa.CheckConstraint(
             "status IN ('draft','auto_agreed','escalated','needs_human','verified','hidden','retired')",
             name="ck_questions_status",
         ),
         schema=S,
     )
-    op.create_index("ix_questions_pick", "questions", ["subject_id", "language", "status"], schema=S)
+    op.create_index(
+        "ix_questions_pick", "questions", ["subject_id", "language", "status"], schema=S
+    )
     op.create_index("ix_questions_topic", "questions", ["topic_id", "status"], schema=S)
     for col in ("type_id", "passage_id", "parent_id", "source_id", "translation_group_id"):
         op.create_index(f"ix_questions_{col}", "questions", [col], schema=S)
@@ -84,7 +88,9 @@ def upgrade() -> None:
         _ts("updated_at"),
         sa.PrimaryKeyConstraint("question_id", "locale", name="pk_question_explanations"),
         sa.ForeignKeyConstraint(
-            ["question_id"], [f"{S}.questions.id"], ondelete="CASCADE",
+            ["question_id"],
+            [f"{S}.questions.id"],
+            ondelete="CASCADE",
             name="fk_question_explanations_question_id_questions",
         ),
         schema=S,
@@ -98,13 +104,17 @@ def upgrade() -> None:
         _ts("created_at"),
         sa.PrimaryKeyConstraint("id", name="pk_question_reports"),
         sa.ForeignKeyConstraint(
-            ["question_id"], [f"{S}.questions.id"], ondelete="CASCADE",
+            ["question_id"],
+            [f"{S}.questions.id"],
+            ondelete="CASCADE",
             name="fk_question_reports_question_id_questions",
         ),
         sa.UniqueConstraint("question_id", "user_id", name="uq_question_reports_question_id"),
         schema=S,
     )
-    op.create_index("ix_question_reports_question_id", "question_reports", ["question_id"], schema=S)
+    op.create_index(
+        "ix_question_reports_question_id", "question_reports", ["question_id"], schema=S
+    )
     op.create_table(
         "processed_events",
         sa.Column("event_id", UUID, nullable=False),
@@ -129,6 +139,13 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    for t in ("audit_log", "processed_events", "question_reports", "question_explanations", "questions", "passages"):
+    for t in (
+        "audit_log",
+        "processed_events",
+        "question_reports",
+        "question_explanations",
+        "questions",
+        "passages",
+    ):
         op.drop_table(t, schema=S)
     op.execute(f"DROP SCHEMA IF EXISTS {S}")

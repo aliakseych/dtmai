@@ -1,7 +1,8 @@
 "use client";
+import { useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useToast } from "@dtmai/ui";
+import { Icon, useToast } from "@dtmai/ui";
 import { lyceums, type DormitoryStatus, type LyceumPatch, type LyceumRow } from "@/lib/lyceums";
 import { useAct } from "@/lib/catalog";
 import { uploadMedia } from "@/lib/media";
@@ -23,6 +24,7 @@ const DORM: DormitoryStatus[] = ["unknown", "available", "limited", "none"];
 const orNull = (s: string) => (s.trim() ? s.trim() : null);
 
 function ImageSlot({ label, value, onChange }: { label: string; value: string; onChange: (key: string) => void }) {
+  const t = useT();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const pick = async (f?: File) => {
@@ -33,16 +35,17 @@ function ImageSlot({ label, value, onChange }: { label: string; value: string; o
   return (
     <Field label={label}>
       <div className="flex items-center gap-2">
-        {value ? <img src={mediaUrl(value)} alt="" className="size-14 rounded-md border border-line object-cover" /> : <div className="size-14 rounded-md border border-dashed border-line" />}
+        {value ? <img src={mediaUrl(value)} alt="" className="size-14 rounded-xl border border-line object-cover" /> : <div className="size-14 rounded-xl border border-dashed border-line" />}
         <input type="file" accept="image/*" disabled={busy} onChange={(e) => void pick(e.target.files?.[0])} className="text-xs" />
         {busy && <Spinner />}
-        {value && <Btn variant="ghost" onClick={() => onChange("")}>Remove</Btn>}
+        {value && <Btn variant="ghost" onClick={() => onChange("")}>{t("admin.common.remove")}</Btn>}
       </div>
     </Field>
   );
 }
 
 function Gallery({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  const t = useT();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const add = async (files: FileList | null) => {
@@ -55,12 +58,12 @@ function Gallery({ value, onChange }: { value: string[]; onChange: (v: string[])
     } catch (e) { toast(errMsg(e), "error"); } finally { setBusy(false); }
   };
   return (
-    <Field label="Gallery">
+    <Field label={t("admin.lyceums.gallery")}>
       <div className="flex flex-wrap items-center gap-2">
         {value.map((k, i) => (
           <div key={k + i} className="relative">
-            <img src={mediaUrl(k)} alt="" className="size-20 rounded-md border border-line object-cover" />
-            <button type="button" aria-label="Remove image" onClick={() => onChange(value.filter((_, j) => j !== i))} className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-red text-xs text-white">×</button>
+            <img src={mediaUrl(k)} alt="" className="size-20 rounded-xl border border-line object-cover" />
+            <button type="button" aria-label={t("admin.lyceums.removeImage")} onClick={() => onChange(value.filter((_, j) => j !== i))} className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-red text-white"><Icon name="close" size={16} /></button>
           </div>
         ))}
         <input type="file" accept="image/*" multiple disabled={busy} onChange={(e) => { void add(e.target.files); e.target.value = ""; }} className="text-xs" />
@@ -71,6 +74,7 @@ function Gallery({ value, onChange }: { value: string[]; onChange: (v: string[])
 }
 
 function Tags({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  const t = useT();
   const [draft, setDraft] = useState("");
   const add = () => {
     const v = draft.trim();
@@ -78,23 +82,24 @@ function Tags({ value, onChange }: { value: string[]; onChange: (v: string[]) =>
     setDraft("");
   };
   return (
-    <Field label="Courses" hint="Press Enter to add a course.">
-      <div className="flex flex-wrap gap-1.5 rounded-md border border-line p-1.5">
+    <Field label={t("admin.lyceums.courses")} hint={t("admin.lyceums.pressEnterToAdd")}>
+      <div className="flex flex-wrap gap-1.5 rounded-xl border border-line p-1.5">
         {value.map((c) => (
           <span key={c} className="inline-flex items-center gap-1 rounded bg-blue-soft px-1.5 py-0.5 text-xs font-bold">
             {c}
-            <button type="button" aria-label={`Remove ${c}`} onClick={() => onChange(value.filter((x) => x !== c))}>×</button>
+            <button type="button" aria-label={t("admin.lyceums.removeItem", { item: c })} onClick={() => onChange(value.filter((x) => x !== c))}><Icon name="close" size={16} /></button>
           </span>
         ))}
         <input value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={add}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
-          className="min-w-32 flex-1 text-[13px] outline-none" placeholder="Add course" />
+          className="min-w-32 flex-1 text-sm outline-none" placeholder={t("admin.lyceums.addCourse")} />
       </div>
     </Field>
   );
 }
 
 export function ProfileEditor({ lyceum, onClose }: { lyceum: LyceumRow | null; onClose: () => void }) {
+  const t = useT();
   const detail = useQuery({ queryKey: ["lyceum-detail", lyceum?.id], queryFn: () => lyceums.detail(lyceum!.id), enabled: !!lyceum });
   const cities = useQuery({ queryKey: ["cities"], queryFn: lyceums.cities });
   const [f, setF] = useState<Form | null>(null);
@@ -108,7 +113,7 @@ export function ProfileEditor({ lyceum, onClose }: { lyceum: LyceumRow | null; o
       dormStatus: p.dormitory_status, dormDesc: { ...p.dormitory_description },
     });
   }, [detail.data]);
-  const save = useAct((a: { id: string; body: LyceumPatch }) => lyceums.patch(a.id, a.body), [["lyceum-detail"]], "Profile saved");
+  const save = useAct((a: { id: string; body: LyceumPatch }) => lyceums.patch(a.id, a.body), [["lyceum-detail"]], t("admin.common.profileSaved"));
   const set = (p: Partial<Form>) => setF((x) => (x ? { ...x, ...p } : x));
   const submit = () => {
     if (!lyceum || !f) return;
@@ -126,38 +131,38 @@ export function ProfileEditor({ lyceum, onClose }: { lyceum: LyceumRow | null; o
     }, { onSuccess: onClose });
   };
   return (
-    <Drawer open={!!lyceum} onClose={onClose} title={lyceum ? `Profile — ${nm(lyceum.names)}` : ""} width="max-w-2xl"
-      footer={<><Btn onClick={onClose}>Cancel</Btn><Btn variant="primary" disabled={!f || save.isPending} onClick={submit}>Save</Btn></>}>
+    <Drawer open={!!lyceum} onClose={onClose} title={lyceum ? t("admin.lyceums.profileTitle", { name: nm(lyceum.names) }) : ""} width="max-w-2xl"
+      footer={<><Btn onClick={onClose}>{t("admin.common.cancel")}</Btn><Btn variant="primary" disabled={!f || save.isPending} onClick={submit}>{t("admin.common.save")}</Btn></>}>
       {detail.error ? <ErrorBox error={detail.error} /> : !f ? <div className="grid place-items-center p-8"><Spinner /></div> : (
         <div className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
-            <ImageSlot label="Logo" value={f.logo} onChange={(logo) => set({ logo })} />
-            <ImageSlot label="Campus photo" value={f.campus} onChange={(campus) => set({ campus })} />
+            <ImageSlot label={t("admin.lyceums.logo")} value={f.logo} onChange={(logo) => set({ logo })} />
+            <ImageSlot label={t("admin.lyceums.campusPhoto")} value={f.campus} onChange={(campus) => set({ campus })} />
           </div>
           <Gallery value={f.gallery} onChange={(gallery) => set({ gallery })} />
-          <fieldset className="space-y-2 rounded-md border border-line p-2">
-            <legend className="px-1 text-[11px] font-extrabold uppercase tracking-wide text-ink-soft">Description</legend>
+          <fieldset className="space-y-2 rounded-xl border border-line p-2">
+            <legend className="px-1 text-xs font-extrabold uppercase tracking-wide text-ink-soft">{t("admin.lyceums.description")}</legend>
             {LOCALE_LIST.map((l) => (
               <Field key={l} label={l}><Textarea className="font-sans" value={f.desc[l] ?? ""} onChange={(e) => set({ desc: { ...f.desc, [l]: e.target.value } })} /></Field>
             ))}
           </fieldset>
           <Tags value={f.courses} onChange={(courses) => set({ courses })} />
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="University name" hint="Entered manually."><Input value={f.university} onChange={(e) => set({ university: e.target.value })} /></Field>
-            <Field label="City">
+            <Field label={t("admin.lyceums.universityName")} hint={t("admin.lyceums.enteredManually")}><Input value={f.university} onChange={(e) => set({ university: e.target.value })} /></Field>
+            <Field label={t("admin.lyceums.city")}>
               <Select value={f.city} onChange={(e) => set({ city: e.target.value })}>
-                <option value="">— Any / none —</option>
+                <option value="">{t("admin.lyceums.anyNone")}</option>
                 {(cities.data ?? []).map((c) => <option key={c.code} value={c.code}>{nm(c.names)}</option>)}
               </Select>
             </Field>
-            <Field label="Website" className="sm:col-span-2"><Input type="url" value={f.website} onChange={(e) => set({ website: e.target.value })} placeholder="https://" /></Field>
-            <Field label="Phone"><Input value={f.phone} onChange={(e) => set({ phone: e.target.value })} /></Field>
-            <Field label="Telegram"><Input value={f.telegram} onChange={(e) => set({ telegram: e.target.value })} /></Field>
-            <Field label="Email" className="sm:col-span-2"><Input type="email" value={f.email} onChange={(e) => set({ email: e.target.value })} /></Field>
+            <Field label={t("admin.lyceums.website")} className="sm:col-span-2"><Input type="url" value={f.website} onChange={(e) => set({ website: e.target.value })} placeholder={t("admin.lyceums.https")} /></Field>
+            <Field label={t("admin.lyceums.phone")}><Input value={f.phone} onChange={(e) => set({ phone: e.target.value })} /></Field>
+            <Field label={t("admin.lyceums.telegram")}><Input value={f.telegram} onChange={(e) => set({ telegram: e.target.value })} /></Field>
+            <Field label={t("admin.common.email")} className="sm:col-span-2"><Input type="email" value={f.email} onChange={(e) => set({ email: e.target.value })} /></Field>
           </div>
-          <fieldset className="space-y-2 rounded-md border border-line p-2">
-            <legend className="px-1 text-[11px] font-extrabold uppercase tracking-wide text-ink-soft">Dormitory</legend>
-            <Field label="Status">
+          <fieldset className="space-y-2 rounded-xl border border-line p-2">
+            <legend className="px-1 text-xs font-extrabold uppercase tracking-wide text-ink-soft">{t("admin.lyceums.dormitory")}</legend>
+            <Field label={t("admin.common.status")}>
               <Select value={f.dormStatus} onChange={(e) => set({ dormStatus: e.target.value as DormitoryStatus })}>
                 {DORM.map((d) => <option key={d} value={d}>{d}</option>)}
               </Select>
@@ -166,7 +171,7 @@ export function ProfileEditor({ lyceum, onClose }: { lyceum: LyceumRow | null; o
               <Field key={l} label={l}><Textarea className="font-sans" value={f.dormDesc[l] ?? ""} onChange={(e) => set({ dormDesc: { ...f.dormDesc, [l]: e.target.value } })} /></Field>
             ))}
           </fieldset>
-          <Check checked={f.verified} onChange={(verified) => set({ verified })} label="Verified representative badge" />
+          <Check checked={f.verified} onChange={(verified) => set({ verified })} label={t("admin.lyceums.verifiedRepresentativeBadge")} />
         </div>
       )}
     </Drawer>

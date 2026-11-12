@@ -1,6 +1,6 @@
 # Brand assets
 
-Mascot: **Temur**, Uzbek corsac fox in Duolingo-style flat vector art: soft rounded shapes, no outlines, 2-3 flat tones, HUGE round white eyes with large dark pupils and a white highlight dot, friendly open-mouth smile (pink tongue), grey-sand fur (#C8BFA6 / #B3A98C), cream muzzle and inner ears (#F6EFD6), doppa in brand blue #100FA0 with a #AFF50B zigzag band. All files derive from the `straight` master (the original line drawings live in dtmai-design/; the master was regenerated with friendlier Duo-like eyes).
+Mascot: **Temur**, Uzbek corsac fox, redesigned as a flat geometric Duo-style character (crisp silhouette, thin same-hue stroke, 2 flat tones per area, not plush). Full spec, prompts and workflow: `.claude/skills/temur-mascot/SKILL.md` (reference sheet there). New poses: `temur-reading`, `temur-calendar`, `temur-rush`, `temur-chat`, `temur-point`, `temur-lock`, `temur-question`.
 
 > Mascot poses are shipped as `temur-<mood>.webp` (720px max, q82) for web weight; the PNG masters are not kept in the repo.
 

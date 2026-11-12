@@ -30,7 +30,10 @@ def upgrade() -> None:
     )
     op.create_index("ix_outbox_name", "outbox", ["name"], schema=S)
     op.create_index(
-        "ix_outbox_pending", "outbox", ["occurred_at"], schema=S,
+        "ix_outbox_pending",
+        "outbox",
+        ["occurred_at"],
+        schema=S,
         postgresql_where=sa.text("dispatched_at IS NULL"),
     )
 

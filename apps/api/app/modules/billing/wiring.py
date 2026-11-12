@@ -37,19 +37,12 @@ async def get_billing_service(
 BillingServiceDep = Annotated[BillingService, Depends(get_billing_service)]
 
 
-# Features granted to everyone while payments are switched off (nothing can be bought).
-FREE_WHILE_PAYMENTS_OFF = frozenset({"personal_mock"})
-
-
 class SqlEntitlements:
     """EntitlementsPort implementation: reads plan data, never hardcodes tiers."""
 
     async def for_user(self, user_id: UUID) -> Entitlements:
         async with get_sessionmaker()() as session:
-            ent = (await build_billing_service(session).my_billing(user_id)).entitlements
-        if get_billing_settings().payments_enabled:
-            return ent
-        return Entitlements(ent.plan_code, ent.features | FREE_WHILE_PAYMENTS_OFF, ent.limits)
+            return (await build_billing_service(session).my_billing(user_id)).entitlements
 
 
 set_entitlements(SqlEntitlements())

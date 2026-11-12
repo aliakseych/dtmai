@@ -125,6 +125,17 @@ class Section:
         """Creative exams are not a test: the app cannot prepare for them."""
         return self.role != "creative"
 
+    @property
+    def available(self) -> bool:
+        """The app can prepare for it: not a creative exam and its subject is in the catalog.
+
+        A choice-group section counts as available; its options are catalog subjects. IQ is
+        always served (it has its own catalog subject).
+        """
+        if not self.in_app:
+            return False
+        return self.role == "iq" or self.subject_id is not None or self.choice_group is not None
+
 
 @dataclass(frozen=True, slots=True)
 class CertRule:

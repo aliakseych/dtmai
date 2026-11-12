@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { ApiError } from "@dtmai/api-client";
-import { Button, Mascot, buttonClass } from "@dtmai/ui";
+import { Button, Mascot, buttonClass, Badge } from "@dtmai/ui";
 import { useLocale, useT } from "@dtmai/i18n";
 import { PageTitle } from "@/components/PageTitle";
 import { RichText } from "@/components/RichText";
@@ -11,6 +11,33 @@ import { api, type TutorQuiz, type TutorQuota } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useAsync } from "@/lib/useAsync";
 import { QuizCard } from "./QuizCard";
+import { Markdown } from "./Markdown";
+
+function Thinking() {
+  const t = useT();
+  const reduce = useReducedMotion();
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setSlow(true), 8000);
+    return () => clearTimeout(id);
+  }, []);
+  return (
+    <div className="flex items-center gap-2 text-ink-soft" role="status">
+      <Mascot mood="thinking" size={40} alt="" />
+      <span>{slow ? t("temur.thinking.slow") : t("temur.thinking")}</span>
+      <span aria-hidden className="flex gap-1">
+        {[0, 1, 2].map((d) => (
+          <motion.span
+            key={d}
+            className="h-2 w-2 rounded-full bg-ink-soft"
+            animate={reduce ? { opacity: 0.6 } : { opacity: [0.2, 1, 0.2] }}
+            transition={reduce ? undefined : { duration: 1.2, repeat: Infinity, delay: d * 0.2 }}
+          />
+        ))}
+      </span>
+    </div>
+  );
+}
 
 type Msg = { role: "user" | "assistant"; content: string; quiz?: TutorQuiz | null };
 type Problem = "limit" | "locked" | "failed" | null;
@@ -19,9 +46,9 @@ function QuotaPill({ quota }: { quota: TutorQuota }) {
   const t = useT();
   const unlimited = quota.remaining < 0;
   return (
-    <span className="rounded-full border-2 border-line px-3 py-1 text-sm font-extrabold text-ink" title={t("temur.quota")}>
+    <Badge tone="outline" title={t("temur.quota")}>
       {unlimited ? t("temur.quota.unlimited") : t("temur.quota.left", { n: quota.remaining })}
-    </span>
+    </Badge>
   );
 }
 
@@ -82,7 +109,7 @@ function TemurChat() {
             : "max-w-[85%] rounded-2xl border-2 border-b-4 border-line bg-white px-4 py-2 text-ink"
         }
       >
-        <RichText text={m.content} />
+        {m.role === "user" ? <RichText text={m.content} /> : <Markdown text={m.content} />}
         {m.quiz && <QuizCard quiz={m.quiz} />}
       </div>
     </motion.div>
@@ -97,7 +124,7 @@ function TemurChat() {
       <div className="flex flex-col gap-4">
         {msgs.length === 0 && (
           <div className="flex flex-col items-center gap-3 text-center">
-            <Mascot mood="wave" size={120} alt="" />
+            <Mascot mood="chat" size={120} alt="" />
             <p className="text-ink-soft">{t("temur.hello")}</p>
             <div className="flex flex-wrap justify-center gap-2">
               {chips.map((c) => (
@@ -116,12 +143,7 @@ function TemurChat() {
         )}
         <div className="flex flex-col gap-3" aria-live="polite">
           {msgs.map(bubble)}
-          {busy && (
-            <div className="flex items-center gap-2 text-ink-soft">
-              <Mascot mood="thinking" size={40} alt="" />
-              <span>{t("temur.thinking")}</span>
-            </div>
-          )}
+          {busy && <Thinking />}
           <div ref={end} />
         </div>
         {problem && (
@@ -163,7 +185,7 @@ export function TemurView() {
     <>
       <PageTitle>{t("temur.title")}</PageTitle>
       <div className="flex flex-col items-center gap-3 text-center">
-        <Mascot mood="wave" size={120} alt="" />
+        <Mascot mood="chat" size={120} alt="" />
         <p className="text-ink-soft">{t("temur.guest")}</p>
         <Link href="/register/" className={buttonClass("primary", true)}>
           {t("temur.guest.cta")}

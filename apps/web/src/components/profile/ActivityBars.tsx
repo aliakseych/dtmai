@@ -25,7 +25,7 @@ export function ActivityBars({ daily }: { daily: Stats["daily"] }) {
               const p = active ? payload?.[0]?.payload : undefined;
               if (!p) return null;
               return (
-                <div className="rounded-xl border-2 border-line bg-white px-3 py-2 text-sm shadow-sm">
+                <div className="rounded-xl border-2 border-line bg-white px-3 py-2 text-sm">
                   <div className="font-extrabold text-ink">{shortDate(p.date, locale)}</div>
                   <div className="text-ink-soft">{t("profile.stats.dayTip", { xp: p.xp, correct: p.correct, answered: p.answered })}</div>
                 </div>

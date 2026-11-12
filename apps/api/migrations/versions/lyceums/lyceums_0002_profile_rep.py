@@ -42,11 +42,17 @@ def upgrade() -> None:
         sa.Column("lyceum_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("status", sa.String(10), nullable=False),
         sa.Column("note", sa.Text()),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("decided_at", sa.DateTime(timezone=True)),
         sa.PrimaryKeyConstraint("user_id", "lyceum_id", name="pk_rep_memberships"),
-        sa.ForeignKeyConstraint(["lyceum_id"], [f"{S}.lyceums.id"], ondelete="CASCADE",
-                                name="fk_rep_memberships_lyceum_id_lyceums"),
+        sa.ForeignKeyConstraint(
+            ["lyceum_id"],
+            [f"{S}.lyceums.id"],
+            ondelete="CASCADE",
+            name="fk_rep_memberships_lyceum_id_lyceums",
+        ),
         schema=S,
     )
     op.create_table(
@@ -61,12 +67,20 @@ def upgrade() -> None:
         sa.Column("link", sa.Text()),
         sa.Column("status", sa.String(10), nullable=False),
         sa.Column("reject_reason", sa.Text()),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("published_at", sa.DateTime(timezone=True)),
         sa.PrimaryKeyConstraint("id", name="pk_posts"),
-        sa.ForeignKeyConstraint(["lyceum_id"], [f"{S}.lyceums.id"], ondelete="CASCADE",
-                                name="fk_posts_lyceum_id_lyceums"),
+        sa.ForeignKeyConstraint(
+            ["lyceum_id"],
+            [f"{S}.lyceums.id"],
+            ondelete="CASCADE",
+            name="fk_posts_lyceum_id_lyceums",
+        ),
         schema=S,
     )
     op.create_index("ix_posts_lyceum_id", "posts", ["lyceum_id"], schema=S)
@@ -76,6 +90,16 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_table("posts", schema=S)
     op.drop_table("rep_memberships", schema=S)
-    for name in ("verified_rep", "contacts", "website", "city", "university_name", "courses",
-                 "description", "gallery_urls", "campus_photo_url", "logo_url"):
+    for name in (
+        "verified_rep",
+        "contacts",
+        "website",
+        "city",
+        "university_name",
+        "courses",
+        "description",
+        "gallery_urls",
+        "campus_photo_url",
+        "logo_url",
+    ):
         op.drop_column("lyceums", name, schema=S)

@@ -33,7 +33,9 @@ class UserStats:
 
     def set_daily_goal(self, xp: int) -> None:
         if xp not in DAILY_GOAL_CHOICES:
-            raise ValidationFailed("daily goal must be one of 10, 20, 30, 50", code="invalid_daily_goal")
+            raise ValidationFailed(
+                "daily goal must be one of 10, 20, 30, 50", code="invalid_daily_goal"
+            )
         self.daily_goal_xp = xp
 
     def metrics(self) -> dict[str, int]:

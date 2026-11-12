@@ -1,12 +1,14 @@
 "use client";
+import { useT } from "@/lib/i18n";
 import type { SubjectStat } from "./types";
 
 /** Mastery (0..1) per subject as flat progress bars; unknown mastery renders an empty bar. */
 export function SubjectBars({ rows, subjectName }: { rows: SubjectStat[]; subjectName: (id: string) => string }) {
+  const t = useT();
   return (
-    <section aria-label="Mastery by subject">
-      <h3 className="mb-1 text-sm">Mastery by subject</h3>
-      {rows.length === 0 ? <p className="text-xs text-ink-soft">No answers yet.</p> : (
+    <section aria-label={t("admin.stats.masteryBySubject")}>
+      <h3 className="mb-1 text-sm">{t("admin.stats.masteryBySubject")}</h3>
+      {rows.length === 0 ? <p className="text-xs text-ink-soft">{t("admin.stats.noAnswersYet")}</p> : (
         <ul className="max-h-56 space-y-2 overflow-y-auto rounded-xl border-2 border-line bg-white p-3">
           {rows.map((r) => {
             const pct = r.mastery == null ? 0 : Math.round(r.mastery * 100);

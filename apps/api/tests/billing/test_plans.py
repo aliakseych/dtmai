@@ -28,8 +28,14 @@ PLANS = {
 
 
 def sub(code: str, until: datetime, **kw: object) -> Subscription:
-    return Subscription(id=uuid4(), user_id=uuid4(), plan_code=code,
-                        started_at=NOW - timedelta(days=1), until=until, **kw)  # type: ignore[arg-type]
+    return Subscription(
+        id=uuid4(),
+        user_id=uuid4(),
+        plan_code=code,
+        started_at=NOW - timedelta(days=1),
+        until=until,
+        **kw,
+    )  # type: ignore[arg-type]
 
 
 def test_plan_validation() -> None:
@@ -70,7 +76,9 @@ def test_resolve_active_premium_and_expiry() -> None:
 
 
 def test_unknown_plan_ignored() -> None:
-    assert resolve_entitlements([sub("gone", NOW + timedelta(days=1))], PLANS, NOW).plan_code == "free"
+    assert (
+        resolve_entitlements([sub("gone", NOW + timedelta(days=1))], PLANS, NOW).plan_code == "free"
+    )
 
 
 def test_prepaid_extension_stacks() -> None:

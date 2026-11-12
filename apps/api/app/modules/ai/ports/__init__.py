@@ -1,4 +1,3 @@
-from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Protocol
@@ -75,10 +74,16 @@ class AIConfigRepository(Protocol):
     async def set_limits(self, limits: Limits, actor: UUID) -> None: ...
 
 
-class TutorSlotLock(Protocol):
-    """Serializes a user's tutor chats so the quota check and the counted ledger write are atomic."""
+class TutorSlotReservations(Protocol):
+    """Atomically claims one daily Ask Temur message (short transaction, no lock held afterwards)."""
 
-    def hold(self, user_id: UUID) -> AbstractAsyncContextManager[None]: ...
+    async def reserve(self, user_id: UUID, limit: int) -> UUID | None:
+        """Claim a slot, or None when the daily limit (-1 = unlimited) is used up."""
+        ...
+
+    async def release(self, reservation_id: UUID) -> None:
+        """Give the slot back when the LLM call failed."""
+        ...
 
 
 class LedgerRepository(Protocol):

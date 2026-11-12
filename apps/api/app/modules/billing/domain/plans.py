@@ -7,15 +7,22 @@ from enum import StrEnum
 from uuid import UUID
 
 from app.shared.entitlements import Entitlements
-from app.shared.errors import ValidationFailed
+from app.shared.errors import DomainError, ValidationFailed
 
 FREE_PLAN_CODE = "free"
+# Features granted to everyone while payments are switched off (nothing can be bought).
+FREE_WHILE_PAYMENTS_OFF = frozenset({"personal_mock"})
 ALLOWED_PERIODS = (1, 3, 12)
 LOCALES = ("uz-Latn", "uz-Cyrl", "ru", "en")
 # Built-in fallback used only when the admin has deleted/deactivated the `free` row.
 FALLBACK_FREE = Entitlements(
     FREE_PLAN_CODE, frozenset(), {"hearts_max": 5, "ai_explanations_per_day": 3}
 )
+
+
+class PaymentsMisconfigured(DomainError):
+    status = 503
+    code = "payments_misconfigured"
 
 
 def add_months(moment: datetime, months: int) -> datetime:
@@ -42,14 +49,18 @@ class Plan:
     def validate(self) -> None:
         code = self.code
         if not code or not code.replace("_", "").replace("-", "").isalnum() or code != code.lower():
-            raise ValidationFailed("plan code must be lowercase [a-z0-9_-]", code="invalid_plan_code")
+            raise ValidationFailed(
+                "plan code must be lowercase [a-z0-9_-]", code="invalid_plan_code"
+            )
         if self.price_uzs < 0:
             raise ValidationFailed("price must be >= 0", code="invalid_price")
         if self.period_months not in ALLOWED_PERIODS:
             raise ValidationFailed("period_months must be 1, 3 or 12", code="invalid_period")
         missing = [loc for loc in LOCALES if not self.names.get(loc, "").strip()]
         if missing:
-            raise ValidationFailed(f"missing plan names: {', '.join(missing)}", code="invalid_names")
+            raise ValidationFailed(
+                f"missing plan names: {', '.join(missing)}", code="invalid_names"
+            )
         if self.code == FREE_PLAN_CODE and self.price_uzs != 0:
             raise ValidationFailed("the free plan must cost 0", code="invalid_price")
 

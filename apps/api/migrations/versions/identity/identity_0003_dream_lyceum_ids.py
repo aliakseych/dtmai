@@ -20,8 +20,12 @@ S = "identity"
 def upgrade() -> None:
     op.add_column(
         "users",
-        sa.Column("dream_lyceum_ids", postgresql.ARRAY(postgresql.UUID(as_uuid=True)),
-                  nullable=False, server_default="{}"),
+        sa.Column(
+            "dream_lyceum_ids",
+            postgresql.ARRAY(postgresql.UUID(as_uuid=True)),
+            nullable=False,
+            server_default="{}",
+        ),
         schema=S,
     )
     op.execute(

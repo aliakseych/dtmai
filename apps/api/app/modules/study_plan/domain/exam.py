@@ -39,6 +39,7 @@ class ExamProfile:
     mock_blueprint_id: UUID | None
     sections: tuple[ExamSection, ...]
     cert_rules: tuple[CertRule, ...]
+    date_verified: bool = False  # the exam date is confirmed, not an estimate
 
 
 @dataclass(frozen=True, slots=True)

@@ -22,8 +22,9 @@ from app.modules.lyceums.domain.admission import (
     validate_seats,
 )
 from app.modules.lyceums.domain.matching import match_names
+from app.modules.lyceums.domain.models import validate_year
 from app.modules.lyceums.ports import AdmissionStore
-from app.shared.errors import NotFound, ValidationFailed
+from app.shared.errors import Conflict, NotFound
 
 
 @dataclass(frozen=True, slots=True)
@@ -195,6 +196,16 @@ class AdmissionService:
         if lyceum_id is not None and lyceum_id not in await self._store.lyceum_names():
             raise NotFound("lyceum not found", code="lyceum_not_found")
         saved = await self._store.matches(kind)
+        if lyceum_id is not None:
+            for other, (target, source) in saved.items():
+                if other == ref or target != lyceum_id:
+                    continue
+                if source == MATCH_ADMIN:
+                    raise Conflict(
+                        "lyceum already matched to another entry", code="lyceum_already_matched"
+                    )
+                await self._release_if_moved(kind, other, saved, None)
+                await self._store.save_match(kind, other, None, MATCH_AUTO)
         await self._release_if_moved(kind, ref, saved, lyceum_id)
         await self._store.save_match(kind, ref, lyceum_id, MATCH_ADMIN)
         if lyceum_id is not None:
@@ -211,8 +222,7 @@ class AdmissionService:
         ru: int,
         qq: int,
     ) -> PlanRow:
-        if year < 2000 or year > 2100:
-            raise ValidationFailed("year out of range", code="invalid_year")
+        validate_year(year)
         await self._require_lyceum(lyceum_id)
         row = PlanRow(
             lyceum_id=lyceum_id,
@@ -233,8 +243,19 @@ class AdmissionService:
         source = await self._store.delete_plan(lyceum_id, year, code, language)
         if source is None:
             raise NotFound("plan row not found", code="plan_row_not_found")
-        if source == SOURCE_SEED:
+        if source == SOURCE_SEED or await self._in_seed(lyceum_id, year, code, language):
             await self._store.tombstone_plan(lyceum_id, year, code, language)
+
+    async def _in_seed(self, lyceum_id: UUID, year: int, code: str, language: str | None) -> bool:
+        """Whether the import would re-create this row (an admin edit flips its source to admin)."""
+        if year != self._seed.plan_year:
+            return False
+        saved = await self._store.matches(KIND_PLAN)
+        return any(
+            saved.get(e.ref, (None, None))[0] == lyceum_id
+            and any((d.direction_code, d.language_name) == (code, language) for d in e.directions)
+            for e in self._seed.plan
+        )
 
     async def put_contacts(
         self, lyceum_id: UUID, phones: list[str], telegram: str | None

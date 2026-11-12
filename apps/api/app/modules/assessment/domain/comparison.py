@@ -11,7 +11,13 @@ class Comparison:
 
 
 def compare(
-    score: float, *, passing_score: float | None, competition_ratio: float | None, year: int | None = None
+    score: float,
+    *,
+    passing_score: float | None,
+    competition_ratio: float | None,
+    year: int | None = None,
 ) -> Comparison:
     gap = round(score - passing_score, 2) if passing_score is not None else None
-    return Comparison(year, passing_score, competition_ratio, gap, None if gap is None else gap >= 0)
+    return Comparison(
+        year, passing_score, competition_ratio, gap, None if gap is None else gap >= 0
+    )

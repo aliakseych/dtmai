@@ -39,7 +39,9 @@ def _need(cond: bool, msg: str) -> None:
 
 def _items(payload: Mapping[str, Any], key: str, minimum: int = 2) -> list[str]:
     raw = payload.get(key)
-    _need(isinstance(raw, list) and len(raw) >= minimum, f"payload.{key} needs >= {minimum} entries")
+    _need(
+        isinstance(raw, list) and len(raw) >= minimum, f"payload.{key} needs >= {minimum} entries"
+    )
     ids: list[str] = []
     for it in raw:
         _need(isinstance(it, dict), f"payload.{key} entries must be objects")
@@ -79,7 +81,10 @@ def normalize_text(s: str, *, case_sensitive: bool = False) -> str:
 
 def validate_question(kind: str, payload: Mapping[str, Any], answer: Mapping[str, Any]) -> None:
     _need(kind in QUESTION_KINDS, f"unknown kind {kind!r}")
-    _need(isinstance(payload, Mapping) and isinstance(answer, Mapping), "payload/answer must be objects")
+    _need(
+        isinstance(payload, Mapping) and isinstance(answer, Mapping),
+        "payload/answer must be objects",
+    )
     match kind:
         case "single_choice":
             ids = _items(payload, "options")
@@ -88,7 +93,10 @@ def validate_question(kind: str, payload: Mapping[str, Any], answer: Mapping[str
             ids = _items(payload, "options")
             ch = answer.get("choices")
             _need(isinstance(ch, list) and len(ch) > 0, "answer.choices must be a non-empty list")
-            _need(len(set(ch)) == len(ch) and set(ch) <= set(ids), "answer.choices must be unique option ids")
+            _need(
+                len(set(ch)) == len(ch) and set(ch) <= set(ids),
+                "answer.choices must be unique option ids",
+            )
         case "numeric":
             _need(parse_number(answer.get("value")) is not None, "answer.value must be a number")
             tol = answer.get("tolerance", 0)
@@ -97,19 +105,27 @@ def validate_question(kind: str, payload: Mapping[str, Any], answer: Mapping[str
         case "short_text":
             acc = answer.get("accepted")
             _need(
-                isinstance(acc, list) and len(acc) > 0 and all(isinstance(a, str) and a.strip() for a in acc),
+                isinstance(acc, list)
+                and len(acc) > 0
+                and all(isinstance(a, str) and a.strip() for a in acc),
                 "answer.accepted must be a non-empty list of strings",
             )
         case "matching":
             left = _items(payload, "left")
             right = _items(payload, "right")
             pairs = answer.get("pairs")
-            _need(isinstance(pairs, dict) and set(pairs) == set(left), "answer.pairs must cover every left id")
+            _need(
+                isinstance(pairs, dict) and set(pairs) == set(left),
+                "answer.pairs must cover every left id",
+            )
             _need(all(v in right for v in pairs.values()), "answer.pairs values must be right ids")
         case "ordering":
             ids = _items(payload, "items")
             order = answer.get("order")
-            _need(isinstance(order, list) and sorted(order) == sorted(ids), "answer.order must be a permutation of items")
+            _need(
+                isinstance(order, list) and sorted(order) == sorted(ids),
+                "answer.order must be a permutation of items",
+            )
         case "passage_group":
             ch = payload.get("child_ids")
             _need(
@@ -163,7 +179,9 @@ def grade_response(
                 got_order = response.get("order")
                 if not isinstance(got_order, list):
                     return WRONG
-                hits = sum(1 for i, v in enumerate(want_order) if i < len(got_order) and got_order[i] == v)
+                hits = sum(
+                    1 for i, v in enumerate(want_order) if i < len(got_order) and got_order[i] == v
+                )
                 return Grade(got_order == want_order, hits / len(want_order))
     except (KeyError, TypeError, ZeroDivisionError):
         return WRONG
@@ -190,7 +208,9 @@ def grade_group(
         grade_response(kind, payload, answer, answers[cid]) if cid in answers else WRONG
         for cid, kind, payload, answer in children
     ]
-    return aggregate_group(grades), {"answers": {cid: dict(answer) for cid, _, _, answer in children}}
+    return aggregate_group(grades), {
+        "answers": {cid: dict(answer) for cid, _, _, answer in children}
+    }
 
 
 def empirical_difficulty(attempts: int, correct: int, *, min_attempts: int = 20) -> float | None:

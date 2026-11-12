@@ -79,16 +79,16 @@ export function draftTo(d: Draft): { payload: R; answer: R } {
   }
 }
 
-/** Client-side validation mirroring the server's per-kind rules; returns an error or null. */
+/** Client-side validation mirroring the server's per-kind rules; returns an i18n error key or null. */
 export function validateDraft(d: Draft): string | null {
   const ids = (o: Opt[]) => new Set(o.map((x) => x.id)).size === o.length && o.every((x) => x.id.trim());
   switch (d.kind) {
-    case "single_choice": return d.options.length < 2 ? "At least 2 options" : !ids(d.options) ? "Option ids must be unique and non-empty" : d.correct.length !== 1 ? "Pick exactly one correct option" : null;
-    case "multi_choice": return d.options.length < 2 ? "At least 2 options" : !ids(d.options) ? "Option ids must be unique and non-empty" : d.correct.length < 1 ? "Pick at least one correct option" : null;
-    case "numeric": return d.value.trim() === "" || Number.isNaN(Number(d.value)) ? "Numeric answer required" : null;
-    case "short_text": return d.accepted.trim() ? null : "At least one accepted answer";
-    case "matching": return !ids(d.left) || !ids(d.right) ? "Pair ids must be unique" : d.left.some((l) => !d.pairs[l.id]) ? "Every left item needs a match" : null;
-    case "ordering": return d.items.length < 2 ? "At least 2 items" : ids(d.items) ? null : "Item ids must be unique";
-    case "passage_group": return d.childIds.trim() ? null : "Child question ids required";
+    case "single_choice": return d.options.length < 2 ? "admin.validate.optionsMin" : !ids(d.options) ? "admin.validate.optionIds" : d.correct.length !== 1 ? "admin.validate.pickOne" : null;
+    case "multi_choice": return d.options.length < 2 ? "admin.validate.optionsMin" : !ids(d.options) ? "admin.validate.optionIds" : d.correct.length < 1 ? "admin.validate.pickAtLeastOne" : null;
+    case "numeric": return d.value.trim() === "" || Number.isNaN(Number(d.value)) ? "admin.validate.numericRequired" : null;
+    case "short_text": return d.accepted.trim() ? null : "admin.validate.acceptedRequired";
+    case "matching": return !ids(d.left) || !ids(d.right) ? "admin.validate.pairIds" : d.left.some((l) => !d.pairs[l.id]) ? "admin.validate.needMatch" : null;
+    case "ordering": return d.items.length < 2 ? "admin.validate.itemsMin" : ids(d.items) ? null : "admin.validate.itemIds";
+    case "passage_group": return d.childIds.trim() ? null : "admin.validate.childIds";
   }
 }

@@ -15,7 +15,10 @@ def test_has_any_role():
 
 
 def test_parse_roles_ok():
-    assert parse_roles(["student", "editor"], actor_id=uuid4(), target_id=uuid4()) == {Role.STUDENT, Role.EDITOR}
+    assert parse_roles(["student", "editor"], actor_id=uuid4(), target_id=uuid4()) == {
+        Role.STUDENT,
+        Role.EDITOR,
+    }
 
 
 @pytest.mark.parametrize("raw", [[], ["root"], ["guest", "student"]])

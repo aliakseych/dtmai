@@ -2518,7 +2518,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Next Item */
+        /**
+         * Next Item
+         * @description Claim the next item; `exclude` lists question ids the client already holds.
+         */
         post: operations["labeling_next_item"];
         delete?: never;
         options?: never;
@@ -3154,6 +3157,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/study-plan/dream-gap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dream Gap */
+        get: operations["study_plan_dream_gap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/study-plan/generate": {
         parameters: {
             query?: never;
@@ -3234,6 +3254,23 @@ export interface paths {
         put?: never;
         /** Complete Task */
         post: operations["study_plan_complete_task"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/study-plan/tasks/{task_id}/uncomplete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Uncomplete Task */
+        post: operations["study_plan_uncomplete_task"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3763,7 +3800,7 @@ export interface components {
             base?: string | null;
             /**
              * Files
-             * @description PDF/PNG/JPEG/WebP, max 50 files, 25 MB each
+             * @description PDF/PNG/JPEG/WebP, max 50 files, 100 MB each
              */
             files: string[];
             /**
@@ -4286,6 +4323,49 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** DreamGapOut */
+        DreamGapOut: {
+            /** Competition Ratio */
+            competition_ratio: number | null;
+            /**
+             * Gap
+             * @description Points still missing; <= 0 when at the bar
+             */
+            gap: number | null;
+            /**
+             * Lyceum Id
+             * @description None: no dream lyceum chosen yet
+             */
+            lyceum_id: string | null;
+            /** Max Score */
+            max_score: number | null;
+            /**
+             * Milestone
+             * @description Large gap: frame it as the next milestone
+             */
+            milestone: boolean;
+            /** Next Points */
+            next_points: number | null;
+            /** Next Questions */
+            next_questions: number | null;
+            /** On Track */
+            on_track: boolean | null;
+            /** Passing Score */
+            passing_score: number | null;
+            /** Predicted Score */
+            predicted_score: number | null;
+            /** Weakest Subject Id */
+            weakest_subject_id: string | null;
+            /** Weakest Topic Id */
+            weakest_topic_id: string | null;
+            /** Weakest Topic Name */
+            weakest_topic_name: string | null;
+            /**
+             * Year
+             * @description Admission year the benchmark comes from
+             */
+            year: number | null;
+        };
         /** DrillStartIn */
         DrillStartIn: {
             /**
@@ -4437,6 +4517,8 @@ export interface components {
         };
         /** ExamSectionOut */
         ExamSectionOut: {
+            /** Available */
+            available: boolean;
             /** Choice Group */
             choice_group: string | null;
             /** Exemptible */
@@ -4776,6 +4858,11 @@ export interface components {
             days_left: number | null;
             /** Exam Date */
             exam_date: string | null;
+            /**
+             * Exam Date Verified
+             * @description False: the exam date is an estimate
+             */
+            exam_date_verified: boolean;
             /** Max Score */
             max_score: number | null;
             /** Phase */
@@ -6711,6 +6798,17 @@ export interface components {
              */
             start_date?: string | null;
             /**
+             * Study Days
+             * @description Weekdays 0=Mon..6=Sun; empty = every day
+             * @default []
+             */
+            study_days: number[];
+            /**
+             * Study Time
+             * @description Planned study time, HH:MM
+             */
+            study_time?: string | null;
+            /**
              * Target Lyceum Ids
              * @default []
              */
@@ -6746,6 +6844,10 @@ export interface components {
              * Format: date
              */
             start_date: string;
+            /** Study Days */
+            study_days: number[];
+            /** Study Time */
+            study_time: string | null;
             /** Target Lyceum Ids */
             target_lyceum_ids: string[];
         };
@@ -6992,6 +7094,8 @@ export interface components {
             target: {
                 [key: string]: unknown;
             };
+            /** Undoable */
+            undoable: boolean;
         };
         /**
          * TaskStatus
@@ -7415,6 +7519,8 @@ export interface components {
         app__interfaces__http__v1__gamification__StatsOut: {
             /** Daily Goal Xp */
             daily_goal_xp: number;
+            /** Freeze Cost Gems */
+            freeze_cost_gems: number;
             /** Gems */
             gems: number;
             hearts: components["schemas"]["HeartsOut"];
@@ -20367,6 +20473,7 @@ export interface operations {
     labeling_next_item: {
         parameters: {
             query?: {
+                exclude?: string[] | null;
                 subject_id?: string | null;
                 language?: string | null;
                 type_id?: string | null;
@@ -22867,6 +22974,64 @@ export interface operations {
             };
         };
     };
+    study_plan_dream_gap: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DreamGapOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     study_plan_generate: {
         parameters: {
             query?: never;
@@ -23165,6 +23330,66 @@ export interface operations {
         };
     };
     study_plan_complete_task: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    study_plan_uncomplete_task: {
         parameters: {
             query?: never;
             header?: {

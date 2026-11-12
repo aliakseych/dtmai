@@ -33,4 +33,6 @@ class SqlProgressReader:
         daily = {day: int(total) for day, total in per_day}
         if row is None:
             return ProgressStats(0, 0, 0, 0, daily)
-        return ProgressStats(row.xp_total, row.streak_current, row.streak_longest, row.lessons_completed, daily)
+        return ProgressStats(
+            row.xp_total, row.streak_current, row.streak_longest, row.lessons_completed, daily
+        )

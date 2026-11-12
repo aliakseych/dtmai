@@ -123,9 +123,7 @@ def evaluate_solve(
     return Decision(Status.ESCALATED, plurality_vote.response, share * mean_conf, "disagreement")
 
 
-def evaluate_escalation(
-    kind: str, prior: Decision, adjudicator: SolverVote | None
-) -> Decision:
+def evaluate_escalation(kind: str, prior: Decision, adjudicator: SolverVote | None) -> Decision:
     """After adjudication a question always goes to a human; the adjudicator only improves the hint."""
     if adjudicator is None or adjudicator.response is None or not adjudicator.ok:
         return Decision(Status.NEEDS_HUMAN, prior.response, prior.confidence, "no_adjudication")
@@ -135,9 +133,14 @@ def evaluate_escalation(
         return Decision(Status.NEEDS_HUMAN, prior.response, prior.confidence, "no_adjudication")
     if prior_c == adj_c:
         return Decision(
-            Status.NEEDS_HUMAN, adjudicator.response, max(prior.confidence, adjudicator.confidence),
+            Status.NEEDS_HUMAN,
+            adjudicator.response,
+            max(prior.confidence, adjudicator.confidence),
             "adjudicator_agrees",
         )
     return Decision(
-        Status.NEEDS_HUMAN, adjudicator.response, adjudicator.confidence * 0.5, "adjudicator_differs"
+        Status.NEEDS_HUMAN,
+        adjudicator.response,
+        adjudicator.confidence * 0.5,
+        "adjudicator_differs",
     )

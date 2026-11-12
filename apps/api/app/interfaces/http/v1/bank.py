@@ -20,7 +20,9 @@ ERR: dict[int | str, dict[str, Any]] = {
     409: {"model": ProblemDetails},
     422: {"model": ProblemDetails},
 }
-Status = Literal["draft", "auto_agreed", "escalated", "needs_human", "verified", "hidden", "retired"]
+Status = Literal[
+    "draft", "auto_agreed", "escalated", "needs_human", "verified", "hidden", "retired"
+]
 
 router = APIRouter(tags=["bank"])
 # Every admin route requires the admin role (router-level dependency).
@@ -205,7 +207,12 @@ def _out(q: Question) -> QuestionAdminOut:
 
 def _passage(p: Passage) -> PassageOut:
     return PassageOut(
-        id=p.id, language=p.language, title=p.title, text=p.text, media=p.media, source_id=p.source_id
+        id=p.id,
+        language=p.language,
+        title=p.title,
+        text=p.text,
+        media=p.media,
+        source_id=p.source_id,
     )
 
 
@@ -220,7 +227,12 @@ class PublicPassageOut(BaseModel):
     media: list[MediaOut]
 
 
-@router.get("/passages/{passage_id}", operation_id="bank_get_passage", response_model=PublicPassageOut, responses=ERR)
+@router.get(
+    "/passages/{passage_id}",
+    operation_id="bank_get_passage",
+    response_model=PublicPassageOut,
+    responses=ERR,
+)
 async def get_public_passage(passage_id: UUID, svc: BankServiceDep) -> PublicPassageOut:
     """Reading passage shared by items of a session (public: ids are unguessable UUIDs)."""
     p = await svc.repo.get_passage(passage_id)
@@ -252,12 +264,16 @@ async def list_questions(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ) -> QuestionPage:
-    f = QuestionFilter(subject_id, topic_id, type_id, language, status, source_id, kind, q, reported)
+    f = QuestionFilter(
+        subject_id, topic_id, type_id, language, status, source_id, kind, q, reported
+    )
     items, total = await svc.search(f, limit, offset)
     return QuestionPage(items=[_out(i) for i in items], total=total)
 
 
-@admin_router.post("/questions", status_code=201, operation_id="bank_admin_create_question", responses=ERR)
+@admin_router.post(
+    "/questions", status_code=201, operation_id="bank_admin_create_question", responses=ERR
+)
 async def create_question(body: QuestionBody, admin: AdminUser, svc: BankServiceDep) -> CreatedOut:
     return CreatedOut(id=await svc.create(_cmd(body, str(admin.user_id))))
 
@@ -281,7 +297,9 @@ async def get_question(question_id: UUID, svc: BankServiceDep) -> QuestionAdminO
     return _out(await svc.require(question_id))
 
 
-@admin_router.patch("/questions/{question_id}", operation_id="bank_admin_update_question", responses=ERR)
+@admin_router.patch(
+    "/questions/{question_id}", operation_id="bank_admin_update_question", responses=ERR
+)
 async def update_question(
     question_id: UUID, body: QuestionPatch, admin: AdminUser, svc: BankServiceDep
 ) -> QuestionAdminOut:
@@ -290,9 +308,14 @@ async def update_question(
 
 
 @admin_router.post(
-    "/questions/{question_id}/status", status_code=204, operation_id="bank_admin_set_status", responses=ERR
+    "/questions/{question_id}/status",
+    status_code=204,
+    operation_id="bank_admin_set_status",
+    responses=ERR,
 )
-async def set_status(question_id: UUID, body: StatusIn, admin: AdminUser, svc: BankServiceDep) -> Response:
+async def set_status(
+    question_id: UUID, body: StatusIn, admin: AdminUser, svc: BankServiceDep
+) -> Response:
     await svc.set_status(question_id, body.status, admin.user_id, body.reason)
     return Response(status_code=204)
 
@@ -329,7 +352,13 @@ async def coverage(
     rows = await svc.coverage(subject_id, language)
     return [
         CoverageRow(
-            subject_id=s, topic_id=t, type_id=ty, language=lang, verified=n, min_pool=min_pool, ok=n >= min_pool
+            subject_id=s,
+            topic_id=t,
+            type_id=ty,
+            language=lang,
+            verified=n,
+            min_pool=min_pool,
+            ok=n >= min_pool,
         )
         for s, t, ty, lang, n in rows
     ]
@@ -345,10 +374,16 @@ async def list_passages(
     return [_passage(p) for p in await svc.repo.list_passages(language, limit, offset)]
 
 
-@admin_router.post("/passages", status_code=201, operation_id="bank_admin_create_passage", responses=ERR)
+@admin_router.post(
+    "/passages", status_code=201, operation_id="bank_admin_create_passage", responses=ERR
+)
 async def create_passage(body: PassageIn, svc: BankServiceDep) -> CreatedOut:
     pid = await svc.create_passage(
-        language=body.language, text=body.text, title=body.title, media=body.media, source_id=body.source_id
+        language=body.language,
+        text=body.text,
+        title=body.title,
+        media=body.media,
+        source_id=body.source_id,
     )
     return CreatedOut(id=pid)
 
@@ -361,7 +396,9 @@ async def get_passage(passage_id: UUID, svc: BankServiceDep) -> PassageOut:
     return _passage(p)
 
 
-@admin_router.patch("/passages/{passage_id}", operation_id="bank_admin_update_passage", responses=ERR)
+@admin_router.patch(
+    "/passages/{passage_id}", operation_id="bank_admin_update_passage", responses=ERR
+)
 async def update_passage(passage_id: UUID, body: PassagePatch, svc: BankServiceDep) -> PassageOut:
     patch = {k: getattr(body, k) for k in body.model_fields_set}
     return _passage(await svc.update_passage(passage_id, patch))

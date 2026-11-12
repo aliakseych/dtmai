@@ -28,7 +28,7 @@ export function MockCard({ mock }: { mock: Mock }) {
   }
 
   return (
-    <Card className="flex cursor-pointer flex-col gap-2 hover:border-blue" onClick={() => !busy && void start()}>
+    <Card className="flex cursor-pointer flex-col gap-2 hover:border-brand" onClick={() => !busy && void start()}>
       <div className="flex items-center justify-between gap-4">
         <div>
           <h3 className="text-lg">{pick(mock.names, locale) || mock.code}</h3>

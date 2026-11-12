@@ -101,7 +101,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("user_id", "question_id", name="pk_review_cards"),
         schema=S,
     )
-    op.create_index("ix_review_cards_due", "review_cards", ["user_id", "subject_id", "due_at"], schema=S)
+    op.create_index(
+        "ix_review_cards_due", "review_cards", ["user_id", "subject_id", "due_at"], schema=S
+    )
 
     op.create_table(
         "placements",

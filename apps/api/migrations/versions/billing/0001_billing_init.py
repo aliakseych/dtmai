@@ -29,7 +29,9 @@ def upgrade() -> None:
         sa.Column("limits", sa.JSON(), nullable=False, server_default="{}"),
         sa.Column("active", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("sort_order", sa.Integer(), nullable=False, server_default="0"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.PrimaryKeyConstraint("code", name="pk_plans"),
         sa.CheckConstraint("price_uzs >= 0", name="ck_plans_price"),
         sa.CheckConstraint("period_months IN (1, 3, 12)", name="ck_plans_period"),
@@ -45,9 +47,13 @@ def upgrade() -> None:
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("until", sa.DateTime(timezone=True), nullable=False),
         sa.Column("invoice_id", postgresql.UUID(as_uuid=True)),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_subscriptions"),
-        sa.ForeignKeyConstraint(["plan_code"], [f"{S}.plans.code"], name="fk_subscriptions_plan_code_plans"),
+        sa.ForeignKeyConstraint(
+            ["plan_code"], [f"{S}.plans.code"], name="fk_subscriptions_plan_code_plans"
+        ),
         schema=S,
     )
     op.create_index("ix_subscriptions_user_id", "subscriptions", ["user_id"], schema=S)
@@ -62,11 +68,15 @@ def upgrade() -> None:
         sa.Column("status", sa.String(12), nullable=False),
         sa.Column("click_trans_id", sa.String(40)),
         sa.Column("click_paydoc_id", sa.String(40)),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("paid_at", sa.DateTime(timezone=True)),
         sa.Column("canceled_at", sa.DateTime(timezone=True)),
         sa.PrimaryKeyConstraint("id", name="pk_invoices"),
-        sa.ForeignKeyConstraint(["plan_code"], [f"{S}.plans.code"], name="fk_invoices_plan_code_plans"),
+        sa.ForeignKeyConstraint(
+            ["plan_code"], [f"{S}.plans.code"], name="fk_invoices_plan_code_plans"
+        ),
         sa.UniqueConstraint("seq", name="uq_invoices_seq"),
         sa.UniqueConstraint("click_trans_id", name="uq_invoices_click_trans_id"),
         schema=S,
@@ -91,22 +101,33 @@ def upgrade() -> None:
             {
                 "code": "free",
                 "names": {"uz-Latn": "Bepul", "uz-Cyrl": "Бепул", "ru": "Бесплатно", "en": "Free"},
-                "price_uzs": 0, "period_months": 1, "features": [],
+                "price_uzs": 0,
+                "period_months": 1,
+                "features": [],
                 "limits": {"hearts_max": 5, "ai_explanations_per_day": 3},
-                "active": True, "sort_order": 0,
+                "active": True,
+                "sort_order": 0,
             },
             {
                 "code": "premium_1m",
                 "names": {
-                    "uz-Latn": "Premium", "uz-Cyrl": "Премиум", "ru": "Премиум", "en": "Premium",
+                    "uz-Latn": "Premium",
+                    "uz-Cyrl": "Премиум",
+                    "ru": "Премиум",
+                    "en": "Premium",
                 },
-                "price_uzs": 49000, "period_months": 1,
+                "price_uzs": 49000,
+                "period_months": 1,
                 "features": [
-                    "unlimited_hearts", "ai_tutor", "personal_mock", "private_analytics",
+                    "unlimited_hearts",
+                    "ai_tutor",
+                    "personal_mock",
+                    "private_analytics",
                     "personal_review",
                 ],
                 "limits": {"ai_explanations_per_day": -1},
-                "active": True, "sort_order": 10,
+                "active": True,
+                "sort_order": 10,
             },
         ],
     )

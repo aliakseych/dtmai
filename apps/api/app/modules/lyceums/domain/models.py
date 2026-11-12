@@ -34,6 +34,7 @@ class ImportStatus(StrEnum):
     PENDING = "pending"
     RUNNING = "running"
     SUCCEEDED = "succeeded"
+    PARTIAL = "partial"
     FAILED = "failed"
 
 
@@ -59,9 +60,11 @@ def competition_ratio(applications: int, quota: int) -> float | None:
 
 
 def validate_year(year: int) -> int:
+    from datetime import UTC, datetime
+
     from app.shared.errors import ValidationFailed
 
-    if not 2000 <= year <= 2100:
+    if not 2000 <= year <= datetime.now(UTC).year + 1:
         raise ValidationFailed("year out of range", code="invalid_year")
     return year
 

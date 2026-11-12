@@ -45,7 +45,11 @@ async def iter_recipients(
             return
         after = users[-1].id
         for u in users:
-            if channel is Channel.TELEGRAM and u.telegram_id is None and not await repo.linked_chat_ids(u.id):
+            if (
+                channel is Channel.TELEGRAM
+                and u.telegram_id is None
+                and not await repo.linked_chat_ids(u.id)
+            ):
                 continue
             if channel is Channel.PUSH and not await repo.device_tokens(u.id):
                 continue

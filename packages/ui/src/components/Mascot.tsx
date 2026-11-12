@@ -2,7 +2,8 @@ import { cn } from "../cn";
 
 export type MascotMood =
   | "straight" | "wave" | "celebrate" | "sad" | "thinking" | "sleep"
-  | "streak" | "trophy" | "premium" | "left" | "right" | "top";
+  | "streak" | "trophy" | "premium" | "left" | "right" | "top"
+  | "reading" | "calendar" | "rush" | "chat" | "point" | "lock" | "question";
 
 /** Images are served by the consuming app at <basePath>/temur-<mood>.webp */
 export function Mascot({

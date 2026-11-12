@@ -1,10 +1,30 @@
 import os
+import socket
 import sys
+
+PROXY_HOST = "edge"  # the nginx service in deploy/docker-compose.prod.yaml
 
 USAGE = (
     "usage: python -m app api|worker|scheduler|migrate|seed|seed-exam-info"
     "|ingest <path> --source <code>|promote <email> [role ...]|import-lyceum-admission"
 )
+
+
+def trusted_proxies(environ: dict[str, str] | None = None) -> str:
+    """Peers whose X-Forwarded-For uvicorn may believe: never `*`.
+
+    FORWARDED_ALLOW_IPS wins (a wildcard is refused); else the compose proxy; else loopback.
+    """
+    env = os.environ if environ is None else environ
+    configured = env.get("FORWARDED_ALLOW_IPS", "").strip()
+    if configured:
+        if "*" in configured:
+            raise SystemExit("FORWARDED_ALLOW_IPS must not contain '*'")
+        return configured
+    try:
+        return socket.gethostbyname(PROXY_HOST)
+    except OSError:
+        return "127.0.0.1"
 
 
 def main(argv: list[str]) -> int:
@@ -33,7 +53,7 @@ def main(argv: list[str]) -> int:
                 host=os.environ.get("HOST", "0.0.0.0"),  # noqa: S104
                 port=int(os.environ.get("PORT", "8000")),
                 proxy_headers=True,
-                forwarded_allow_ips="*",
+                forwarded_allow_ips=trusted_proxies(),
             )
         case "worker":
             os.execvp(

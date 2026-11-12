@@ -87,5 +87,25 @@ def streak_at_risk(last_active_day: date | None, streak: int, now: datetime) -> 
     return streak > 0 and last_active_day is not None and last_active_day < tashkent_day(now)
 
 
+REMINDER_SLOT_MINUTES = 30
+DEFAULT_REMINDER_TIME = "19:00"
+
+
+def reminder_due(now: datetime, study_time: str | None, study_days: tuple[int, ...] = ()) -> bool:
+    """Is this scheduler tick the learner's reminder slot (Tashkent, 30-minute ticks)?
+
+    A learner's own study_time (and weekdays, empty = every day) wins; without one the
+    default evening slot applies every day.
+    """
+    local = now.astimezone(TASHKENT)
+    if study_time is None:
+        study_time, study_days = DEFAULT_REMINDER_TIME, ()
+    if study_days and local.weekday() not in study_days:
+        return False
+    hour, minute = int(study_time[:2]), int(study_time[3:])
+    slot = minute // REMINDER_SLOT_MINUTES
+    return local.hour == hour and local.minute // REMINDER_SLOT_MINUTES == slot
+
+
 def utcnow() -> datetime:
     return datetime.now(UTC)

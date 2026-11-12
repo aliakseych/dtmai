@@ -28,6 +28,11 @@ SUNDAY = 6
 WEEKEND = (5, 6)
 
 
+UNLIMITED_POOL = 10**9
+DRILL_MIN_POOL = 5  # fewer verified questions than this cannot fill a drill session
+RUSH_MIN_POOL = 1
+
+
 @dataclass(frozen=True, slots=True)
 class SubjectInput:
     subject_id: UUID
@@ -36,6 +41,8 @@ class SubjectInput:
     lessons: tuple[UUID, ...] = ()  # remaining lesson queue, in order
     weak: tuple[tuple[UUID | None, UUID | None], ...] = ()  # (topic_id, type_id), weakest first
     due_reviews: int = 0
+    # Verified questions available in the plan language: drills/rush need a servable pool.
+    pool: int = UNLIMITED_POOL
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,6 +57,7 @@ class GenInput:
     subjects: tuple[SubjectInput, ...]
     mock_blueprint_id: UUID | None = None
     mock_minutes: int = 0
+    mock_servable: bool = True  # every blueprint section can be filled from verified questions
     max_day_minutes: int = MAX_DAY_MINUTES
     used_minutes: dict[date, int] = field(default_factory=dict)  # already-planned/done per day
 
@@ -94,10 +102,15 @@ def generate(inp: GenInput) -> list[PlannedTask]:
     due_left = {s.subject_id: s.due_reviews for s in inp.subjects}
     out: list[PlannedTask] = []
 
-    def pick(per_day: dict[UUID, int]) -> UUID | None:
+    def servable(sid: UUID, *, rush: bool) -> bool:
+        if rush:
+            return by_id[sid].pool >= RUSH_MIN_POOL
+        return bool(queues[sid]) or by_id[sid].pool >= DRILL_MIN_POOL
+
+    def pick(per_day: dict[UUID, int], *, rush: bool = False) -> UUID | None:
         cap = MAX_PER_SUBJECT_DAY if len(by_id) > 1 else 10**6
         total = sum(spent.values()) + 1
-        cands = [s for s in by_id if per_day.get(s, 0) < cap]
+        cands = [s for s in by_id if per_day.get(s, 0) < cap and servable(s, rush=rush)]
         if not cands:
             return None
         return max(cands, key=lambda s: (weights[s] * total - spent[s], weights[s]))
@@ -120,6 +133,7 @@ def generate(inp: GenInput) -> list[PlannedTask]:
 
         is_mock_day = (
             inp.mock_blueprint_id is not None
+            and inp.mock_servable
             and day.weekday() == SUNDAY
             and (day - inp.start).days >= MOCK_MIN_GAP_DAYS
             and 0 < inp.mock_minutes <= inp.max_day_minutes
@@ -183,8 +197,9 @@ def generate(inp: GenInput) -> list[PlannedTask]:
 
         # 3. rush closes the day: free, 60 s, earns league XP.
         if budget >= RUSH_MIN:
-            rsid = pick({})
-            add(TaskKind.RUSH, rsid, {"subject_id": str(rsid)}, RUSH_MIN)
+            rsid = pick({}, rush=True)
+            if rsid is not None:
+                add(TaskKind.RUSH, rsid, {"subject_id": str(rsid)}, RUSH_MIN)
 
         out.extend(tasks)
         day += timedelta(days=1)

@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 
 from app.modules.lyceums.domain.profile import (
@@ -8,7 +10,6 @@ from app.modules.lyceums.domain.profile import (
 from app.shared.errors import Forbidden, ValidationFailed
 
 from .test_rep import L1, L2, approved, make, run
-from uuid import uuid4
 
 
 def test_dormitory_status_values():
@@ -74,7 +75,9 @@ def test_rep_cannot_edit_admin_fields():
 def test_admin_profile_city_validation():
     svc, profiles, _ = make()
     from app.modules.lyceums.application.profile import ProfileService
+
     from .test_rep import Cities
+
     ps = ProfileService(profiles, Cities())
     assert run(ps.update(L1, {"city": "tashkent"})) == ["city"]
     assert run(ps.update(L1, {"city": None})) == ["city"]

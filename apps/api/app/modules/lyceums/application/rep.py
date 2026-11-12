@@ -114,8 +114,14 @@ class RepService:
     async def create_post(self, user_id: UUID, lyceum_id: UUID, data: PostInput) -> Post:
         await self._scoped(user_id, lyceum_id)
         post = Post(
-            id=new_id(), lyceum_id=lyceum_id, author_id=user_id, kind=parse_kind(data.kind),
-            title=data.title, body=data.body, starts_at=data.starts_at, link=data.link,
+            id=new_id(),
+            lyceum_id=lyceum_id,
+            author_id=user_id,
+            kind=parse_kind(data.kind),
+            title=data.title,
+            body=data.body,
+            starts_at=data.starts_at,
+            link=data.link,
         )
         await self._posts.add(post)
         return post

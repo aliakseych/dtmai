@@ -89,7 +89,10 @@ def validate_dream_lyceum_ids(ids: list[UUID]) -> list[UUID]:
 
 
 def is_guest_expired(
-    roles: set[Role], last_seen_at: datetime | None, *, now: datetime,
+    roles: set[Role],
+    last_seen_at: datetime | None,
+    *,
+    now: datetime,
     retention_days: int = GUEST_RETENTION_DAYS,
 ) -> bool:
     """A pure guest (no other role) unseen for more than `retention_days`."""
@@ -147,6 +150,20 @@ class User:
         if not name:
             raise ValidationFailed("name is empty", code="invalid_name")
         self.name = name
+
+
+def adopt_guest_profile(target: User, guest: User) -> None:
+    """Fill the target's empty onboarding/profile fields from a guest that is being merged into it."""
+    if not target.dream_lyceum_ids and guest.dream_lyceum_ids:
+        target.dream_lyceum_ids = list(guest.dream_lyceum_ids)
+    if target.education_language_id is None:
+        target.education_language_id = guest.education_language_id
+    if target.city is None:
+        target.city = guest.city
+    if target.field_code is None:
+        target.field_code = guest.field_code
+    if not target.subject_ids and guest.subject_ids:
+        target.subject_ids = list(guest.subject_ids)
 
 
 def parse_role_set(raw: list[str]) -> set[Role]:

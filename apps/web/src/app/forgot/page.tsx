@@ -6,11 +6,15 @@ import { useT } from "@dtmai/i18n";
 import { AuthFrame, Field } from "@/components/auth/AuthFrame";
 import { useSignedIn } from "@/components/auth/useSignedIn";
 import { api } from "@/lib/api";
-import { authErrorKey } from "@/lib/errors";
+import { useRedirectIfSignedIn } from "@/components/auth/useRedirectIfSignedIn";
+import { authErrorKey, checkEmail, checkPassword, checkRequired, serverFieldErrors, type FieldErrors } from "@/lib/errors";
 
 export default function ForgotPage() {
   const t = useT();
   const signedIn = useSignedIn();
+  useRedirectIfSignedIn();
+  const [fields, setFields] = useState<FieldErrors>({});
+  const [info, setInfo] = useState(false);
   const [step, setStep] = useState<"email" | "reset">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -20,8 +24,21 @@ export default function ForgotPage() {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    const found: FieldErrors = {};
+    if (step === "email") {
+      const em = checkEmail(email);
+      if (em) found.email = em;
+    } else {
+      const c = checkRequired(code);
+      const pw = checkPassword(password);
+      if (c) found.code = c;
+      if (pw) found.password = pw;
+    }
+    setFields(found);
+    if (Object.keys(found).length) return;
     setBusy(true);
     setError(null);
+    setInfo(false);
     try {
       if (step === "email") {
         await api.unwrap(api.client.POST("/v1/identity/password/forgot", { body: { email } }));
@@ -30,9 +47,21 @@ export default function ForgotPage() {
         await signedIn(await api.unwrap(api.client.POST("/v1/identity/password/reset", { body: { email, code, password } })));
       }
     } catch (err) {
-      setError(authErrorKey(err));
+      const fe = serverFieldErrors(err);
+      setFields(fe);
+      if (!Object.keys(fe).length) setError(authErrorKey(err));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function resend() {
+    setError(null);
+    try {
+      await api.unwrap(api.client.POST("/v1/identity/password/forgot", { body: { email } }));
+      setInfo(true);
+    } catch (err) {
+      setError(authErrorKey(err));
     }
   }
 
@@ -40,19 +69,28 @@ export default function ForgotPage() {
     <AuthFrame
       title={t("auth.forgot.title")}
       footer={
-        <Link href="/login/" className="font-extrabold text-[#0d6fa0] underline">
+        <Link href="/login/" className="font-extrabold text-brand underline">
           {t("auth.login.title")}
         </Link>
       }
     >
-      <form onSubmit={submit} className="flex flex-col gap-4">
+      <form onSubmit={submit} noValidate className="flex flex-col gap-4">
         {step === "email" ? (
-          <Field label={t("auth.email")} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Field label={t("auth.email")} type="email" autoComplete="email" error={fields.email && t(fields.email)} value={email} onChange={(e) => setEmail(e.target.value)} />
         ) : (
           <>
             <p className="text-ink-soft">{t("auth.codeSent", { email })}</p>
-            <Field label={t("auth.code")} inputMode="numeric" autoComplete="one-time-code" required value={code} onChange={(e) => setCode(e.target.value)} />
-            <Field label={t("auth.forgot.newPassword")} type="password" autoComplete="new-password" minLength={8} required value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Field label={t("auth.code")} inputMode="numeric" autoComplete="one-time-code" error={fields.code && t(fields.code)} value={code} onChange={(e) => setCode(e.target.value)} />
+            <Field label={t("auth.forgot.newPassword")} type="password" autoComplete="new-password" reveal hint={t("auth.password.hint")} error={fields.password && t(fields.password)} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <div className="flex flex-wrap gap-4 text-sm font-extrabold text-brand underline">
+              <button type="button" onClick={resend}>
+                {t("auth.resend")}
+              </button>
+              <button type="button" onClick={() => { setStep("email"); setCode(""); setFields({}); setError(null); setInfo(false); }}>
+                {t("auth.changeEmail")}
+              </button>
+            </div>
+            {info && <p role="status" className="text-sm font-bold text-correct-deep">{t("auth.resent")}</p>}
           </>
         )}
         {error && (

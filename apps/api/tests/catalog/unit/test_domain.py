@@ -46,7 +46,9 @@ def test_descendants_and_cycles():
 
 
 def test_blueprint_sections():
-    ok = m.validate_blueprint_sections([{"subject_id": U1, "count": 2, "weight": 1, "question_ids": [U1, U2]}])
+    ok = m.validate_blueprint_sections(
+        [{"subject_id": U1, "count": 2, "weight": 1, "question_ids": [U1, U2]}]
+    )
     assert ok[0]["question_ids"] == [U1, U2]
     with pytest.raises(m.Invalid):
         m.validate_blueprint_sections([])
@@ -66,10 +68,22 @@ def test_lesson_selectors_and_visibility():
 
 
 def test_validate_entity():
-    d = m.validate_entity("blueprint", {"code": "x", "names": {"en": "X"}, "kind": "official", "duration_min": 90, "sections": [{"subject_id": U1, "count": 1}]})
+    d = m.validate_entity(
+        "blueprint",
+        {
+            "code": "x",
+            "names": {"en": "X"},
+            "kind": "official",
+            "duration_min": 90,
+            "sections": [{"subject_id": U1, "count": 1}],
+        },
+    )
     assert d["sections"][0]["weight"] == 1.0
     with pytest.raises(m.Invalid):
-        m.validate_entity("blueprint", {"code": "x", "names": {"en": "X"}, "kind": "nope", "duration_min": 90, "sections": []})
+        m.validate_entity(
+            "blueprint",
+            {"code": "x", "names": {"en": "X"}, "kind": "nope", "duration_min": 90, "sections": []},
+        )
     with pytest.raises(m.Invalid):
         m.validate_entity("path", {"language": "Russian!", "names": {"en": "p"}})
 
@@ -78,3 +92,9 @@ def test_permutation():
     assert m.sequence_is_permutation([1, 2], [2, 1])
     assert not m.sequence_is_permutation([1, 2], [1, 1])
     assert not m.sequence_is_permutation([1, 2], [1])
+
+
+def test_lesson_question_count_bounds_are_1_to_30():
+    assert m.validate_lesson_selectors({"question_count": 30})["question_count"] == 30
+    with pytest.raises(m.Invalid):
+        m.validate_lesson_selectors({"question_count": 31})

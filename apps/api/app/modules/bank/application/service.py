@@ -150,7 +150,9 @@ class BankService:
             statuses=("verified",),
         )
 
-    async def search(self, f: QuestionFilter, limit: int, offset: int) -> tuple[list[Question], int]:
+    async def search(
+        self, f: QuestionFilter, limit: int, offset: int
+    ) -> tuple[list[Question], int]:
         return await self.repo.search(f, limit, offset)
 
     async def coverage(
@@ -168,7 +170,9 @@ class BankService:
 
     async def _grade_group(self, q: Question, response: Mapping[str, Any]) -> GradeOutcome:
         children = await self.repo.get_many([UUID(c) for c in q.payload.get("child_ids", [])])
-        g, correct_response = grade_group([(str(c.id), c.kind, c.payload, c.answer) for c in children], response)
+        g, correct_response = grade_group(
+            [(str(c.id), c.kind, c.payload, c.answer) for c in children], response
+        )
         return GradeOutcome(g.correct, g.score, correct_response)
 
     async def get_answer(self, qid: UUID) -> dict[str, Any]:
@@ -212,7 +216,9 @@ class BankService:
         return qid
 
     @staticmethod
-    def _build(qid: UUID, cmd: CreateQuestionCmd, payload: dict[str, Any], parent_id: UUID | None) -> Question:
+    def _build(
+        qid: UUID, cmd: CreateQuestionCmd, payload: dict[str, Any], parent_id: UUID | None
+    ) -> Question:
         return Question(
             id=qid,
             subject_id=cmd.subject_id,
@@ -272,10 +278,16 @@ class BankService:
         q.status = status
         await self.repo.save(q)
         if is_group(q.kind):
-            await self.repo.bulk_set_status([UUID(c) for c in q.payload.get("child_ids", [])], status)
-        await self.repo.add_audit(_actor(actor), "set_status", qid, {"status": before}, {"status": status}, reason)
+            await self.repo.bulk_set_status(
+                [UUID(c) for c in q.payload.get("child_ids", [])], status
+            )
+        await self.repo.add_audit(
+            _actor(actor), "set_status", qid, {"status": before}, {"status": status}, reason
+        )
 
-    async def bulk_set_status(self, ids: Sequence[UUID], status: str, actor: Any, reason: str = "") -> int:
+    async def bulk_set_status(
+        self, ids: Sequence[UUID], status: str, actor: Any, reason: str = ""
+    ) -> int:
         done = 0
         for qid in dict.fromkeys(ids):
             try:
@@ -285,7 +297,9 @@ class BankService:
                 continue
         return done
 
-    async def set_answer(self, qid: UUID, response: dict[str, Any], actor: Any, *, official: bool) -> None:
+    async def set_answer(
+        self, qid: UUID, response: dict[str, Any], actor: Any, *, official: bool
+    ) -> None:
         q = await self.require(qid)
         if is_group(q.kind):
             raise ValidationFailed("set answers on the group's children", code="invalid_question")
@@ -297,7 +311,11 @@ class BankService:
         q.answer_official = official or q.answer_official
         await self.repo.save(q)
         await self.repo.add_audit(
-            _actor(actor), "set_answer", qid, {"answer": before}, {"answer": response, "official": official}
+            _actor(actor),
+            "set_answer",
+            qid,
+            {"answer": before},
+            {"answer": response, "official": official},
         )
 
     async def upsert_explanation(self, qid: UUID, locale: str, text: str, model: str) -> None:
@@ -327,7 +345,13 @@ class BankService:
 
     # ---- passages ----------------------------------------------------------------------
     async def create_passage(
-        self, *, language: str, text: str, title: str | None, media: list[Any] | None, source_id: UUID | None
+        self,
+        *,
+        language: str,
+        text: str,
+        title: str | None,
+        media: list[Any] | None,
+        source_id: UUID | None,
     ) -> UUID:
         if not _LANG.match(language) or not text.strip():
             raise ValidationFailed("passage needs language and text", code="invalid_passage")

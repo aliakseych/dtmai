@@ -10,6 +10,13 @@ SUBMITTED = "submitted"
 GRACE = timedelta(seconds=10)  # network slack for the final autosave/submit
 
 
+MIN_ANSWERED_SHARE = 1 / 3  # below this a submit is an abandoned mock, not a rewardable one
+
+
+def rewardable(answered: int, total: int) -> bool:
+    return answered > 0 and total > 0 and answered >= total * MIN_ANSWERED_SHARE
+
+
 def deadline_for(started_at: datetime, duration_min: int) -> datetime:
     return started_at + timedelta(minutes=duration_min)
 

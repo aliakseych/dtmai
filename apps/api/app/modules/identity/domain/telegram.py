@@ -21,8 +21,10 @@ class TelegramProfile:
 
     @property
     def display_name(self) -> str:
-        return " ".join(p for p in (self.first_name, self.last_name) if p) or self.username or str(
-            self.id
+        return (
+            " ".join(p for p in (self.first_name, self.last_name) if p)
+            or self.username
+            or str(self.id)
         )
 
 

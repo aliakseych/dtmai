@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Icon } from "./icons";
 
 export interface PriorityItem {
   id: string;
@@ -19,7 +20,7 @@ export interface PrioritySlotsProps {
 }
 
 const iconBtn =
-  "grid h-9 w-9 shrink-0 place-items-center rounded-xl border-2 border-line bg-white text-lg font-extrabold text-ink-soft transition-colors hover:border-blue hover:text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue disabled:cursor-not-allowed disabled:opacity-40";
+  "grid size-10 shrink-0 place-items-center rounded-xl border-2 border-line bg-white text-ink-soft transition-colors hover:border-brand hover:text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue disabled:cursor-not-allowed disabled:opacity-40";
 
 /** Ordered 1-2-3 priority list: numbered slots with move up / down / remove controls. */
 export function PrioritySlots({ items, max = 3, emptyText, labels, onMove, onRemove, disabled, className = "" }: PrioritySlotsProps) {
@@ -31,7 +32,7 @@ export function PrioritySlots({ items, max = 3, emptyText, labels, onMove, onRem
           <li
             key={item?.id ?? `empty-${i}`}
             className={`flex items-center gap-3 rounded-2xl border-2 px-3 py-2 ${
-              item ? "border-blue bg-blue-soft" : "border-dashed border-line bg-snow"
+              item ? "border-brand bg-brand-soft" : "border-dashed border-line bg-snow"
             }`}
           >
             <span
@@ -46,7 +47,7 @@ export function PrioritySlots({ items, max = 3, emptyText, labels, onMove, onRem
               <>
                 <div className="min-w-0 flex-1 break-words font-bold text-ink">{item.label}</div>
                 <button type="button" className={iconBtn} disabled={disabled || i === 0} onClick={() => onMove(i, i - 1)} aria-label={labels.up}>
-                  ↑
+                  <Icon name="arrow-up" size={20} />
                 </button>
                 <button
                   type="button"
@@ -55,10 +56,10 @@ export function PrioritySlots({ items, max = 3, emptyText, labels, onMove, onRem
                   onClick={() => onMove(i, i + 1)}
                   aria-label={labels.down}
                 >
-                  ↓
+                  <Icon name="arrow-down" size={20} />
                 </button>
                 <button type="button" className={iconBtn} disabled={disabled} onClick={() => onRemove(item.id)} aria-label={labels.remove}>
-                  ✕
+                  <Icon name="close" size={20} />
                 </button>
               </>
             ) : (

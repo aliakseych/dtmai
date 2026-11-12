@@ -11,12 +11,15 @@ export function AsyncView<T>({
   onRetry,
   isEmpty,
   emptyText,
+  exitHref = "/",
   children,
 }: {
   state: AsyncState<T>;
   onRetry: () => void;
   isEmpty?: (data: T) => boolean;
   emptyText?: string;
+  /** Where the error screen's exit link goes (a lesson/run exits to its hub, not the landing page). */
+  exitHref?: string;
   children: (data: T) => ReactNode;
 }) {
   const t = useT();
@@ -31,20 +34,27 @@ export function AsyncView<T>({
   if (state.status === "error") {
     const offline = state.kind === "offline";
     const auth = state.kind === "auth";
-    const title = state.error instanceof ApiError ? state.error.problem?.title : undefined;
+    const code = state.error instanceof ApiError ? state.error.code : undefined;
+    const mapped = code === "no_questions" || code === "no_questions_personal" ? t("err.noQuestions") : code === "lesson_locked" ? t("err.lessonLocked") : code === "conflict" ? t("err.conflict") : null;
     return (
       <div role="alert" className="flex flex-col items-center gap-3 py-10 text-center">
         <Mascot mood={offline ? "sleep" : "sad"} size={120} alt="" className="h-auto w-24" />
-        <p className="text-ink-soft">{offline ? t("common.offline") : auth ? t("common.sessionExpired") : t("common.error")}</p>
-        {!offline && !auth && title && <p className="text-sm font-bold text-ink-soft">{title}</p>}
+        <p className="text-ink-soft">{offline ? t("common.offline") : auth ? t("common.sessionExpired") : (mapped ?? t("common.error"))}</p>
         {auth ? (
           <Link href="/login/" className={buttonClass("primary")}>
             {t("auth.login.cta")}
           </Link>
         ) : (
-          <Button variant="secondary" onClick={onRetry}>
-            {t("common.retry")}
-          </Button>
+          <>
+            {!mapped && (
+              <Button variant="secondary" onClick={onRetry}>
+                {t("common.retry")}
+              </Button>
+            )}
+            <Link href={exitHref} className={buttonClass(mapped ? "primary" : "ghost")}>
+              {t("nav.home")}
+            </Link>
+          </>
         )}
       </div>
     );
@@ -52,7 +62,7 @@ export function AsyncView<T>({
   if (isEmpty?.(state.data))
     return (
       <div className="flex flex-col items-center gap-2 py-10 text-center">
-        <Mascot mood="thinking" size={96} alt="" className="h-auto w-20" />
+        <Mascot mood="point" size={96} alt="" className="h-auto w-20" />
         <p className="text-ink-soft">{emptyText ?? t("common.empty")}</p>
       </div>
     );

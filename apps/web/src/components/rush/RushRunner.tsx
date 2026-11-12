@@ -114,7 +114,7 @@ export function RushRunner({ session, onDone }: { session: SessionOut; onDone: (
           key={item.id}
           initial={reduce ? false : { opacity: 0, x: 24 }}
           animate={{ opacity: 1, x: 0 }}
-          className={`flex flex-col gap-4 rounded-3xl border-2 p-3 ${flash === null ? "border-transparent" : flash ? "border-green-deep bg-green-soft" : "border-red-deep bg-red-soft"}`}
+          className={`flex flex-col gap-4 rounded-3xl border-2 p-3 ${flash === null ? "border-transparent" : flash ? "border-brand bg-brand-soft" : "border-red-deep bg-red-soft"}`}
         >
           <QuestionBody item={item} value={value} onChange={onChange} disabled={pending || flash !== null} />
           {item.kind !== "single_choice" && (

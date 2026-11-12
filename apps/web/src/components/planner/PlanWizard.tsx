@@ -1,25 +1,27 @@
 "use client";
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, cn, LockIcon } from "@dtmai/ui";
-import { useLocale, useT } from "@dtmai/i18n";
+import { Button, cn, LockIcon, Icon } from "@dtmai/ui";
+import { useLocale, useT, type MessageKey } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
 import { useSubjectNames } from "@/components/mocks/useSubjectNames";
 import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
 import { Choice } from "@/components/onboarding/Choice";
-import { useAuth } from "@/lib/auth";
+import { useAuth, useLearnLanguage } from "@/lib/auth";
 import { addDays, clampMinutes, datesError, formatDay, MAX_DAY_MINUTES, MIN_LEAD_DAYS, todayISO, type DatesError } from "@/lib/planDates";
 import { getSettings, listProfiles, profileName, saveSettings, type CertRule, type Certificate, type ExamProfile, type ExamSection as Section } from "@/lib/planner";
 import { useAsync } from "@/lib/useAsync";
 import { GeneratingScreen } from "./GeneratingScreen";
+import { StudyTimeStep } from "./StudyTimeStep";
 
-const STEPS = ["field", "cert", "days", "dates", "review"] as const;
+const STEPS = ["field", "cert", "days", "dates", "study", "review"] as const;
 type StepKey = (typeof STEPS)[number];
 
 /** `/plan/setup`: field -> certificates -> minutes -> dates -> review -> generating. Saving settings rebuilds the plan. */
 export function PlanWizard() {
   const t = useT();
   const { locale } = useLocale();
+  const learnLang = useLearnLanguage();
   const router = useRouter();
   const { me } = useAuth();
   const profiles = useAsync(listProfiles, []);
@@ -35,6 +37,8 @@ export function PlanWizard() {
   const [start, setStart] = useState(today);
   const [exam, setExam] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [studyTime, setStudyTime] = useState("");
+  const [studyDays, setStudyDays] = useState<number[]>([]);
 
   const list = useMemo(() => (profiles.state.status === "ready" ? profiles.state.data.filter((p) => p.kind === "academic_lyceum") : []), [profiles.state]);
   const prefill = me?.field_code ? list.find((p) => p.direction_code === me.field_code || p.code === me.field_code)?.code : undefined;
@@ -63,16 +67,20 @@ export function PlanWizard() {
     cert: true,
     days: true,
     dates: dateErr === null,
+    study: true,
     review: true,
   };
-  const key = STEPS[i]!;
+  // The certificate question only applies when the track has an exemptible subject with accepted certificates.
+  const hasCert = !profile || profile.sections.some((s) => s.exemptible && s.role === "subject" && profile.certificate_rules.some((r) => r.section_id === s.id && r.min_value !== null));
+  const steps = hasCert ? STEPS : STEPS.filter((s) => s !== "cert");
+  const key = steps[i]!;
 
   const request = useCallback(async () => {
     if (!profile) throw new Error("no profile");
     const prev = await getSettings();
     return saveSettings({
       direction_code: profile.direction_code ?? profile.code,
-      language: locale === "ru" ? "ru" : "uz",
+      language: learnLang === "ru" ? "ru" : "uz",
       start_date: start,
       exam_date: examDate,
       minutes_school_day: school,
@@ -80,6 +88,8 @@ export function PlanWizard() {
       choice_subject_id: Object.values(choices)[0] ?? null,
       certificates: certificates(),
       target_lyceum_ids: prev?.target_lyceum_ids ?? [],
+      study_time: studyTime || prev?.study_time || null,
+      study_days: studyDays.length ? studyDays : (prev?.study_days ?? []),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [generating]);
@@ -93,9 +103,9 @@ export function PlanWizard() {
         <OnboardingFrame
           stepKey={key}
           step={i + 1}
-          total={STEPS.length}
+          total={steps.length}
           speech={t(`plan.wizard.${key}.speech`)}
-          mood={key === "review" ? "celebrate" : "thinking"}
+          mood={key === "review" ? "celebrate" : "calendar"}
           onBack={() => (i === 0 ? router.back() : setI(i - 1))}
           onContinue={() => (key === "review" ? setGenerating(true) : setI(i + 1))}
           canContinue={valid[key]}
@@ -107,6 +117,7 @@ export function PlanWizard() {
           {key === "cert" && profile && <CertStep profile={profile} choices={choices} rules={rules} setRules={setRules} sectionName={sectionName} />}
           {key === "days" && <DaysStep school={school} setSchool={setSchool} weekend={weekend} setWeekend={setWeekend} />}
           {key === "dates" && profile && <DatesStep profile={profile} today={today} start={start} setStart={setStart} exam={examDate} setExam={setExam} err={dateErr} />}
+          {key === "study" && <StudyTimeStep time={studyTime} setTime={setStudyTime} days={studyDays} setDays={setStudyDays} />}
           {key === "review" && profile && (
             <ReviewStep
               profile={profile}
@@ -128,7 +139,7 @@ export function PlanWizard() {
 
 function SectionRow({ s, label, exempt }: { s: Section; label: string; exempt?: boolean }) {
   const t = useT();
-  const inApp = s.role !== "creative";
+  const inApp = s.available;
   return (
     <li className="flex items-center justify-between gap-3 rounded-xl border-2 border-line bg-white px-3 py-2">
       <span className="min-w-0">
@@ -169,8 +180,10 @@ function FieldStep({
       <div role="radiogroup" aria-label={t("plan.wizard.field.speech")} className="flex flex-col gap-2">
         {list.map((p) => (
           <Choice key={p.code} on={p.code === selected} onClick={() => onPick(p.code)}>
-            <span className="min-w-0 flex-1 break-words">{profileName(p, locale)}</span>
-            {p.direction_code && <span className="shrink-0 text-sm text-ink-soft">{p.direction_code}</span>}
+            <span className="min-w-0 flex-1">
+              <span className="block break-words">{profileName(p, locale)}</span>
+              {p.sections.some((s) => !s.available) && <span className="mt-1 inline-block rounded-lg bg-snow px-2 py-0.5 text-sm font-bold text-ink-soft">{t("plan.wizard.partialSubjects")}</span>}
+            </span>
           </Choice>
         ))}
       </div>
@@ -199,7 +212,7 @@ function FieldStep({
                       onClick={() => setChoices({ ...choices, [s.id]: id })}
                       className={cn(
                         "rounded-xl border-2 border-b-4 px-3 py-2 font-extrabold",
-                        choices[s.id] === id ? "border-blue bg-blue-soft text-blue-deep" : "border-line bg-white",
+                        choices[s.id] === id ? "border-brand bg-brand-soft text-brand" : "border-line bg-white",
                       )}
                     >
                       {subjectName(id)}
@@ -276,14 +289,14 @@ function Stepper({ label, value, onChange }: { label: string; value: number; onC
     <div className="flex items-center justify-between gap-3 rounded-2xl border-2 border-line bg-white px-4 py-3">
       <span className="min-w-0 font-extrabold">{label}</span>
       <span className="flex shrink-0 items-center gap-2">
-        <Button variant="secondary" aria-label="−" onClick={() => onChange(clampMinutes(value - 5))} className="px-3 py-1">
-          −
+        <Button variant="secondary" aria-label={`${label}: ${t("common.decrease")}`} onClick={() => onChange(clampMinutes(value - 5))} className="px-3 py-1">
+          <Icon name="minus" size={20} />
         </Button>
         <output className="min-w-16 text-center text-lg font-extrabold">
           {value} {t("plan.min")}
         </output>
-        <Button variant="secondary" aria-label="+" onClick={() => onChange(clampMinutes(value + 5))} className="px-3 py-1">
-          +
+        <Button variant="secondary" aria-label={`${label}: ${t("common.increase")}`} onClick={() => onChange(clampMinutes(value + 5))} className="px-3 py-1">
+          <Icon name="plus" size={20} />
         </Button>
       </span>
     </div>

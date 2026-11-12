@@ -24,8 +24,9 @@ NIGHT = datetime(2026, 3, 10, 18, 0, tzinfo=UTC)
 
 
 def _decide(p: Preferences, now: datetime = DAY, sent: int = 0, kind_sent: bool = False):  # type: ignore[no-untyped-def]
-    return decide(p, Kind.STREAK_REMINDER, Channel.TELEGRAM, now, sent_today=sent,
-                  kind_sent_today=kind_sent)
+    return decide(
+        p, Kind.STREAK_REMINDER, Channel.TELEGRAM, now, sent_today=sent, kind_sent_today=kind_sent
+    )
 
 
 def test_opt_in_required() -> None:

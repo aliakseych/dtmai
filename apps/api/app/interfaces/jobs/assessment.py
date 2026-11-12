@@ -10,6 +10,11 @@ async def auto_submit_expired() -> int:
     async with get_sessionmaker()() as session:
         n = await build_assessment_service(session).auto_submit_expired()
         await session.commit()
-    if n:
-        await dispatch_pending()
+    await dispatch_pending()
     return n
+
+
+@broker.task(task_name="events.dispatch_pending", schedule=[{"cron": "* * * * *"}])
+async def dispatch_outbox() -> int:
+    """Deliver outbox events from every module (the one dispatcher; handlers are idempotent)."""
+    return await dispatch_pending()

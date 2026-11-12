@@ -25,8 +25,8 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 const BASE =
   "inline-flex select-none items-center justify-center gap-2 rounded-2xl px-5 py-3 text-[15px] font-extrabold uppercase tracking-wide transition-[transform,box-shadow,filter,background-color] duration-100";
 const RAISED =
-  "shadow-[0_4px_0_0_var(--edge)] active:translate-y-[4px] active:shadow-[0_0_0_0_var(--edge)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-line disabled:text-[#afafaf] disabled:shadow-[0_4px_0_0_#cfcfcf] disabled:hover:brightness-100 disabled:active:translate-y-0 disabled:active:shadow-[0_4px_0_0_#cfcfcf]";
-const FLAT = "disabled:cursor-not-allowed disabled:text-[#afafaf] disabled:hover:bg-transparent";
+  "shadow-[0_4px_0_0_var(--edge)] active:translate-y-[4px] active:shadow-[0_0_0_0_var(--edge)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-line disabled:text-ink-mute disabled:shadow-[0_4px_0_0_var(--color-line-deep)] disabled:hover:brightness-100 disabled:active:translate-y-0 disabled:active:shadow-[0_4px_0_0_var(--color-line-deep)]";
+const FLAT = "disabled:cursor-not-allowed disabled:text-ink-mute disabled:hover:bg-transparent";
 
 export function buttonClass(variant: ButtonVariant = "primary", block?: boolean, extra?: string): string {
   return cn(BASE, variant === "ghost" ? FLAT : RAISED, VARIANTS[variant], block && "w-full", extra);

@@ -55,7 +55,7 @@ function Body({ result, attempt }: { result: AttemptResult; attempt: Attempt }) 
   return (
     <>
       {result.submit_reason === "auto" && (
-        <p role="status" className="rounded-xl bg-gold px-4 py-2 font-bold">
+        <p role="status" className="rounded-xl bg-accent px-4 py-2 font-bold">
           {t("mock.autoSubmitted")}
         </p>
       )}
@@ -103,7 +103,7 @@ function Body({ result, attempt }: { result: AttemptResult; attempt: Attempt }) 
               {cmp.passing_score !== null && <p className="font-bold">{t("mock.passing", { n: num.format(cmp.passing_score) })}</p>}
               {cmp.competition_ratio !== null && <p className="font-bold">{t("mock.competition", { n: num.format(cmp.competition_ratio) })}</p>}
               {cmp.gap !== null && cmp.on_track !== null && (
-                <p className={`font-extrabold ${cmp.on_track ? "text-green-deep" : "text-red-deep"}`}>
+                <p className={`font-extrabold ${cmp.on_track ? "text-brand" : "text-red-deep"}`}>
                   {cmp.on_track ? t("mock.onTrack", { n: num.format(Math.abs(cmp.gap)) }) : t("mock.offTrack", { n: num.format(Math.abs(cmp.gap)) })}
                 </p>
               )}

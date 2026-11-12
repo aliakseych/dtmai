@@ -9,6 +9,7 @@ from app.modules.study_plan.application.views import (
     AnalyticsView,
     DailyQuestionsView,
     DayView,
+    DreamGapView,
     HomeView,
     RangeView,
     SectionView,
@@ -52,6 +53,10 @@ class SettingsIn(BaseModel):
     choice_subject_id: UUID | None = None
     exam_date: date | None = Field(None, description="Defaults to the exam profile's date")
     start_date: date | None = Field(None, description="Defaults to today")
+    study_time: str | None = Field(
+        None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$", description="Planned study time, HH:MM"
+    )
+    study_days: list[int] = Field([], description="Weekdays 0=Mon..6=Sun; empty = every day")
 
     def cmd(self) -> SettingsCmd:
         return SettingsCmd(
@@ -64,6 +69,8 @@ class SettingsIn(BaseModel):
             choice_subject_id=self.choice_subject_id,
             exam_date=self.exam_date,
             start_date=self.start_date,
+            study_time=self.study_time,
+            study_days=tuple(self.study_days),
         )
 
 
@@ -78,6 +85,8 @@ class SettingsOut(BaseModel):
     target_lyceum_ids: list[UUID]
     certificates: list[CertificateIO]
     choice_subject_id: UUID | None
+    study_time: str | None
+    study_days: list[int]
     exempt_section_ids: list[UUID]
     sections: list["SectionOut"]
 
@@ -103,6 +112,8 @@ class SettingsOut(BaseModel):
                 for c in s.certificates
             ],
             choice_subject_id=s.choice_subject_id,
+            study_time=s.study_time,
+            study_days=list(s.study_days),
             exempt_section_ids=list(v.exempt_section_ids),
             sections=[SectionOut.of(x) for x in v.sections],
         )
@@ -145,6 +156,7 @@ class TaskOut(BaseModel):
     est_minutes: int
     status: TaskStatus
     done_at: datetime | None
+    undoable: bool
 
     @classmethod
     def of(cls, t: TaskView) -> "TaskOut":
@@ -159,6 +171,7 @@ class TaskOut(BaseModel):
             est_minutes=t.est_minutes,
             status=t.status,
             done_at=t.done_at,
+            undoable=t.undoable,
         )
 
 
@@ -220,6 +233,7 @@ class HomeOut(BaseModel):
     today_total: int
     today_minutes: int
     tasks: list[TaskOut]
+    exam_date_verified: bool = Field(description="False: the exam date is an estimate")
 
     @classmethod
     def of(cls, v: HomeView) -> "HomeOut":
@@ -235,6 +249,44 @@ class HomeOut(BaseModel):
             today_total=v.today_total,
             today_minutes=v.today_minutes,
             tasks=[TaskOut.of(t) for t in v.tasks],
+            exam_date_verified=v.exam_date_verified,
+        )
+
+
+class DreamGapOut(BaseModel):
+    lyceum_id: UUID | None = Field(description="None: no dream lyceum chosen yet")
+    year: int | None = Field(description="Admission year the benchmark comes from")
+    predicted_score: float | None
+    max_score: float | None
+    passing_score: float | None
+    competition_ratio: float | None
+    gap: float | None = Field(description="Points still missing; <= 0 when at the bar")
+    on_track: bool | None
+    milestone: bool = Field(description="Large gap: frame it as the next milestone")
+    next_points: float | None
+    next_questions: int | None
+    weakest_topic_id: UUID | None
+    weakest_topic_name: str | None
+    weakest_subject_id: UUID | None
+
+    @classmethod
+    def of(cls, v: DreamGapView) -> "DreamGapOut":
+        g = v.gap
+        return cls(
+            lyceum_id=v.lyceum_id,
+            year=v.year,
+            predicted_score=g.predicted_score if g else None,
+            max_score=g.max_score if g else None,
+            passing_score=g.passing_score if g else None,
+            competition_ratio=g.competition_ratio if g else None,
+            gap=g.gap if g else None,
+            on_track=g.on_track if g else None,
+            milestone=g.milestone if g else False,
+            next_points=g.next_points if g else None,
+            next_questions=g.next_questions if g else None,
+            weakest_topic_id=v.weakest_topic_id,
+            weakest_topic_name=v.weakest_topic_name,
+            weakest_subject_id=v.weakest_subject_id,
         )
 
 
@@ -393,11 +445,34 @@ async def complete_task(
     return TaskOut.of(await svc.complete_task(user.user_id, task_id, pick_locale(accept_language)))
 
 
+@router.post(
+    "/tasks/{task_id}/uncomplete",
+    response_model=TaskOut,
+    responses=ERR,
+    operation_id="study_plan_uncomplete_task",
+)
+async def uncomplete_task(
+    task_id: UUID, user: CurrentUser, svc: PlanServiceDep, accept_language: AcceptLanguage = None
+) -> TaskOut:
+    return TaskOut.of(
+        await svc.uncomplete_task(user.user_id, task_id, pick_locale(accept_language))
+    )
+
+
 @router.get("/home", response_model=HomeOut, responses=ERR, operation_id="study_plan_home")
 async def home(
     user: CurrentUser, svc: PlanServiceDep, accept_language: AcceptLanguage = None
 ) -> HomeOut:
     return HomeOut.of(await svc.home(user.user_id, pick_locale(accept_language)))
+
+
+@router.get(
+    "/dream-gap", response_model=DreamGapOut, responses=ERR, operation_id="study_plan_dream_gap"
+)
+async def dream_gap(
+    user: CurrentUser, svc: PlanServiceDep, accept_language: AcceptLanguage = None
+) -> DreamGapOut:
+    return DreamGapOut.of(await svc.dream_gap(user.user_id, pick_locale(accept_language)))
 
 
 @router.get(

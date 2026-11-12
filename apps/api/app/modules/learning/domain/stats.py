@@ -86,7 +86,9 @@ def build_stats(
         accuracy=correct_total / answered_total if answered_total else 0.0,
         daily=series,
         by_subject=[
-            SubjectStat(s.subject_id, s.answered, s.correct, s.mastery) for s in subjects if s.subject_id is not None
+            SubjectStat(s.subject_id, s.answered, s.correct, s.mastery)
+            for s in subjects
+            if s.subject_id is not None
         ],
         mocks=mocks,
     )

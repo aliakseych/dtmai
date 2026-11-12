@@ -12,8 +12,16 @@ T0 = datetime(2026, 3, 1, 9, 0, tzinfo=UTC)
 def attempt() -> MockAttempt:
     qs = [{"id": str(uuid4()), "section": 0} for _ in range(2)]
     return MockAttempt(
-        id=uuid4(), user_id=uuid4(), kind="official", blueprint_id=uuid4(), blueprint_version=1,
-        language="uz", started_at=T0, deadline=deadline_for(T0, 60), questions=qs, sections=[],
+        id=uuid4(),
+        user_id=uuid4(),
+        kind="official",
+        blueprint_id=uuid4(),
+        blueprint_version=1,
+        language="uz",
+        started_at=T0,
+        deadline=deadline_for(T0, 60),
+        questions=qs,
+        sections=[],
     )
 
 
@@ -53,8 +61,10 @@ def test_close_auto_clamps_time_and_blocks_input() -> None:
 
 def test_scoring_formula() -> None:
     items = [
-        Scored(0, "A", "t1", "ty", True), Scored(0, "A", "t1", "ty", False),
-        Scored(0, "A", "t1", "ty", False), Scored(0, "A", "t2", "ty", True),
+        Scored(0, "A", "t1", "ty", True),
+        Scored(0, "A", "t1", "ty", False),
+        Scored(0, "A", "t1", "ty", False),
+        Scored(0, "A", "t2", "ty", True),
         Scored(1, "B", None, "ty", True),
     ]
     r = score(items, [1.0, 2.0])

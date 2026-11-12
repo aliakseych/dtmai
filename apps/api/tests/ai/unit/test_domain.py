@@ -77,7 +77,9 @@ def test_parse_json_object():
 
 
 def test_parse_json_object_raw_latex():
-    raw = r'{"stem": "\frac{1}{2} \neq \beta \times x", "a": "line\nnext", "b": "ok \\alpha \u00e9"}'
+    raw = (
+        r'{"stem": "\frac{1}{2} \neq \beta \times x", "a": "line\nnext", "b": "ok \\alpha \u00e9"}'
+    )
     v = parse_json_object(raw)
     assert v["stem"] == r"\frac{1}{2} \neq \beta \times x"
     assert v["a"] == "line\nnext" and v["b"] == "ok \\alpha é"

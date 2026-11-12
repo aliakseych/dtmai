@@ -14,13 +14,24 @@ ACTIVE, DISABLED = "active", "disabled"
 
 def _to_domain(r: UserRow) -> User:
     return User(
-        id=r.id, name=r.name, locale=r.locale, email=r.email, email_verified=r.email_verified,
-        password_hash=r.password_hash, telegram_id=r.telegram_id,
-        roles={Role(x) for x in r.roles}, dream_lyceum_ids=list(r.dream_lyceum_ids or []),
-        education_language_id=r.education_language_id, city=r.city, field_code=r.field_code,
-        subject_ids=list(r.subject_ids or []), created_at=r.created_at,
-        last_seen_at=r.last_seen_at, telegram_username=r.telegram_username,
-        disabled=r.status == DISABLED, is_system=r.is_system,
+        id=r.id,
+        name=r.name,
+        locale=r.locale,
+        email=r.email,
+        email_verified=r.email_verified,
+        password_hash=r.password_hash,
+        telegram_id=r.telegram_id,
+        roles={Role(x) for x in r.roles},
+        dream_lyceum_ids=list(r.dream_lyceum_ids or []),
+        education_language_id=r.education_language_id,
+        city=r.city,
+        field_code=r.field_code,
+        subject_ids=list(r.subject_ids or []),
+        created_at=r.created_at,
+        last_seen_at=r.last_seen_at,
+        telegram_username=r.telegram_username,
+        disabled=r.status == DISABLED,
+        is_system=r.is_system,
     )
 
 
@@ -69,15 +80,22 @@ class SqlUserRepository:
         await self._s.flush()
 
     async def search(
-        self, q: str | None, role: str | None, disabled: bool | None, sort: str, descending: bool,
-        limit: int, offset: int,
+        self,
+        q: str | None,
+        role: str | None,
+        disabled: bool | None,
+        sort: str,
+        descending: bool,
+        limit: int,
+        offset: int,
     ) -> tuple[int, list[User]]:
         conds = []
         if q and q.strip():
             term = q.strip()
             like = "%" + term.replace("%", r"\%").replace("_", r"\_") + "%"
             parts = [
-                UserRow.email.ilike(like, escape="\\"), UserRow.name.ilike(like, escape="\\"),
+                UserRow.email.ilike(like, escape="\\"),
+                UserRow.name.ilike(like, escape="\\"),
                 UserRow.telegram_username.ilike(like, escape="\\"),
             ]
             if term.isdigit():
@@ -87,15 +105,27 @@ class SqlUserRepository:
             conds.append(UserRow.roles.contains([role]))
         if disabled is not None:
             conds.append(UserRow.status == (DISABLED if disabled else ACTIVE))
-        column = {"created_at": UserRow.created_at, "last_seen_at": UserRow.last_seen_at, "email": UserRow.email}[sort]
-        total = (await self._s.execute(select(func.count()).select_from(UserRow).where(*conds))).scalar_one()
+        column = {
+            "created_at": UserRow.created_at,
+            "last_seen_at": UserRow.last_seen_at,
+            "email": UserRow.email,
+        }[sort]
+        total = (
+            await self._s.execute(select(func.count()).select_from(UserRow).where(*conds))
+        ).scalar_one()
         rows = (
-            await self._s.execute(
-                select(UserRow).where(*conds)
-                .order_by(column.desc() if descending else column.asc(), UserRow.id)
-                .limit(limit).offset(offset)
+            (
+                await self._s.execute(
+                    select(UserRow)
+                    .where(*conds)
+                    .order_by(column.desc() if descending else column.asc(), UserRow.id)
+                    .limit(limit)
+                    .offset(offset)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         return total, [_to_domain(r) for r in rows]
 
     async def get_many(self, ids: list[UUID]) -> list[User]:
@@ -105,8 +135,10 @@ class SqlUserRepository:
         return [_to_domain(r) for r in rows]
 
     async def count_active_admins(self) -> int:
-        stmt = select(func.count()).select_from(UserRow).where(
-            UserRow.roles.contains(["admin"]), UserRow.status == ACTIVE
+        stmt = (
+            select(func.count())
+            .select_from(UserRow)
+            .where(UserRow.roles.contains(["admin"]), UserRow.status == ACTIVE)
         )
         return int((await self._s.execute(stmt)).scalar_one())
 
@@ -122,11 +154,8 @@ class SqlUserRepository:
             stmt = stmt.where(UserRow.email.is_not(None), UserRow.email_verified.is_(True))
         return [_to_domain(r) for r in (await self._s.execute(stmt)).scalars()]
 
-
     async def touch(self, user_id: UUID, now: datetime) -> None:
-        await self._s.execute(
-            update(UserRow).where(UserRow.id == user_id).values(last_seen_at=now)
-        )
+        await self._s.execute(update(UserRow).where(UserRow.id == user_id).values(last_seen_at=now))
 
     async def delete_guests_unseen_since(self, cutoff: datetime) -> int:
         """Delete pure-guest users not seen since `cutoff`; tokens/codes cascade."""
@@ -141,9 +170,9 @@ class SqlUserRepository:
         return int(
             (
                 await self._s.execute(
-                    select(func.count()).select_from(UserRow).where(
-                        UserRow.dream_lyceum_ids.contains([lyceum_id])
-                    )
+                    select(func.count())
+                    .select_from(UserRow)
+                    .where(UserRow.dream_lyceum_ids.contains([lyceum_id]))
                 )
             ).scalar_one()
         )
@@ -156,8 +185,12 @@ class SqlEmailCodeRepository:
     async def add(self, code: EmailCode) -> None:
         self._s.add(
             EmailCodeRow(
-                id=code.id, user_id=code.user_id, code_hash=code.code_hash,
-                expires_at=code.expires_at, attempts=code.attempts, consumed=code.consumed,
+                id=code.id,
+                user_id=code.user_id,
+                code_hash=code.code_hash,
+                expires_at=code.expires_at,
+                attempts=code.attempts,
+                consumed=code.consumed,
             )
         )
         await self._s.flush()
@@ -197,8 +230,11 @@ class SqlRefreshTokenRepository:
     async def add(self, token: RefreshToken) -> None:
         self._s.add(
             RefreshTokenRow(
-                id=token.id, user_id=token.user_id, token_hash=token.token_hash,
-                expires_at=token.expires_at, revoked=token.revoked,
+                id=token.id,
+                user_id=token.user_id,
+                token_hash=token.token_hash,
+                expires_at=token.expires_at,
+                revoked=token.revoked,
             )
         )
         await self._s.flush()

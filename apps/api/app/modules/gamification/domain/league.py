@@ -40,12 +40,12 @@ def settle_cohort(
 ) -> list[Settlement]:
     ranked = rank_standings(standings)
     can_promote = tier_idx < tier_count - 1
-    promoted = (
-        {s.user_id for s in ranked[:promote] if s.xp > 0} if can_promote else set[UUID]()
-    )
+    promoted = {s.user_id for s in ranked[:promote] if s.xp > 0} if can_promote else set[UUID]()
     # A cohort too small for both zones never demotes: nobody is "bottom" of a tiny group.
     demote_n = demote if tier_idx > 0 and len(ranked) > promote + demote else 0
-    demoted = {s.user_id for s in ranked[len(ranked) - demote_n :]} - promoted if demote_n else set()
+    demoted = (
+        {s.user_id for s in ranked[len(ranked) - demote_n :]} - promoted if demote_n else set()
+    )
     out: list[Settlement] = []
     for rank, s in enumerate(ranked, start=1):
         outcome = (

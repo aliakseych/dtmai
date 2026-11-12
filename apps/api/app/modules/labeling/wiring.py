@@ -21,7 +21,9 @@ def get_review_service(session: SessionDep) -> ReviewService:
 
 def get_solve_service(session: SessionDep, gw: GatewayDep) -> SolveService:
     s = get_labeling_settings()
-    return SolveService(session, gw, min_models=s.labeling_min_models, min_confidence=s.labeling_min_confidence)
+    return SolveService(
+        session, gw, min_models=s.labeling_min_models, min_confidence=s.labeling_min_confidence
+    )
 
 
 def get_generation_service(session: SessionDep, gw: GatewayDep) -> GenerationService:

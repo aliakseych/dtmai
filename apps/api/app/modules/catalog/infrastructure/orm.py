@@ -40,8 +40,12 @@ class SubjectRow(_Common, Base):
 class TopicRow(_Common, Base):
     __tablename__ = "topics"
     __table_args__ = {"schema": S}
-    subject_id: Mapped[UUID] = mapped_column(ForeignKey(f"{S}.subjects.id", ondelete="CASCADE"), index=True)
-    parent_id: Mapped[UUID | None] = mapped_column(ForeignKey(f"{S}.topics.id", ondelete="SET NULL"), index=True)
+    subject_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{S}.subjects.id", ondelete="CASCADE"), index=True
+    )
+    parent_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(f"{S}.topics.id", ondelete="SET NULL"), index=True
+    )
     code: Mapped[str | None] = mapped_column(String(64))
     names: Mapped[dict[str, Any]] = mapped_column(JSONB)
     position: Mapped[int] = mapped_column(Integer, default=0)
@@ -64,7 +68,9 @@ class QuestionTypeRow(_Common, Base):
 class PathRow(_Common, Base):
     __tablename__ = "paths"
     __table_args__ = (UniqueConstraint("subject_id", "language"), {"schema": S})
-    subject_id: Mapped[UUID] = mapped_column(ForeignKey(f"{S}.subjects.id", ondelete="CASCADE"), index=True)
+    subject_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{S}.subjects.id", ondelete="CASCADE"), index=True
+    )
     language: Mapped[str] = mapped_column(String(8))
     names: Mapped[dict[str, Any]] = mapped_column(JSONB)
     status: Mapped[str] = mapped_column(String(12), default="draft")
@@ -74,7 +80,9 @@ class PathRow(_Common, Base):
 class UnitRow(_Common, Base):
     __tablename__ = "units"
     __table_args__ = {"schema": S}
-    path_id: Mapped[UUID] = mapped_column(ForeignKey(f"{S}.paths.id", ondelete="CASCADE"), index=True)
+    path_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{S}.paths.id", ondelete="CASCADE"), index=True
+    )
     names: Mapped[dict[str, Any]] = mapped_column(JSONB)
     position: Mapped[int] = mapped_column(Integer, default=0)
 
@@ -82,7 +90,9 @@ class UnitRow(_Common, Base):
 class LessonRow(_Common, Base):
     __tablename__ = "lessons"
     __table_args__ = {"schema": S}
-    unit_id: Mapped[UUID] = mapped_column(ForeignKey(f"{S}.units.id", ondelete="CASCADE"), index=True)
+    unit_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{S}.units.id", ondelete="CASCADE"), index=True
+    )
     names: Mapped[dict[str, Any]] = mapped_column(JSONB)
     topic_ids: Mapped[list[Any]] = mapped_column(JSONB, default=list)
     type_ids: Mapped[list[Any]] = mapped_column(JSONB, default=list)

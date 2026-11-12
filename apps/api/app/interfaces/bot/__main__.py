@@ -21,12 +21,16 @@ async def _run(action: str) -> None:
             if not s.telegram_webhook_secret:
                 raise SystemExit("TELEGRAM_WEBHOOK_SECRET is not set")
             await bot.set_webhook(
-                cfg.telegram_webhook_url, secret_token=s.telegram_webhook_secret,
-                allowed_updates=["message", "callback_query"], drop_pending_updates=False,
+                cfg.telegram_webhook_url,
+                secret_token=s.telegram_webhook_secret,
+                allowed_updates=["message", "callback_query"],
+                drop_pending_updates=False,
             )
             await bot.set_my_commands(
-                [BotCommand(command="start", description="Menu"),
-                 BotCommand(command="daily", description="Daily question")]
+                [
+                    BotCommand(command="start", description="Menu"),
+                    BotCommand(command="daily", description="Daily question"),
+                ]
             )
             await bot.set_chat_menu_button(
                 menu_button=MenuButtonWebApp(

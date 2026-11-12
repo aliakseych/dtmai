@@ -17,7 +17,9 @@ class Prediction:
     confident: bool
 
 
-def predict(history: list[tuple[float, float]], *, min_attempts: int = MIN_ATTEMPTS) -> Prediction | None:
+def predict(
+    history: list[tuple[float, float]], *, min_attempts: int = MIN_ATTEMPTS
+) -> Prediction | None:
     """history: (score, max_score) newest first. Returns None with no data.
 
     Works on the normalized scale then maps onto the newest attempt's maximum.

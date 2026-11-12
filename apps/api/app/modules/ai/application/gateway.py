@@ -68,7 +68,19 @@ class AIGateway:
             response = await self._llm.complete(request)
         except LLMError as e:
             await self._ledger.add(
-                LedgerEntry(user_id, purpose, route.task.value, route.model, 0, 0, 0, False, 0, ref, e.detail[:500])
+                LedgerEntry(
+                    user_id,
+                    purpose,
+                    route.task.value,
+                    route.model,
+                    0,
+                    0,
+                    0,
+                    False,
+                    0,
+                    ref,
+                    e.detail[:500],
+                )
             )
             raise AIUpstreamFailed(e.detail) from e
         cost = (
@@ -83,8 +95,16 @@ class AIGateway:
         )
         await self._ledger.add(
             LedgerEntry(
-                user_id, purpose, route.task.value, route.model,
-                response.tokens_in, response.tokens_out, cost, True, response.latency_ms, ref,
+                user_id,
+                purpose,
+                route.task.value,
+                route.model,
+                response.tokens_in,
+                response.tokens_out,
+                cost,
+                True,
+                response.latency_ms,
+                ref,
             )
         )
         return response

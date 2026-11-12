@@ -7,7 +7,12 @@ from app.interfaces.bot.i18n import LOCALE_LABELS, t
 # Telegram limits callback_data to 64 bytes: "dq:" + 32 hex + ":" + idx fits easily.
 PREFIX_QUESTION = "dq"
 PREFIX_LANG = "lang"
-MENU_DAILY, MENU_LANG, MENU_HELP, MENU_REMINDERS = "menu:daily", "menu:lang", "menu:help", "menu:rem"
+MENU_DAILY, MENU_LANG, MENU_HELP, MENU_REMINDERS = (
+    "menu:daily",
+    "menu:lang",
+    "menu:help",
+    "menu:rem",
+)
 
 
 def question_data(question_id: UUID, option_index: int) -> str:

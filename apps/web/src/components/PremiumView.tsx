@@ -35,7 +35,7 @@ export function PremiumView() {
         <PageTitle>{t("premium.title")}</PageTitle>
         <p className="-mt-4 text-ink-soft">{t("premium.subtitle")}</p>
       </div>
-      {premium && <p className="mb-4 text-center font-bold text-green-deep">{t("premium.active")}</p>}
+      {premium && <p className="mb-4 text-center font-bold text-brand">{t("premium.active")}</p>}
       <AsyncView state={plans.state} onRetry={plans.reload} isEmpty={(d) => d.filter((p) => p.code !== "free").length === 0}>
         {(all) => {
           const list = all.filter((p) => p.code !== "free" && p.active);
@@ -44,7 +44,7 @@ export function PremiumView() {
             <div className="flex flex-col gap-3">
               {list.map((p) => (
                 <button key={p.code} type="button" aria-pressed={current === p.code} onClick={() => setSelected(p.code)} className="text-left">
-                  <Card className={cn("flex items-center justify-between gap-3", current === p.code && "border-blue bg-blue-soft")}>
+                  <Card className={cn("flex items-center justify-between gap-3", current === p.code && "border-brand bg-brand-soft")}>
                     <span className="text-lg text-ink">
                       {pick(p.names, locale)} <span className="text-sm text-ink-soft">· {t("plan.months", { n: p.period_months })}</span>
                     </span>

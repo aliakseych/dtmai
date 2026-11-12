@@ -1,7 +1,7 @@
 """Idempotent catalog seed: `python -m app.modules.catalog.seed`.
 
 Creates the five launch subjects, base question types, question bases and topics harvested
-from seed_topics.json next to this module (override with CATEGORIES_JSON). Re-running adds only what is missing.
+from seed_topics.json next to this module (override with CATEGORIES_JSON). Re-running adds what is missing and completes topic translations.
 """
 
 import asyncio
@@ -153,6 +153,10 @@ _CATEGORY_SUBJECT = {
 }
 
 
+def _shares_name(a: dict[str, Any], b: dict[str, Any]) -> bool:
+    return any(b.get(k) == v for k, v in a.items())
+
+
 def categories_path() -> Path:
     env = os.environ.get("CATEGORIES_JSON")
     return Path(env) if env else Path(__file__).with_name("seed_topics.json")
@@ -160,7 +164,7 @@ def categories_path() -> Path:
 
 async def seed(session: AsyncSession) -> dict[str, int]:
     svc = service(session)
-    added = {"subjects": 0, "types": 0, "bases": 0, "topics": 0}
+    added = {"subjects": 0, "types": 0, "bases": 0, "topics": 0, "topics_localized": 0}
     subj_ids: dict[str, Any] = {r["code"]: r["id"] for r in await svc.repo.list("subject")}
     for code, names in SUBJECTS:
         if code not in subj_ids:
@@ -185,14 +189,16 @@ async def seed(session: AsyncSession) -> dict[str, int]:
             if not mapped:
                 continue
             code, loc = mapped
-            existing = {
-                tuple(sorted(t["names"].items()))
-                for t in await svc.repo.list("topic", subject_id=subj_ids[code])
-            }
+            topics = await svc.repo.list("topic", subject_id=subj_ids[code])
             names = item.get("names") or {loc: item["name"]}
-            if tuple(sorted(names.items())) not in existing:
+            match = next((t for t in topics if _shares_name(t["names"], names)), None)
+            if match is None:
                 await svc.create("topic", {"subject_id": subj_ids[code], "names": names}, "seed")
                 added["topics"] += 1
+            elif match["names"] != names:
+                # Older seeds carried one language only: complete the translations in place.
+                await svc.update("topic", match["id"], {"names": names}, "seed")
+                added["topics_localized"] += 1
     else:
         print(f"categories file not found: {path} (topics skipped)")
     return added

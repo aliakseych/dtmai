@@ -13,9 +13,19 @@ from app.modules.learning.ports import Graded, Item, LessonRef
 
 def _item(d: Any) -> Item:
     return Item(
-        d.id, d.subject_id, d.topic_id, d.type_id, d.kind, d.language, float(d.difficulty),
-        d.stem, list(d.media), dict(d.payload), d.passage_id or d.parent_id,
-        d.source_id is not None, [_item(c) for c in d.children],
+        d.id,
+        d.subject_id,
+        d.topic_id,
+        d.type_id,
+        d.kind,
+        d.language,
+        float(d.difficulty),
+        d.stem,
+        list(d.media),
+        dict(d.payload),
+        d.passage_id or d.parent_id,
+        d.source_id is not None,
+        [_item(c) for c in d.children],
     )
 
 
@@ -33,12 +43,25 @@ class FacadeContent:
         return [by_id[i] for i in ids if i in by_id]
 
     async def pick(
-        self, *, subject_id: UUID, topic_ids: Sequence[UUID] | None, type_ids: Sequence[UUID] | None,
-        language: str, n: int, exclude_ids: Sequence[UUID] = (), difficulty: float | None = None,
+        self,
+        *,
+        subject_id: UUID,
+        topic_ids: Sequence[UUID] | None,
+        type_ids: Sequence[UUID] | None,
+        language: str,
+        n: int,
+        exclude_ids: Sequence[UUID] = (),
+        difficulty: float | None = None,
     ) -> list[Item]:
         dtos = await bank.pick_questions(
-            self._s, subject_id=subject_id, topic_ids=topic_ids or None, type_ids=type_ids or None,
-            language=language, n=n, exclude_ids=exclude_ids, difficulty=difficulty,
+            self._s,
+            subject_id=subject_id,
+            topic_ids=topic_ids or None,
+            type_ids=type_ids or None,
+            language=language,
+            n=n,
+            exclude_ids=exclude_ids,
+            difficulty=difficulty,
         )
         return _flatten(dtos)[:n]
 
@@ -57,8 +80,14 @@ class FacadeContent:
                 for ls in unit.lessons:
                     if ls.id == lesson_id:
                         return LessonRef(
-                            ls.id, subject.id, list(ls.effective_topic_ids), list(ls.type_ids),
-                            ls.question_count or 10, lang, len(path.units),
+                            ls.id,
+                            subject.id,
+                            list(ls.effective_topic_ids),
+                            list(ls.type_ids),
+                            ls.question_count or 10,
+                            lang,
+                            len(path.units),
+                            [[le.id for le in u.lessons] for u in path.units],
                         )
         return None
 

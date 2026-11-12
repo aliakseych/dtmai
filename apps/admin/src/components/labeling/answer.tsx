@@ -1,4 +1,5 @@
 "use client";
+import { useT } from "@/lib/i18n";
 import { Md } from "@/components/ui/markdown";
 
 type R = Record<string, unknown>;
@@ -26,6 +27,7 @@ export function fmtAnswer(kind: string, payload: R, a: R | null | undefined): st
 }
 
 export function QuestionBody({ kind, payload, picked, suggested, onPick }: { kind: string; payload: R; picked: string[]; suggested: string[]; onPick: (id: string) => void }) {
+  const t = useT();
   if (kind === "single_choice" || kind === "multi_choice") {
     return (
       <ul className="space-y-2">
@@ -35,9 +37,9 @@ export function QuestionBody({ kind, payload, picked, suggested, onPick }: { kin
             <li key={o.id}>
               <button type="button" onClick={() => onPick(o.id)} aria-pressed={on}
                 className={`flex w-full items-start gap-3 rounded-xl border-2 p-3 text-left ${on ? "border-blue bg-blue-soft" : "border-line bg-white hover:bg-snow"} ${sug ? "ring-2 ring-green" : ""}`}>
-                <kbd className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-line bg-snow text-sm font-extrabold">{letter(i)}</kbd>
+                <kbd className="grid h-7 w-7 shrink-0 place-items-center rounded-xl border border-line bg-snow text-sm font-extrabold">{letter(i)}</kbd>
                 <span className="min-w-0 flex-1"><Md text={o.text ?? ""} /></span>
-                {sug && <span className="text-xs font-extrabold text-green-deep">model</span>}
+                {sug && <span className="text-xs font-extrabold text-green-deep">{t("admin.labeling.model")}</span>}
               </button>
             </li>
           );

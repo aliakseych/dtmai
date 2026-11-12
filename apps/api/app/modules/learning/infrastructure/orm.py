@@ -85,7 +85,10 @@ class MasteryRow(Base):
 
 class ReviewCardRow(Base):
     __tablename__ = "review_cards"
-    __table_args__ = (Index("ix_review_cards_due", "user_id", "subject_id", "due_at"), {"schema": SCHEMA})
+    __table_args__ = (
+        Index("ix_review_cards_due", "user_id", "subject_id", "due_at"),
+        {"schema": SCHEMA},
+    )
 
     user_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
     question_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
@@ -108,7 +111,9 @@ class PlacementRow(Base):
     start_unit_index: Mapped[int] = mapped_column(Integer)
     ability: Mapped[float | None] = mapped_column(Float)
     skipped: Mapped[bool] = mapped_column(Boolean, default=False)
-    completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    completed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
 
 class ProcessedEventRow(Base):

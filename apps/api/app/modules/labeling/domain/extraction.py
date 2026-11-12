@@ -65,7 +65,11 @@ def parse_page(data: dict[str, Any]) -> PageExtraction:
     for p in data.get("passages") or []:
         if isinstance(p, dict) and str(p.get("text") or "").strip():
             passages.append(
-                ExtractedPassage(str(p.get("key") or f"p{len(passages) + 1}"), p.get("title"), str(p["text"]).strip())
+                ExtractedPassage(
+                    str(p.get("key") or f"p{len(passages) + 1}"),
+                    p.get("title"),
+                    str(p["text"]).strip(),
+                )
             )
     questions: list[ExtractedQuestion] = []
     for q in data.get("questions") or []:
@@ -82,19 +86,31 @@ def parse_page(data: dict[str, Any]) -> PageExtraction:
                 continue
             text = str(o.get("text") or "").strip()
             if not text and has_figure and kind in ("single_choice", "multi_choice"):
-                text = _option_label(o, i)  # picture option: the drawing itself is in the page image
+                text = _option_label(
+                    o, i
+                )  # picture option: the drawing itself is in the page image
             if text:
                 opts.append({"id": _LETTERS[i], "text": text})
         if kind in ("single_choice", "multi_choice") and len(opts) < 2:
             continue
         raw_answer = q.get("answer")
-        answer_raw = str(raw_answer).strip() if isinstance(raw_answer, (str, int, float)) and not isinstance(raw_answer, bool) else ""
+        answer_raw = (
+            str(raw_answer).strip()
+            if isinstance(raw_answer, (str, int, float)) and not isinstance(raw_answer, bool)
+            else ""
+        )
         bbox = q.get("bbox")
         questions.append(
             ExtractedQuestion(
-                number=_int(q.get("number")), kind=kind, stem=stem, options=opts,
-                passage_key=q.get("passage_key") or None, has_figure=has_figure, topic=_int(q.get("topic")),
-                answer_raw=answer_raw or None, options_generated=bool(q.get("options_generated")),
+                number=_int(q.get("number")),
+                kind=kind,
+                stem=stem,
+                options=opts,
+                passage_key=q.get("passage_key") or None,
+                has_figure=has_figure,
+                topic=_int(q.get("topic")),
+                answer_raw=answer_raw or None,
+                options_generated=bool(q.get("options_generated")),
                 bbox=[int(x) for x in bbox] if bbox is not None and _is_bbox(bbox) else None,
             )
         )
@@ -109,10 +125,16 @@ def parse_page(data: dict[str, Any]) -> PageExtraction:
 
 
 def _is_bbox(v: Any) -> bool:
-    return isinstance(v, (list, tuple)) and len(v) == 4 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v)
+    return (
+        isinstance(v, (list, tuple))
+        and len(v) == 4
+        and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v)
+    )
 
 
-def crop_box(bbox: list[int] | None, width: int, height: int, pad: float = 0.02) -> tuple[int, int, int, int] | None:
+def crop_box(
+    bbox: list[int] | None, width: int, height: int, pad: float = 0.02
+) -> tuple[int, int, int, int] | None:
     """Pixel crop (x0, y0, x1, y1) from a 0..1000 normalized bbox, padded and clamped; None if invalid/degenerate."""
     if not _is_bbox(bbox) or width <= 0 or height <= 0:
         return None
@@ -126,8 +148,10 @@ def crop_box(bbox: list[int] | None, width: int, height: int, pad: float = 0.02)
     nx0, ny0 = max(0.0, x0 - px), max(0.0, y0 - py)
     nx1, ny1 = min(1000.0, x1 + px), min(1000.0, y1 + py)
     return (
-        int(nx0 * width / 1000), int(ny0 * height / 1000),
-        min(width, int(round(nx1 * width / 1000))), min(height, int(round(ny1 * height / 1000))),
+        int(nx0 * width / 1000),
+        int(ny0 * height / 1000),
+        min(width, int(round(nx1 * width / 1000))),
+        min(height, int(round(ny1 * height / 1000))),
     )
 
 
@@ -149,7 +173,12 @@ def resolve_keys(pages: list[PageExtraction]) -> dict[tuple[int, int], str]:
                 out[pos] = raw
     for pi, page in enumerate(pages):
         for qi, q in enumerate(page.questions):
-            if q.number is not None and (pi, qi) not in out and counts[q.number] == 1 and q.number in last_key:
+            if (
+                q.number is not None
+                and (pi, qi) not in out
+                and counts[q.number] == 1
+                and q.number in last_key
+            ):
                 out[(pi, qi)] = last_key[q.number]
     return out
 

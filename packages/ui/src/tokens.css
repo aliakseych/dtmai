@@ -2,15 +2,17 @@
 
 @theme {
   --font-sans: "Nunito Variable", "Nunito", ui-rounded, system-ui, sans-serif;
-  /* Brand: #100FA0 primary, #AFF50B accent, rest black/white/grays.
-     Legacy token names are kept so existing classes inherit the brand:
-     green = primary, blue = lighter primary tint, gold = accent, orange = ink. */
+  /* Brand: #100FA0 primary, #AFF50B accent, rest black/white/grays. See .claude/skills/ui-ux/UI-RULES.md. */
   --color-brand: #100fa0;
   --color-brand-deep: #0b0a78;
   --color-brand-soft: #ececff;
   --color-accent: #aff50b;
   --color-accent-deep: #7fb800;
   --color-accent-soft: #f1fdd0;
+  --color-accent-ink: #5f8a00;
+  --color-ink-mute: #afafaf;
+  --color-line-deep: #cfcfcf;
+  /* DEPRECATED aliases (green/blue/gold/orange): do not use in new code; kept for apps not yet migrated. */
   --color-green: #100fa0;
   --color-green-deep: #100fa0;
   --color-green-soft: #ececff;
@@ -26,6 +28,8 @@
   --color-red-deep: #ea2b2b;
   --color-red-soft: #ffdfe0;
   --color-correct: #2f9e0a;
+  --color-correct-deep: #2f6200;
+  --color-red-ink: #a11c1c;
   --color-ink: #111111;
   --color-ink-soft: #6b6b6b;
   --color-line: #e5e5e5;
@@ -41,7 +45,7 @@ html {
 }
 body { margin: 0; -webkit-font-smoothing: antialiased; }
 h1, h2, h3 { font-weight: 800; }
-:focus-visible { outline: 3px solid var(--color-blue); outline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--color-brand); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 
 @keyframes sheet-in {

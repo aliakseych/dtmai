@@ -1,107 +1,237 @@
 [
   {
     "subject": "MATH",
-    "name": "Бесконечные десятичные дроби"
+    "names": {
+      "uz-Latn": "Cheksiz o‘nli kasrlar",
+      "uz-Cyrl": "Чексиз ўнли касрлар",
+      "ru": "Бесконечные десятичные дроби",
+      "en": "Infinite decimal fractions"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Процент и пропорция"
+    "names": {
+      "uz-Latn": "Foiz va proporsiya",
+      "uz-Cyrl": "Фоиз ва пропорция",
+      "ru": "Процент и пропорция",
+      "en": "Percentages and proportions"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Алгебраические дроби"
+    "names": {
+      "uz-Latn": "Algebraik kasrlar",
+      "uz-Cyrl": "Алгебраик касрлар",
+      "ru": "Алгебраические дроби",
+      "en": "Algebraic fractions"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Квадратный корень"
+    "names": {
+      "uz-Latn": "Kvadrat ildiz",
+      "uz-Cyrl": "Квадрат илдиз",
+      "ru": "Квадратный корень",
+      "en": "Square roots"
+    }
   },
   {
     "subject": "MATH",
-    "name": "ФСУ (формулы сокращённого умножения)"
+    "names": {
+      "uz-Latn": "Qisqa ko‘paytirish formulalari",
+      "uz-Cyrl": "Қисқа кўпайтириш формулалари",
+      "ru": "ФСУ (формулы сокращённого умножения)",
+      "en": "Special product formulas"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Уравнения и системы уравнений"
+    "names": {
+      "uz-Latn": "Tenglamalar va tenglamalar sistemalari",
+      "uz-Cyrl": "Тенгламалар ва тенгламалар системалари",
+      "ru": "Уравнения и системы уравнений",
+      "en": "Equations and systems of equations"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Неравенства и системы неравенств"
+    "names": {
+      "uz-Latn": "Tengsizliklar va tengsizliklar sistemalari",
+      "uz-Cyrl": "Тенгсизликлар ва тенгсизликлар системалари",
+      "ru": "Неравенства и системы неравенств",
+      "en": "Inequalities and systems of inequalities"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Тригонометрия"
+    "names": {
+      "uz-Latn": "Trigonometriya",
+      "uz-Cyrl": "Тригонометрия",
+      "ru": "Тригонометрия",
+      "en": "Trigonometry"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Текстовые задачи"
+    "names": {
+      "uz-Latn": "Matnli masalalar",
+      "uz-Cyrl": "Матнли масалалар",
+      "ru": "Текстовые задачи",
+      "en": "Word problems"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Прогрессии (арифметическая и геометрическая)"
+    "names": {
+      "uz-Latn": "Progressiyalar (arifmetik va geometrik)",
+      "uz-Cyrl": "Прогрессиялар (арифметик ва геометрик)",
+      "ru": "Прогрессии (арифметическая и геометрическая)",
+      "en": "Progressions (arithmetic and geometric)"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Углы и равенство углов"
+    "names": {
+      "uz-Latn": "Burchaklar va burchaklar tengligi",
+      "uz-Cyrl": "Бурчаклар ва бурчаклар тенглиги",
+      "ru": "Углы и равенство углов",
+      "en": "Angles and angle equality"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Треугольники"
+    "names": {
+      "uz-Latn": "Uchburchaklar",
+      "uz-Cyrl": "Учбурчаклар",
+      "ru": "Треугольники",
+      "en": "Triangles"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Четырёхугольники"
+    "names": {
+      "uz-Latn": "To‘rtburchaklar",
+      "uz-Cyrl": "Тўртбурчаклар",
+      "ru": "Четырёхугольники",
+      "en": "Quadrilaterals"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Многоугольники"
+    "names": {
+      "uz-Latn": "Ko‘pburchaklar",
+      "uz-Cyrl": "Кўпбурчаклар",
+      "ru": "Многоугольники",
+      "en": "Polygons"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Окружность"
+    "names": {
+      "uz-Latn": "Aylana",
+      "uz-Cyrl": "Айлана",
+      "ru": "Окружность",
+      "en": "Circle"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Векторы"
+    "names": {
+      "uz-Latn": "Vektorlar",
+      "uz-Cyrl": "Векторлар",
+      "ru": "Векторы",
+      "en": "Vectors"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Стереометрия"
+    "names": {
+      "uz-Latn": "Stereometriya",
+      "uz-Cyrl": "Стереометрия",
+      "ru": "Стереометрия",
+      "en": "Solid geometry"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Преобразование числовых выражений"
+    "names": {
+      "uz-Latn": "Sonli ifodalarni almashtirish",
+      "uz-Cyrl": "Сонли ифодаларни алмаштириш",
+      "ru": "Преобразование числовых выражений",
+      "en": "Simplifying numeric expressions"
+    }
   },
   {
     "subject": "MATH",
-    "name": "Комбинаторика"
+    "names": {
+      "uz-Latn": "Kombinatorika",
+      "uz-Cyrl": "Комбинаторика",
+      "ru": "Комбинаторика",
+      "en": "Combinatorics"
+    }
   },
   {
     "subject": "ENGLISH",
-    "name": "Grammar"
+    "names": {
+      "uz-Latn": "Grammatika",
+      "uz-Cyrl": "Грамматика",
+      "ru": "Грамматика",
+      "en": "Grammar"
+    }
   },
   {
     "subject": "ENGLISH",
-    "name": "Vocabulary"
+    "names": {
+      "uz-Latn": "Lug‘at boyligi",
+      "uz-Cyrl": "Луғат бойлиги",
+      "ru": "Лексика",
+      "en": "Vocabulary"
+    }
   },
   {
     "subject": "ENGLISH",
-    "name": "Reading Comprehension"
+    "names": {
+      "uz-Latn": "Matnni tushunish",
+      "uz-Cyrl": "Матнни тушуниш",
+      "ru": "Понимание текста",
+      "en": "Reading Comprehension"
+    }
   },
   {
     "subject": "ENGLISH",
-    "name": "Word Formation"
+    "names": {
+      "uz-Latn": "So‘z yasalishi",
+      "uz-Cyrl": "Сўз ясалиши",
+      "ru": "Словообразование",
+      "en": "Word Formation"
+    }
   },
   {
     "subject": "ENGLISH",
-    "name": "Tenses"
+    "names": {
+      "uz-Latn": "Zamonlar",
+      "uz-Cyrl": "Замонлар",
+      "ru": "Времена глаголов",
+      "en": "Tenses"
+    }
   },
   {
     "subject": "ENGLISH",
-    "name": "Prepositions"
+    "names": {
+      "uz-Latn": "Predloglar",
+      "uz-Cyrl": "Предлоглар",
+      "ru": "Предлоги",
+      "en": "Prepositions"
+    }
   },
   {
     "subject": "ENGLISH",
-    "name": "Cloze / Fill in the Blank"
+    "names": {
+      "uz-Latn": "Bo‘sh joyni to‘ldirish",
+      "uz-Cyrl": "Бўш жойни тўлдириш",
+      "ru": "Заполните пропуск",
+      "en": "Cloze / Fill in the Blank"
+    }
   },
   {
     "subject": "PHYSICS",
@@ -187,7 +317,7 @@
   {
     "subject": "PHYSICS",
     "names": {
-      "uz-Latn": "Tebranishlar va to'lqinlar",
+      "uz-Latn": "Tebranishlar va to‘lqinlar",
       "uz-Cyrl": "Тебранишлар ва тўлқинлар",
       "ru": "Колебания и волны",
       "en": "Oscillations and waves"
@@ -223,7 +353,7 @@
   {
     "subject": "HISTORY",
     "names": {
-      "uz-Latn": "O'rta asrlar tarixi",
+      "uz-Latn": "O‘rta asrlar tarixi",
       "uz-Cyrl": "Ўрта асрлар тарихи",
       "ru": "История Средних веков",
       "en": "Medieval history"
@@ -250,7 +380,7 @@
   {
     "subject": "HISTORY",
     "names": {
-      "uz-Latn": "O'zbekiston tarixi: qadimgi davr",
+      "uz-Latn": "O‘zbekiston tarixi: qadimgi davr",
       "uz-Cyrl": "Ўзбекистон тарихи: қадимги давр",
       "ru": "История Узбекистана: древность",
       "en": "History of Uzbekistan: antiquity"
@@ -259,7 +389,7 @@
   {
     "subject": "HISTORY",
     "names": {
-      "uz-Latn": "O'zbekiston tarixi: o'rta asrlar",
+      "uz-Latn": "O‘zbekiston tarixi: o‘rta asrlar",
       "uz-Cyrl": "Ўзбекистон тарихи: ўрта асрлар",
       "ru": "История Узбекистана: Средневековье",
       "en": "History of Uzbekistan: Middle Ages"
@@ -268,7 +398,7 @@
   {
     "subject": "HISTORY",
     "names": {
-      "uz-Latn": "O'zbekiston tarixi: xonliklar davri",
+      "uz-Latn": "O‘zbekiston tarixi: xonliklar davri",
       "uz-Cyrl": "Ўзбекистон тарихи: хонликлар даври",
       "ru": "История Узбекистана: эпоха ханств",
       "en": "History of Uzbekistan: khanates"
@@ -277,7 +407,7 @@
   {
     "subject": "HISTORY",
     "names": {
-      "uz-Latn": "O'zbekiston tarixi: XX asr",
+      "uz-Latn": "O‘zbekiston tarixi: XX asr",
       "uz-Cyrl": "Ўзбекистон тарихи: ХХ аср",
       "ru": "История Узбекистана: XX век",
       "en": "History of Uzbekistan: 20th century"
@@ -286,7 +416,7 @@
   {
     "subject": "HISTORY",
     "names": {
-      "uz-Latn": "Mustaqil O'zbekiston",
+      "uz-Latn": "Mustaqil O‘zbekiston",
       "uz-Cyrl": "Мустақил Ўзбекистон",
       "ru": "Независимый Узбекистан",
       "en": "Independent Uzbekistan"

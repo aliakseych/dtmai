@@ -11,13 +11,16 @@ import { TelegramLogin } from "@/components/auth/TelegramLogin";
 import { useSignedIn } from "@/components/auth/useSignedIn";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { authErrorKey } from "@/lib/errors";
+import { useRedirectIfSignedIn } from "@/components/auth/useRedirectIfSignedIn";
+import { authErrorKey, checkEmail, checkPassword, checkRequired, serverFieldErrors, type FieldErrors } from "@/lib/errors";
 
 function RegisterForm() {
   const t = useT();
   const { locale } = useLocale();
   const { isGuest } = useAuth();
   const signedIn = useSignedIn();
+  useRedirectIfSignedIn();
+  const [fields, setFields] = useState<FieldErrors>({});
   const verify = useSearchParams().get("verify");
   const [step, setStep] = useState<"details" | "code">(verify ? "code" : "details");
   const [email, setEmail] = useState(verify ?? "");
@@ -34,6 +37,20 @@ function RegisterForm() {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    const found: FieldErrors = {};
+    if (step === "details") {
+      const n = checkRequired(name);
+      const em = checkEmail(email);
+      const pw = checkPassword(password);
+      if (n) found.name = n;
+      if (em) found.email = em;
+      if (pw) found.password = pw;
+    } else {
+      const c = checkRequired(code);
+      if (c) found.code = c;
+    }
+    setFields(found);
+    if (Object.keys(found).length) return;
     setBusy(true);
     setError(null);
     setInfo(false);
@@ -45,7 +62,9 @@ function RegisterForm() {
         await signedIn(await api.unwrap(api.client.POST("/v1/identity/email/verify", { body: { email, code } })));
       }
     } catch (err) {
-      setError(authErrorKey(err));
+      const fe = serverFieldErrors(err);
+      setFields(fe);
+      if (!Object.keys(fe).length) setError(authErrorKey(err));
     } finally {
       setBusy(false);
     }
@@ -67,7 +86,7 @@ function RegisterForm() {
       footer={
         <>
           {t("auth.haveAccount")}{" "}
-          <Link href="/login/" className="font-extrabold text-[#0d6fa0] underline">
+          <Link href="/login/" className="font-extrabold text-brand underline">
             {t("auth.login.title")}
           </Link>
         </>
@@ -75,21 +94,26 @@ function RegisterForm() {
     >
       {isGuest && <p className="text-center text-ink-soft">{t("auth.save.text")}</p>}
       {step === "details" && <RegisterBenefits />}
-      <form onSubmit={submit} className="flex flex-col gap-4">
+      <form onSubmit={submit} noValidate className="flex flex-col gap-4">
         {step === "details" ? (
           <>
-            <Field label={t("auth.name")} autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} />
-            <Field label={t("auth.email")} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-            <Field label={t("auth.password")} type="password" autoComplete="new-password" minLength={8} required value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Field label={t("auth.name")} autoComplete="name" error={fields.name && t(fields.name)} value={name} onChange={(e) => setName(e.target.value)} />
+            <Field label={t("auth.email")} type="email" autoComplete="email" error={fields.email && t(fields.email)} value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Field label={t("auth.password")} type="password" autoComplete="new-password" reveal hint={t("auth.password.hint")} error={fields.password && t(fields.password)} value={password} onChange={(e) => setPassword(e.target.value)} />
           </>
         ) : (
           <>
             <p className="text-ink-soft">{t("auth.codeSent", { email })}</p>
-            <Field label={t("auth.code")} inputMode="numeric" autoComplete="one-time-code" required value={code} onChange={(e) => setCode(e.target.value)} />
-            <button type="button" onClick={resend} className="self-start text-sm font-extrabold text-[#0d6fa0] underline">
-              {t("auth.resend")}
-            </button>
-            {info && <p role="status" className="text-sm font-bold text-[#2f6200]">{t("auth.resent")}</p>}
+            <Field label={t("auth.code")} inputMode="numeric" autoComplete="one-time-code" error={fields.code && t(fields.code)} value={code} onChange={(e) => setCode(e.target.value)} />
+            <div className="flex flex-wrap gap-4 text-sm font-extrabold text-brand underline">
+              <button type="button" onClick={resend}>
+                {t("auth.resend")}
+              </button>
+              <button type="button" onClick={() => { setStep("details"); setCode(""); setFields({}); setError(null); setInfo(false); }}>
+                {t("auth.changeEmail")}
+              </button>
+            </div>
+            {info && <p role="status" className="text-sm font-bold text-correct-deep">{t("auth.resent")}</p>}
           </>
         )}
         {error && (

@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Avatar, Button, Card, GemsStat, HeartsStat, StreakFlame, XpStat, useToast } from "@dtmai/ui";
+import { Avatar, Button, Card, GemsStat, HeartsStat, StreakFlame, XpStat, useToast, Icon } from "@dtmai/ui";
 import { LocaleSwitcher, useT } from "@dtmai/i18n";
 import Link from "next/link";
 import { buttonClass } from "@dtmai/ui";
@@ -12,7 +11,7 @@ import { StatsSection } from "@/components/profile/StatsSection";
 import { Reveal } from "@/components/motion/Reveal";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { useBilling } from "@/lib/billing";
+import { sharedBillingMe, useBilling } from "@/lib/billing";
 import { useStats } from "@/lib/stats";
 import { useAsync } from "@/lib/useAsync";
 
@@ -20,12 +19,11 @@ const GOALS = [10, 20, 30, 50] as const;
 
 export function ProfileView() {
   const t = useT();
-  const router = useRouter();
   const toast = useToast();
   const { me, isGuest, logout } = useAuth();
   const { canBuy } = useBilling();
   const { state, reload } = useStats();
-  const billing = useAsync(() => (isGuest ? Promise.resolve(null) : api.unwrap(api.client.GET("/v1/billing/me"))), [isGuest]);
+  const billing = useAsync(() => (isGuest || !me ? Promise.resolve(null) : sharedBillingMe(me.id)), [isGuest, me?.id]);
 
   async function setGoal(xp: (typeof GOALS)[number]) {
     try {
@@ -61,8 +59,8 @@ export function ProfileView() {
               <Card className="flex items-center gap-4 bg-brand-soft">
                 <Avatar name={me?.name ?? "?"} size={72} />
                 <div className="min-w-0 flex-1">
-                  <h2 className="truncate text-2xl">{isGuest ? t("profile.guest") : me?.name}</h2>
-                  {me?.email && <p className="truncate text-ink-soft">{me.email}</p>}
+                  <h2 className="break-words text-2xl">{isGuest ? t("profile.guest") : me?.name}</h2>
+                  {me?.email && <p className="break-all text-ink-soft">{me.email}</p>}
                 </div>
                 <StreakFlame days={s.streak} />
               </Card>
@@ -90,10 +88,13 @@ export function ProfileView() {
                 {s.streak_at_risk ? t("streak.atRisk") : s.streak_active_today ? t("streak.doneToday") : s.streak > 0 ? t("streak.longest", { n: s.streak_longest }) : t("streak.practice")}
               </p>
               <div className="flex items-center justify-between gap-3">
-                <span className="font-bold text-ink">❄️ {t("streak.freezes", { n: s.streak_freezes })}</span>
+                <span className="flex items-center gap-2 font-bold text-ink">
+                  <Icon name="snowflake" size={20} className="text-brand" />
+                  {t("streak.freezes", { n: s.streak_freezes })}
+                </span>
                 {!isGuest && (
-                  <Button variant="secondary" disabled={buying} onClick={() => void buyFreeze()}>
-                    {t("streak.freeze.buy")}
+                  <Button variant="secondary" disabled={buying || s.gems < s.freeze_cost_gems} onClick={() => void buyFreeze()}>
+                    {t("streak.freeze.buyFor", { n: s.freeze_cost_gems })}
                   </Button>
                 )}
               </div>
@@ -111,7 +112,7 @@ export function ProfileView() {
                     role="radio"
                     aria-checked={s.daily_goal_xp === g}
                     onClick={() => void setGoal(g)}
-                    className={`rounded-2xl border-2 px-2 py-3 font-extrabold ${s.daily_goal_xp === g ? "border-blue bg-blue-soft text-blue" : "border-line text-ink"}`}
+                    className={`rounded-2xl border-2 px-2 py-3 font-extrabold ${s.daily_goal_xp === g ? "border-brand bg-brand-soft text-brand" : "border-line text-ink"}`}
                   >
                     {g} {t("stat.xp")}
                   </button>
@@ -129,6 +130,18 @@ export function ProfileView() {
                 </Link>
               )}
             </Card>
+            {!isGuest && (
+              <Card className="flex flex-col gap-3">
+                <h2 className="text-lg">{t("profile.account")}</h2>
+                <NameEditor />
+                <Link href="/plan/setup/" className={buttonClass("secondary", true)}>
+                  {t("profile.reminders")}
+                </Link>
+                <Link href="/forgot/" className={buttonClass("secondary", true)}>
+                  {t("profile.changePassword")}
+                </Link>
+              </Card>
+            )}
             <Card className="flex items-center justify-between">
               <span className="text-lg">{t("common.language")}</span>
               <LocaleSwitcher />
@@ -138,7 +151,6 @@ export function ProfileView() {
               block
               onClick={async () => {
                 await logout();
-                router.push("/");
               }}
             >
               {t("profile.logout")}
@@ -147,5 +159,43 @@ export function ProfileView() {
         )}
       </AsyncView>
     </>
+  );
+}
+
+function NameEditor() {
+  const t = useT();
+  const toast = useToast();
+  const { me, reloadMe } = useAuth();
+  const [name, setName] = useState(me?.name ?? "");
+  const [busy, setBusy] = useState(false);
+  const dirty = name.trim().length > 0 && name.trim() !== me?.name;
+  async function save() {
+    setBusy(true);
+    try {
+      await api.unwrap(api.client.PATCH("/v1/identity/me", { body: { name: name.trim() } }));
+      await reloadMe();
+      toast(t("profile.saved"), "success");
+    } catch {
+      toast(t("common.error"), "error");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <form
+      className="flex flex-wrap items-end gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (dirty) void save();
+      }}
+    >
+      <label className="flex min-w-0 flex-1 flex-col gap-1">
+        <span className="text-sm font-bold uppercase text-ink-soft">{t("profile.name")}</span>
+        <input value={name} maxLength={80} onChange={(e) => setName(e.target.value)} className="rounded-2xl border-2 border-line bg-white px-4 py-3 font-extrabold" />
+      </label>
+      <Button type="submit" disabled={!dirty || busy}>
+        {t("profile.save")}
+      </Button>
+    </form>
   );
 }

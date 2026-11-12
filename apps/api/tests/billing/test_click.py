@@ -17,31 +17,68 @@ NOW = datetime(2026, 11, 11, 12, 0, tzinfo=UTC)
 
 
 def invoice(**kw: object) -> Invoice:
-    base = dict(id=uuid4(), seq=42, user_id=uuid4(), plan_code="premium_1m",
-                period_months=1, amount_uzs=49000)
+    base = dict(
+        id=uuid4(),
+        seq=42,
+        user_id=uuid4(),
+        plan_code="premium_1m",
+        period_months=1,
+        amount_uzs=49000,
+    )
     base.update(kw)
     return Invoice(**base)  # type: ignore[arg-type]
 
 
-def prepare_req(inv: Invoice, *, trans: str = "100", amount: str = "49000.00",
-                secret: str = SECRET, error: int = 0, action: str = "0") -> ClickRequest:
+def prepare_req(
+    inv: Invoice,
+    *,
+    trans: str = "100",
+    amount: str = "49000.00",
+    secret: str = SECRET,
+    error: int = 0,
+    action: str = "0",
+) -> ClickRequest:
     sign = sign_prepare(trans, SERVICE, secret, str(inv.id), amount, action, "2026-11-11 17:00:00")
-    return ClickRequest.parse({
-        "click_trans_id": trans, "service_id": SERVICE, "merchant_trans_id": str(inv.id),
-        "amount": amount, "action": action, "sign_time": "2026-11-11 17:00:00",
-        "sign_string": sign, "error": str(error), "click_paydoc_id": "7",
-    })
+    return ClickRequest.parse(
+        {
+            "click_trans_id": trans,
+            "service_id": SERVICE,
+            "merchant_trans_id": str(inv.id),
+            "amount": amount,
+            "action": action,
+            "sign_time": "2026-11-11 17:00:00",
+            "sign_string": sign,
+            "error": str(error),
+            "click_paydoc_id": "7",
+        }
+    )
 
 
-def complete_req(inv: Invoice, *, trans: str = "100", prepare_id: str | None = None,
-                 amount: str = "49000.00", error: int = 0) -> ClickRequest:
+def complete_req(
+    inv: Invoice,
+    *,
+    trans: str = "100",
+    prepare_id: str | None = None,
+    amount: str = "49000.00",
+    error: int = 0,
+) -> ClickRequest:
     pid = prepare_id if prepare_id is not None else str(inv.seq)
-    sign = sign_complete(trans, SERVICE, SECRET, str(inv.id), pid, amount, "1", "2026-11-11 17:00:05")
-    return ClickRequest.parse({
-        "click_trans_id": trans, "service_id": SERVICE, "merchant_trans_id": str(inv.id),
-        "merchant_prepare_id": pid, "amount": amount, "action": "1",
-        "sign_time": "2026-11-11 17:00:05", "sign_string": sign, "error": str(error),
-    })
+    sign = sign_complete(
+        trans, SERVICE, SECRET, str(inv.id), pid, amount, "1", "2026-11-11 17:00:05"
+    )
+    return ClickRequest.parse(
+        {
+            "click_trans_id": trans,
+            "service_id": SERVICE,
+            "merchant_trans_id": str(inv.id),
+            "merchant_prepare_id": pid,
+            "amount": amount,
+            "action": "1",
+            "sign_time": "2026-11-11 17:00:05",
+            "sign_string": sign,
+            "error": str(error),
+        }
+    )
 
 
 def run(req: ClickRequest, inv: Invoice | None):

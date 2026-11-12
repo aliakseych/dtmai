@@ -6,7 +6,7 @@ from urllib.parse import parse_qsl
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request, Response
-from pydantic import BaseModel, Field
+from pydantic import AwareDatetime, BaseModel, Field
 
 from app.modules.billing.domain.plans import GrantSource, Plan, Subscription
 from app.modules.billing.settings import get_billing_settings
@@ -91,7 +91,7 @@ class GrantIn(BaseModel):
     user_id: UUID
     plan_code: str
     months: int | None = Field(default=None, ge=1, le=36)
-    until: datetime | None = None
+    until: AwareDatetime | None = None
 
 
 class CheckoutIn(BaseModel):
@@ -106,15 +106,26 @@ class CheckoutOut(BaseModel):
 
 def _plan(p: Plan) -> PlanOut:
     return PlanOut(
-        code=p.code, names=p.names, price_uzs=p.price_uzs, period_months=p.period_months,
-        features=sorted(p.features), limits=p.limits, active=p.active, sort_order=p.sort_order,
+        code=p.code,
+        names=p.names,
+        price_uzs=p.price_uzs,
+        period_months=p.period_months,
+        features=sorted(p.features),
+        limits=p.limits,
+        active=p.active,
+        sort_order=p.sort_order,
     )
 
 
 def _sub(s: Subscription) -> SubscriptionOut:
     return SubscriptionOut(
-        id=s.id, user_id=s.user_id, plan_code=s.plan_code, status=s.status.value,
-        source=s.source.value, started_at=s.started_at, until=s.until,
+        id=s.id,
+        user_id=s.user_id,
+        plan_code=s.plan_code,
+        status=s.status.value,
+        source=s.source.value,
+        started_at=s.started_at,
+        until=s.until,
     )
 
 
@@ -144,7 +155,7 @@ async def get_me(user: CurrentUser, svc: BillingServiceDep) -> MyBillingOut:
 
 @router.post("/checkout", operation_id="billing_checkout", responses=ERR)
 async def checkout(body: CheckoutIn, user: CurrentUser, svc: BillingServiceDep) -> CheckoutOut:
-    invoice, url = await svc.checkout(user.user_id, body.plan_code)
+    invoice, url = await svc.checkout(user.user_id, body.plan_code, is_guest="guest" in user.roles)
     return CheckoutOut(invoice_id=invoice.id, amount_uzs=invoice.amount_uzs, pay_url=url)
 
 
@@ -181,16 +192,21 @@ _CLICK_BODY: dict[str, Any] = {
 }
 
 
-@router.post("/click/prepare", operation_id="billing_click_prepare", openapi_extra=_CLICK_BODY,
-             responses=ERR)
+@router.post(
+    "/click/prepare", operation_id="billing_click_prepare", openapi_extra=_CLICK_BODY, responses=ERR
+)
 async def click_prepare(request: Request, svc: BillingServiceDep) -> dict[str, Any]:
     svc.ensure_payments_enabled()
     _check_ip(request)
     return await svc.process_click(await _click_params(request))
 
 
-@router.post("/click/complete", operation_id="billing_click_complete", openapi_extra=_CLICK_BODY,
-             responses=ERR)
+@router.post(
+    "/click/complete",
+    operation_id="billing_click_complete",
+    openapi_extra=_CLICK_BODY,
+    responses=ERR,
+)
 async def click_complete(request: Request, svc: BillingServiceDep) -> dict[str, Any]:
     svc.ensure_payments_enabled()
     _check_ip(request)
@@ -203,12 +219,19 @@ async def admin_list_plans(svc: BillingServiceDep) -> list[PlanOut]:
     return [_plan(p) for p in await svc.list_plans(active_only=False)]
 
 
-@admin_router.post("/plans", status_code=201, operation_id="billing_admin_create_plan", responses=ERR)
+@admin_router.post(
+    "/plans", status_code=201, operation_id="billing_admin_create_plan", responses=ERR
+)
 async def admin_create_plan(body: PlanCreate, svc: BillingServiceDep) -> PlanOut:
     plan = Plan(
-        code=body.code, names=body.names, price_uzs=body.price_uzs,
-        period_months=body.period_months, features=frozenset(body.features),
-        limits=body.limits, active=body.active, sort_order=body.sort_order,
+        code=body.code,
+        names=body.names,
+        price_uzs=body.price_uzs,
+        period_months=body.period_months,
+        features=frozenset(body.features),
+        limits=body.limits,
+        active=body.active,
+        sort_order=body.sort_order,
     )
     return _plan(await svc.create_plan(plan))
 
@@ -222,8 +245,9 @@ async def admin_update_plan(code: str, body: PlanPatch, svc: BillingServiceDep) 
     return _plan(await svc.update_plan(code, **changes))
 
 
-@admin_router.delete("/plans/{code}", status_code=204, operation_id="billing_admin_delete_plan",
-                     responses=ERR)
+@admin_router.delete(
+    "/plans/{code}", status_code=204, operation_id="billing_admin_delete_plan", responses=ERR
+)
 async def admin_delete_plan(code: str, svc: BillingServiceDep) -> Response:
     await svc.delete_plan(code)
     return Response(status_code=204)
@@ -237,13 +261,15 @@ async def admin_grant(body: GrantIn, svc: BillingServiceDep) -> SubscriptionOut:
     return _sub(sub)
 
 
-@admin_router.post("/subscriptions/{subscription_id}/revoke",
-                   operation_id="billing_admin_revoke", responses=ERR)
+@admin_router.post(
+    "/subscriptions/{subscription_id}/revoke", operation_id="billing_admin_revoke", responses=ERR
+)
 async def admin_revoke(subscription_id: UUID, svc: BillingServiceDep) -> SubscriptionOut:
     return _sub(await svc.revoke(subscription_id))
 
 
-@admin_router.get("/users/{user_id}/subscriptions", operation_id="billing_admin_user_subscriptions",
-                  responses=ERR)
+@admin_router.get(
+    "/users/{user_id}/subscriptions", operation_id="billing_admin_user_subscriptions", responses=ERR
+)
 async def admin_user_subscriptions(user_id: UUID, svc: BillingServiceDep) -> list[SubscriptionOut]:
     return [_sub(s) for s in await svc.user_subscriptions(user_id)]

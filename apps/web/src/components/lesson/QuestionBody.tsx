@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useId, useState } from "react";
-import { OptionGroup, OptionTile, type OptionState } from "@dtmai/ui";
+import { OptionGroup, OptionTile, type OptionState, Icon } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
 import { RichText } from "@/components/RichText";
 import { api, type ItemOut, type Media, type Passage } from "@/lib/api";
@@ -199,7 +199,7 @@ export function QuestionBody({
               value={String(value?.[key] ?? "")}
               onChange={(e) => onChange({ [key]: num ? normalizeNumber(e.target.value) : e.target.value })}
               aria-invalid={checked && !wasCorrect ? true : undefined}
-              className="rounded-2xl border-2 border-line bg-snow px-4 py-3 text-lg text-ink focus:border-blue"
+              className="rounded-2xl border-2 border-line bg-snow px-4 py-3 text-lg text-ink focus:border-brand"
             />
           </div>
         );
@@ -224,7 +224,7 @@ export function QuestionBody({
                       aria-checked={pairs[l.id] === r.id}
                       disabled={disabled}
                       onClick={() => onChange({ pairs: { ...pairs, [l.id]: r.id } })}
-                      className={`rounded-2xl border-2 px-3 py-2 text-left font-bold ${pairs[l.id] === r.id ? "border-blue bg-blue-soft text-blue" : "border-line text-ink"}`}
+                      className={`rounded-2xl border-2 px-3 py-2 text-left font-bold ${pairs[l.id] === r.id ? "border-brand bg-brand-soft text-brand" : "border-line text-ink"}`}
                     >
                       <RichText text={r.text ?? r.id} />
                     </button>
@@ -248,11 +248,11 @@ export function QuestionBody({
                 <span className="flex-1 font-bold">
                   <RichText text={items.find((x) => x.id === id)?.text ?? id} />
                 </span>
-                <button type="button" disabled={disabled || i === 0} aria-label={t("lesson.moveUp")} onClick={() => move(i, -1)} className="h-10 w-10 rounded-xl border-2 border-line font-extrabold disabled:opacity-40">
-                  ↑
+                <button type="button" disabled={disabled || i === 0} aria-label={t("lesson.moveUp")} onClick={() => move(i, -1)} className="grid size-10 place-items-center rounded-xl border-2 border-line disabled:opacity-40">
+                  <Icon name="arrow-up" size={20} />
                 </button>
-                <button type="button" disabled={disabled || i === orderIds.length - 1} aria-label={t("lesson.moveDown")} onClick={() => move(i, 1)} className="h-10 w-10 rounded-xl border-2 border-line font-extrabold disabled:opacity-40">
-                  ↓
+                <button type="button" disabled={disabled || i === orderIds.length - 1} aria-label={t("lesson.moveDown")} onClick={() => move(i, 1)} className="grid size-10 place-items-center rounded-xl border-2 border-line disabled:opacity-40">
+                  <Icon name="arrow-down" size={20} />
                 </button>
               </li>
             ))}

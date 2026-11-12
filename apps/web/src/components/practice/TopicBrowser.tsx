@@ -59,7 +59,7 @@ export function TopicBrowser({ subjectId }: { subjectId: string }) {
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-bold text-ink">{pick(topic.names, locale)}</p>
                     <div className="mt-1 h-2 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct ?? 0}>
-                      <div className="h-full rounded-full bg-green" style={{ width: `${pct ?? 0}%` }} />
+                      <div className="h-full rounded-full bg-brand" style={{ width: `${pct ?? 0}%` }} />
                     </div>
                     <p className="mt-1 text-xs text-ink-soft">{pct === null ? t("practice.topic.new") : t("practice.topic.mastery", { n: pct })}</p>
                   </div>

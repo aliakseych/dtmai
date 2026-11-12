@@ -15,7 +15,7 @@ export interface ChoiceItem {
 const tile = (on: boolean) =>
   cn(
     "flex w-full items-center gap-3 rounded-2xl border-2 border-b-4 px-4 py-3 text-left font-extrabold transition-colors",
-    on ? "border-blue bg-blue-soft text-blue-deep" : "border-line bg-white hover:bg-snow",
+    on ? "border-brand bg-brand-soft text-brand" : "border-line bg-white hover:bg-snow",
   );
 
 /**
@@ -67,7 +67,7 @@ export function ChoiceList({
           onChange={(e) => setQ(e.target.value)}
           placeholder={searchPlaceholder}
           aria-label={searchPlaceholder}
-          className="w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-blue focus:bg-white"
+          className="w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-brand focus:bg-white"
         />
       )}
       <div role="radiogroup" aria-label={label} className="flex flex-col gap-2">

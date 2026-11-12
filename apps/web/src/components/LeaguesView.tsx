@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { pick } from "@/lib/localized";
 import { useAsync } from "@/lib/useAsync";
 
-const ZONE = { promote: "bg-green-soft", demote: "bg-red-soft", safe: "" } as const;
+const ZONE = { promote: "bg-brand-soft", demote: "bg-red-soft", safe: "" } as const;
 
 function LeagueTab() {
   const t = useT();
@@ -30,13 +30,13 @@ function LeagueTab() {
                 {t("leagues.promo", { n: l.tier.promote_count })} · {t("leagues.endsIn", { n: days })}
               </p>
             </div>
-            <Card className="p-0">
+            <Card pad="none" className="">
               <ol>
                 {l.rows.map((e) => (
                   <li
                     key={e.user_id}
                     aria-current={e.is_me ? "true" : undefined}
-                    className={cn("flex items-center gap-4 border-b-2 border-line px-4 py-3 last:border-b-0", ZONE[e.zone], e.is_me && "ring-2 ring-inset ring-blue")}
+                    className={cn("flex items-center gap-4 border-b-2 border-line px-4 py-3 last:border-b-0", ZONE[e.zone], e.is_me && "ring-2 ring-inset ring-brand")}
                   >
                     <span className="w-6 text-center font-extrabold">{e.rank}</span>
                     <Avatar name={e.name} size={44} />
@@ -107,7 +107,7 @@ function Board({ kind }: { kind: "friends" | "lyceum" }) {
         emptyText={kind === "friends" ? t("leagues.friends.empty") : t("leagues.lyceum.empty")}
       >
         {(b) => (
-          <Card className="p-0">
+          <Card pad="none" className="">
             <ol>
               {b.rows.map((e, i) => {
                 const mine = e.user_id === me?.id;
@@ -116,7 +116,7 @@ function Board({ kind }: { kind: "friends" | "lyceum" }) {
                   <li
                     key={e.user_id}
                     aria-current={mine ? "true" : undefined}
-                    className={cn("flex items-center gap-3 border-b-2 border-line px-4 py-3 last:border-b-0", mine && "ring-2 ring-inset ring-blue")}
+                    className={cn("flex items-center gap-3 border-b-2 border-line px-4 py-3 last:border-b-0", mine && "ring-2 ring-inset ring-brand")}
                   >
                     <span className="w-6 text-center font-extrabold">{i + 1}</span>
                     <Avatar name={e.name} size={44} />

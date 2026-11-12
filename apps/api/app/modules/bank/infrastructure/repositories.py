@@ -71,7 +71,9 @@ class SqlQuestionRepository:
     async def get_many(self, ids: Sequence[UUID]) -> list[Question]:
         if not ids:
             return []
-        rows = (await self.s.scalars(select(QuestionRow).where(QuestionRow.id.in_(list(ids))))).all()
+        rows = (
+            await self.s.scalars(select(QuestionRow).where(QuestionRow.id.in_(list(ids))))
+        ).all()
         by_id = {r.id: r for r in rows}
         return [_to_domain(by_id[i]) for i in ids if i in by_id]
 
@@ -94,7 +96,9 @@ class SqlQuestionRepository:
         difficulty: float | None,
         statuses: Sequence[str],
     ) -> list[Question]:
-        stmt = select(QuestionRow).where(*_scope(subject_id, topic_ids, type_ids, language, statuses))
+        stmt = select(QuestionRow).where(
+            *_scope(subject_id, topic_ids, type_ids, language, statuses)
+        )
         if exclude_ids:
             stmt = stmt.where(QuestionRow.id.not_in(list(exclude_ids)))
         if difficulty is not None:
@@ -116,12 +120,16 @@ class SqlQuestionRepository:
         language: str,
         statuses: Sequence[str],
     ) -> int:
-        stmt = select(func.count()).select_from(QuestionRow).where(
-            *_scope(subject_id, topic_ids, type_ids, language, statuses)
+        stmt = (
+            select(func.count())
+            .select_from(QuestionRow)
+            .where(*_scope(subject_id, topic_ids, type_ids, language, statuses))
         )
         return int(await self.s.scalar(stmt) or 0)
 
-    async def search(self, f: QuestionFilter, limit: int, offset: int) -> tuple[list[Question], int]:
+    async def search(
+        self, f: QuestionFilter, limit: int, offset: int
+    ) -> tuple[list[Question], int]:
         conds: list[ColumnElement[bool]] = []
         for col, val in (
             (QuestionRow.subject_id, f.subject_id),
@@ -136,11 +144,15 @@ class SqlQuestionRepository:
                 conds.append(col == val)
         if f.q:
             like = f"%{f.q.replace('%', r'\%').replace('_', r'\_')}%"
-            conds.append(or_(QuestionRow.stem.ilike(like), cast(QuestionRow.id, String).ilike(like)))
+            conds.append(
+                or_(QuestionRow.stem.ilike(like), cast(QuestionRow.id, String).ilike(like))
+            )
         if f.reported:
             conds.append(QuestionRow.report_count > 0)
         where = and_(*conds) if conds else True
-        total = int(await self.s.scalar(select(func.count()).select_from(QuestionRow).where(where)) or 0)
+        total = int(
+            await self.s.scalar(select(func.count()).select_from(QuestionRow).where(where)) or 0
+        )
         rows = (
             await self.s.scalars(
                 select(QuestionRow)
@@ -181,7 +193,10 @@ class SqlQuestionRepository:
             )
             .where(*conds)
             .group_by(
-                QuestionRow.subject_id, QuestionRow.topic_id, QuestionRow.type_id, QuestionRow.language
+                QuestionRow.subject_id,
+                QuestionRow.topic_id,
+                QuestionRow.type_id,
+                QuestionRow.language,
             )
         )
         return [(a, b, c, d, int(e)) for a, b, c, d, e in (await self.s.execute(stmt)).all()]
@@ -194,11 +209,15 @@ class SqlQuestionRepository:
         )
         n = int(
             await self.s.scalar(
-                select(func.count()).select_from(ReportRow).where(ReportRow.question_id == question_id)
+                select(func.count())
+                .select_from(ReportRow)
+                .where(ReportRow.question_id == question_id)
             )
             or 0
         )
-        await self.s.execute(update(QuestionRow).where(QuestionRow.id == question_id).values(report_count=n))
+        await self.s.execute(
+            update(QuestionRow).where(QuestionRow.id == question_id).values(report_count=n)
+        )
         return n
 
     async def claim_event(self, event_id: UUID) -> bool:
@@ -219,14 +238,20 @@ class SqlQuestionRepository:
             )
         )
 
-    async def upsert_explanation(self, question_id: UUID, locale: str, text: str, model: str) -> None:
+    async def upsert_explanation(
+        self, question_id: UUID, locale: str, text: str, model: str
+    ) -> None:
         stmt = pg_insert(ExplanationRow).values(
             question_id=question_id, locale=locale, text=text, model=model
         )
         await self.s.execute(
             stmt.on_conflict_do_update(
                 index_elements=["question_id", "locale"],
-                set_={"text": stmt.excluded.text, "model": stmt.excluded.model, "updated_at": func.now()},
+                set_={
+                    "text": stmt.excluded.text,
+                    "model": stmt.excluded.model,
+                    "updated_at": func.now(),
+                },
             )
         )
 
@@ -238,18 +263,34 @@ class SqlQuestionRepository:
         )
 
     async def add_audit(
-        self, actor: str | None, action: str, entity_id: UUID | None, before: Any, after: Any, reason: str = ""
+        self,
+        actor: str | None,
+        action: str,
+        entity_id: UUID | None,
+        before: Any,
+        after: Any,
+        reason: str = "",
     ) -> None:
         self.s.add(
             AuditRow(
-                actor=actor, action=action, entity_id=entity_id, before=before, after=after, reason=reason[:500]
+                actor=actor,
+                action=action,
+                entity_id=entity_id,
+                before=before,
+                after=after,
+                reason=reason[:500],
             )
         )
 
     async def add_passage(self, p: Passage) -> None:
         self.s.add(
             PassageRow(
-                id=p.id, language=p.language, title=p.title, text=p.text, media=p.media, source_id=p.source_id
+                id=p.id,
+                language=p.language,
+                title=p.title,
+                text=p.text,
+                media=p.media,
+                source_id=p.source_id,
             )
         )
         await self.s.flush()
@@ -268,6 +309,11 @@ class SqlQuestionRepository:
         r = await self.s.get(PassageRow, p.id)
         if r is None:
             return
-        r.language, r.title, r.text, r.media, r.source_id = p.language, p.title, p.text, p.media, p.source_id
+        r.language, r.title, r.text, r.media, r.source_id = (
+            p.language,
+            p.title,
+            p.text,
+            p.media,
+            p.source_id,
+        )
         await self.s.flush()
-

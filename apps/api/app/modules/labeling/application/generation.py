@@ -28,18 +28,36 @@ class GenerationService:
         self._gw = gateway
 
     async def create_run(
-        self, *, subject_id: UUID, topic_id: UUID, type_id: UUID, language: str, count: int,
-        difficulty: float | None, prompt_template: str | None, created_by: UUID | None,
+        self,
+        *,
+        subject_id: UUID,
+        topic_id: UUID,
+        type_id: UUID,
+        language: str,
+        count: int,
+        difficulty: float | None,
+        prompt_template: str | None,
+        created_by: UUID | None,
     ) -> GenerationRunRow:
         qt = await catalog_adapter.get_question_type(self._s, type_id)
         if qt is None:
             raise NotFound("Question type not found")
         if qt.kind not in SOLVABLE_KINDS:
-            raise ValidationFailed(f"kind '{qt.kind}' cannot be generated", code="kind_not_generatable")
+            raise ValidationFailed(
+                f"kind '{qt.kind}' cannot be generated", code="kind_not_generatable"
+            )
         row = GenerationRunRow(
-            id=new_id(), subject_id=subject_id, topic_id=topic_id, type_id=type_id, kind=qt.kind,
-            language=language, requested=count, difficulty=difficulty, prompt_template=prompt_template,
-            status="pending", created_by=created_by,
+            id=new_id(),
+            subject_id=subject_id,
+            topic_id=topic_id,
+            type_id=type_id,
+            kind=qt.kind,
+            language=language,
+            requested=count,
+            difficulty=difficulty,
+            prompt_template=prompt_template,
+            status="pending",
+            created_by=created_by,
         )
         self._s.add(row)
         await self._s.flush()
@@ -64,10 +82,18 @@ class GenerationService:
                 data, _ = await self._gw.complete_json(
                     route,
                     prompts.generate_messages(
-                        template, kind=run.kind, subject=subject, topic=await _topic(self._s, run.topic_id), language=run.language,
-                        count=n, difficulty=_difficulty_word(run.difficulty), type_config=qt.config if qt else {}, examples=examples,
+                        template,
+                        kind=run.kind,
+                        subject=subject,
+                        topic=await _topic(self._s, run.topic_id),
+                        language=run.language,
+                        count=n,
+                        difficulty=_difficulty_word(run.difficulty),
+                        type_config=qt.config if qt else {},
+                        examples=examples,
                     ),
-                    purpose="labeling.generate", ref=str(run.id),
+                    purpose="labeling.generate",
+                    ref=str(run.id),
                 )
                 items = data.get("questions")
                 items = items if isinstance(items, list) else []
@@ -96,12 +122,18 @@ class GenerationService:
             if len(picked) >= EXAMPLES:
                 break
             picked += await bank.pick_questions(
-                self._s, subject_id=run.subject_id, topic_ids=[run.topic_id], type_ids=[run.type_id],
-                language=run.language, n=EXAMPLES - len(picked), exclude_ids=[q.id for q in picked],
+                self._s,
+                subject_id=run.subject_id,
+                topic_ids=[run.topic_id],
+                type_ids=[run.type_id],
+                language=run.language,
+                n=EXAMPLES - len(picked),
+                exclude_ids=[q.id for q in picked],
                 statuses=statuses,
             )
         return [
-            {"stem": q.stem, "payload": q.payload, "answer": await bank.get_answer(self._s, q.id)} for q in picked
+            {"stem": q.stem, "payload": q.payload, "answer": await bank.get_answer(self._s, q.id)}
+            for q in picked
         ]
 
     async def solve_created(self, ids: list[UUID]) -> None:
@@ -119,10 +151,18 @@ class GenerationService:
             raise ValidationFailed("malformed generated question")
         payload = it.get("payload") if isinstance(it.get("payload"), dict) else {}
         cmd = bank.CreateQuestionCmd(
-            subject_id=run.subject_id, topic_id=run.topic_id, type_id=run.type_id, kind=run.kind,
-            language=run.language, stem=str(it["stem"]), payload=payload, answer=it["answer"],
-            difficulty=run.difficulty or 1000.0, source_ref={"generation_run": str(run.id)},
-            status="draft", created_by="labeling:generate",
+            subject_id=run.subject_id,
+            topic_id=run.topic_id,
+            type_id=run.type_id,
+            kind=run.kind,
+            language=run.language,
+            stem=str(it["stem"]),
+            payload=payload,
+            answer=it["answer"],
+            difficulty=run.difficulty or 1000.0,
+            source_ref={"generation_run": str(run.id)},
+            status="draft",
+            created_by="labeling:generate",
         )
         return await bank.create_question(self._s, cmd)
 

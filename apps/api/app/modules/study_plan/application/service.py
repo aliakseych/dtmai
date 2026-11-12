@@ -9,6 +9,7 @@ from app.modules.study_plan.application.views import (
     AnalyticsView,
     DailyQuestionsView,
     DayView,
+    DreamGapView,
     HomeView,
     MockTrendPoint,
     RangeView,
@@ -20,6 +21,7 @@ from app.modules.study_plan.application.views import (
     TodayView,
 )
 from app.modules.study_plan.domain.errors import (
+    DailyQuestionAnswered,
     DirectionNotFound,
     ExamDateTooSoon,
     NoActiveSubjects,
@@ -27,6 +29,7 @@ from app.modules.study_plan.domain.errors import (
     QuestionNotInSet,
     TaskAlreadyDone,
     TaskNotFound,
+    TaskNotUndoable,
 )
 from app.modules.study_plan.domain.exam import (
     ROLE_CREATIVE,
@@ -34,6 +37,7 @@ from app.modules.study_plan.domain.exam import (
     exemptions,
     resolve_subject,
 )
+from app.modules.study_plan.domain.gap import compute_gap
 from app.modules.study_plan.domain.generator import (
     GenInput,
     SubjectInput,
@@ -52,6 +56,7 @@ from app.modules.study_plan.domain.prediction import countdown, predicted_score
 from app.modules.study_plan.ports import (
     CatalogPort,
     DailyGrade,
+    DreamPort,
     EntitlementPort,
     ExamRulesPort,
     LearningPort,
@@ -65,6 +70,7 @@ log = logging.getLogger(__name__)
 
 TASHKENT = ZoneInfo("Asia/Tashkent")
 ANALYTICS_FEATURE = "study_plan_analytics"
+DEFAULT_MAX_SCORE = 146.0  # lyceum exam maximum, used before a plan names its profile
 DAILY_QUESTION_COUNT = 3
 # Learning session modes that complete the task of the same kind.
 MODE_TO_KIND = {
@@ -90,6 +96,7 @@ class PlanService:
         entitlements: EntitlementPort,
         now: Callable[[], datetime],
         max_day_minutes: int,
+        dream: DreamPort,
     ) -> None:
         self._r = repo
         self._exam = exam
@@ -99,6 +106,7 @@ class PlanService:
         self._ent = entitlements
         self._now = now
         self._max_day = max_day_minutes
+        self._dream = dream
 
     def _today(self) -> date:
         return self._now().astimezone(TASHKENT).date()
@@ -137,6 +145,8 @@ class PlanService:
             target_lyceum_ids=cmd.target_lyceum_ids,
             certificates=cmd.certificates,
             choice_subject_id=cmd.choice_subject_id,
+            study_time=cmd.study_time,
+            study_days=tuple(sorted(set(cmd.study_days))),
         )
         plan = await self._r.get_plan_for_update(user_id)
         if plan is None:
@@ -194,12 +204,17 @@ class PlanService:
                     tuple(await self._learn.lesson_queue(plan.user_id, sid, st.language)),
                     tuple((w.topic_id, w.type_id) for w in weak),
                     await self._learn.due_reviews(plan.user_id, sid),
+                    await self._learn.pool(sid, st.language),
                 )
             )
         mock_minutes = 0
+        mock_servable = False
         if profile.mock_blueprint_id:
             try:
                 mock_minutes = await self._cat.mock_minutes(profile.mock_blueprint_id)
+                mock_servable = await self._cat.mock_servable(
+                    profile.mock_blueprint_id, st.language
+                )
             except NotFound:
                 mock_minutes = 0  # blueprint retired: plan without weekly mocks
         end = plan_end_for(st.exam_date, profile.taper_days)
@@ -217,6 +232,7 @@ class PlanService:
                 subjects=tuple(inputs),
                 mock_blueprint_id=profile.mock_blueprint_id,
                 mock_minutes=mock_minutes,
+                mock_servable=mock_servable,
                 max_day_minutes=self._max_day,
                 used_minutes=used,
             )
@@ -279,7 +295,9 @@ class PlanService:
 
     async def get_settings(self, user_id: UUID, locale: str) -> SettingsView:
         plan = await self._plan(user_id)
-        profile = await self._profile(plan.settings.direction_code)
+        profile = await self._exam.profile(plan.settings.direction_code)
+        if profile is None:  # direction retired since the plan was saved: still show the plan
+            return SettingsView(plan.settings, plan.plan_end, (), ())
         exempt = exemptions(profile.sections, profile.cert_rules, plan.settings.certificates)
         subjects = await self._names()
         sections: list[SectionView] = []
@@ -391,14 +409,26 @@ class PlanService:
         await self._r.save_task(task)
         return self._views([task], await self._names(), locale)[0]
 
+    async def uncomplete_task(self, user_id: UUID, task_id: UUID, locale: str) -> TaskView:
+        task = await self._r.get_task(user_id, task_id)
+        if task is None:
+            raise TaskNotFound("task not found")
+        if not task.undoable:
+            raise TaskNotUndoable("only a manually completed task can be undone")
+        task.reopen()
+        await self._r.save_task(task)
+        return self._views([task], await self._names(), locale)[0]
+
     # ---- events ---------------------------------------------------------------------------
 
-    async def on_activity(self, event_id: UUID, user_id: UUID, kind: TaskKind) -> None:
+    async def on_activity(
+        self, event_id: UUID, user_id: UUID, kind: TaskKind, blueprint_id: UUID | None = None
+    ) -> None:
         """A learning session/mock finished: tick the matching open task. Idempotent per event."""
         plan = await self._r.get_plan(user_id)
         if plan is None or await self._r.has_source(plan.id, event_id):
             return
-        task = await self._r.first_open(plan.id, kind, self._today())
+        task = await self._r.first_open(plan.id, kind, self._today(), blueprint_id=blueprint_id)
         if task is None:
             return
         task.complete(self._now(), event_id)
@@ -415,13 +445,9 @@ class PlanService:
 
     # ---- home -----------------------------------------------------------------------------
 
-    async def home(self, user_id: UUID, locale: str) -> HomeView:
-        if await self._r.get_plan(user_id) is None:
-            return HomeView(configured=False)
-        plan = await self._fresh_plan(user_id)
-        profile = await self._profile(plan.settings.direction_code)
-        today = self._today()
-        cd = countdown(today, plan.settings.exam_date, profile.taper_days)
+    async def _predicted(
+        self, user_id: UUID, plan: Plan, profile: ExamProfile
+    ) -> tuple[float | None, dict[UUID, float | None], dict[UUID, float]]:
         exempt = exemptions(profile.sections, profile.cert_rules, plan.settings.certificates)
         mastery = await self._learn.mastery(user_id)
         score: float | None = None
@@ -433,6 +459,16 @@ class PlanService:
                 {s.section_id: plan.settings.choice_subject_id for s in profile.sections},
                 profile.max_score,
             )
+        return score, mastery, exempt
+
+    async def home(self, user_id: UUID, locale: str) -> HomeView:
+        if await self._r.get_plan(user_id) is None:
+            return HomeView(configured=False)
+        plan = await self._fresh_plan(user_id)
+        profile = await self._profile(plan.settings.direction_code)
+        today = self._today()
+        cd = countdown(today, plan.settings.exam_date, profile.taper_days)
+        score, _, _ = await self._predicted(user_id, plan, profile)
         tasks = await self._r.tasks_between(plan.id, today, today)
         return HomeView(
             True,
@@ -446,7 +482,46 @@ class PlanService:
             len(tasks),
             sum(t.est_minutes for t in tasks),
             self._views(tasks, await self._names(), locale),
+            profile.date_verified and plan.settings.exam_date == profile.exam_date,
         )
+
+    # ---- dream lyceum gap -----------------------------------------------------------------
+
+    async def dream_gap(self, user_id: UUID, locale: str) -> DreamGapView:
+        """Predicted score vs. the dream lyceum's bar, plus the weakest topic as the next step."""
+        target = await self._dream.target(user_id)
+        if target is None:
+            return DreamGapView(None, None, None)
+        plan = await self._r.get_plan(user_id)
+        if plan is None:
+            gap = compute_gap(
+                None, DEFAULT_MAX_SCORE, target.passing_score, target.competition_ratio
+            )
+            return DreamGapView(target.lyceum_id, target.year, gap)
+        profile = await self._profile(plan.settings.direction_code)
+        score, mastery, exempt = await self._predicted(user_id, plan, profile)
+        gap = compute_gap(score, profile.max_score, target.passing_score, target.competition_ratio)
+        topic_id: UUID | None = None
+        topic_name: str | None = None
+        subject_id: UUID | None = None
+        if gap.next_points is not None:
+            studied = {
+                sid
+                for s in profile.sections
+                if s.section_id not in exempt
+                and (sid := resolve_subject(s, plan.settings.choice_subject_id)) is not None
+            }
+            for sid in sorted(studied, key=lambda x: mastery.get(x) or 0.0):
+                spots = [w for w in await self._learn.weak_spots(user_id, sid) if w.topic_id]
+                if spots:
+                    subject_id, topic_id = sid, spots[0].topic_id
+                    break
+            if topic_id is not None:
+                try:
+                    topic_name = _name(await self._cat.topic_names(topic_id), locale)
+                except NotFound:
+                    topic_id = subject_id = None
+        return DreamGapView(target.lyceum_id, target.year, gap, topic_id, topic_name, subject_id)
 
     # ---- daily questions ------------------------------------------------------------------
 
@@ -466,6 +541,8 @@ class PlanService:
                     chosen.extend(q.id for q in picked)
                 if len(chosen) == DAILY_QUESTION_COUNT or not wanted:
                     break
+            if not chosen:  # nothing to ask yet: do not freeze an empty set for the day
+                return DailyQuestionsView(today, ())
             await self._r.save_daily_set(user_id, today, chosen)
             ids = await self._r.get_daily_set(user_id, today) or chosen
         return DailyQuestionsView(today, tuple(await self._q.get(ids)))
@@ -473,9 +550,12 @@ class PlanService:
     async def answer_daily_question(
         self, user_id: UUID, question_id: UUID, response: dict[str, Any]
     ) -> DailyGrade:
-        ids = await self._r.get_daily_set(user_id, self._today())
+        today = self._today()
+        ids = await self._r.get_daily_set(user_id, today)
         if not ids or question_id not in ids:
             raise QuestionNotInSet("question is not in today's set")
+        if not await self._r.claim_daily_answer(user_id, today, question_id):
+            raise DailyQuestionAnswered("question already answered today")
         return await self._q.grade(question_id, response)
 
     # ---- analytics ------------------------------------------------------------------------

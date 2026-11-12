@@ -1,17 +1,52 @@
-import { LOCALES } from "@dtmai/i18n";
+import { ApiError, NetworkError } from "@dtmai/api-client";
+import { LOCALES, translate } from "@dtmai/i18n";
+import { currentLocale } from "./api";
 
 export const LOCALE_LIST = LOCALES as readonly string[];
 export type Names = Record<string, string>;
 
-/** Best display name from a locale map: en → ru → uz-Latn → anything. */
+/** Best display name from a locale map: current locale → uz-Latn → en → ru → anything. */
 export function nm(names: Names | undefined | null, fallback = "—"): string {
   if (!names) return fallback;
-  return names.en || names.ru || names["uz-Latn"] || Object.values(names).find(Boolean) || fallback;
+  return names[currentLocale()] || names["uz-Latn"] || names.en || names.ru || Object.values(names).find(Boolean) || fallback;
 }
-export const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
+const STATUS_KEY: Record<number, string> = {
+  400: "admin.error.badRequest", 401: "admin.error.unauthorized", 403: "admin.error.forbidden", 404: "admin.error.notFound",
+  409: "admin.error.conflict", 422: "admin.error.validation", 429: "admin.error.tooMany",
+};
+/** Localized, user-facing message for any thrown value: problem `code`/status → i18n key, never the raw English detail. */
+export function errMsg(e: unknown): string {
+  const tr = (k: string): string => translate(currentLocale() as never, k as never);
+  if (e instanceof NetworkError) return tr("admin.error.network");
+  if (e instanceof ApiError) {
+    const byCode = `admin.error.code.${e.code}`;
+    const hit = tr(byCode);
+    if (hit && hit !== byCode) return hit;
+    return tr(STATUS_KEY[e.status] ?? (e.status >= 500 ? "admin.error.server" : "admin.error.generic"));
+  }
+  return tr("admin.error.generic");
+}
+
+/** Per-field messages from a 422 problem (`errors[]`, or legacy pydantic `detail[]`, → `{field: msg}`); empty otherwise. */
+export function fieldErrors(e: unknown): Record<string, string> {
+  if (!(e instanceof ApiError) || e.status !== 422) return {};
+  const p = e.problem as { errors?: unknown; detail?: unknown } | undefined;
+  const d = Array.isArray(p?.errors) ? p.errors : p?.detail;
+  if (!Array.isArray(d)) return {};
+  const out: Record<string, string> = {};
+  for (const x of d as { loc?: unknown[]; type?: string }[]) {
+    const f = String(x.loc?.[x.loc.length - 1] ?? "");
+    if (!f || out[f]) continue;
+    const key = `admin.error.field.${x.type ?? ""}`;
+    const msg = translate(currentLocale() as never, key as never);
+    out[f] = msg && msg !== key ? msg : translate(currentLocale() as never, "admin.error.field.invalid" as never);
+  }
+  return out;
+}
 export const uuid = () => crypto.randomUUID();
 export function fmtDate(s?: string | null) {
-  return s ? new Date(s).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" }) : "—";
+  return s ? new Intl.DateTimeFormat(currentLocale() === "uz-Cyrl" ? "uz-Cyrl-UZ" : currentLocale(), { dateStyle: "short", timeStyle: "short" }).format(new Date(s)) : "—";
 }
 
 export const QUESTION_KINDS = ["single_choice", "multi_choice", "numeric", "short_text", "matching", "ordering", "passage_group"] as const;

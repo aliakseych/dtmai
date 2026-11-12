@@ -57,7 +57,10 @@ class SqlCatalogRepository:
             await self.s.flush()
         except IntegrityError as e:
             await self.s.rollback()
-            raise Conflict("Constraint violated (duplicate code/language or referenced row)", code="catalog.conflict") from e
+            raise Conflict(
+                "Constraint violated (duplicate code/language or referenced row)",
+                code="catalog.conflict",
+            ) from e
 
     async def max_position(self, entity: str, **eq: Any) -> int:
         model = ENTITIES[entity]
@@ -67,13 +70,22 @@ class SqlCatalogRepository:
         return int(await self.s.scalar(q) or -1)
 
     async def max_version(self, code: str) -> int:
-        return int(await self.s.scalar(select(func.coalesce(func.max(BlueprintRow.version), 0)).where(BlueprintRow.code == code)) or 0)
+        return int(
+            await self.s.scalar(
+                select(func.coalesce(func.max(BlueprintRow.version), 0)).where(
+                    BlueprintRow.code == code
+                )
+            )
+            or 0
+        )
 
     async def add_audit(self, **fields: Any) -> None:
         self.s.add(AuditRow(**fields))
         await self.s.flush()
 
-    async def list_audit(self, entity: str | None, entity_id: UUID | None, limit: int) -> list[dict[str, Any]]:
+    async def list_audit(
+        self, entity: str | None, entity_id: UUID | None, limit: int
+    ) -> list[dict[str, Any]]:
         q = select(AuditRow).order_by(AuditRow.id.desc()).limit(limit)
         if entity:
             q = q.where(AuditRow.entity == entity)

@@ -18,7 +18,9 @@ depends_on = None
 def upgrade() -> None:
     op.add_column(
         "lessons",
-        sa.Column("theory", postgresql.JSONB(), nullable=False, server_default=sa.text("'[]'::jsonb")),
+        sa.Column(
+            "theory", postgresql.JSONB(), nullable=False, server_default=sa.text("'[]'::jsonb")
+        ),
         schema="catalog",
     )
 

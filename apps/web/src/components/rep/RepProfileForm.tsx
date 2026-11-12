@@ -7,7 +7,7 @@ import { useLyceumDetail, type LyceumDetailData } from "@/components/lyceums/use
 import { rep } from "./repApi";
 import { repErrorKey } from "./repErrors";
 
-const field = "w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-blue focus:bg-white";
+const field = "w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-brand focus:bg-white";
 const STATUSES: DormitoryStatus[] = ["unknown", "available", "limited", "none"];
 const emptyMap = (src?: Record<string, string> | null) => Object.fromEntries(LOCALES.map((l) => [l, src?.[l] ?? ""]));
 const clean = (m: Record<string, string>) => Object.fromEntries(Object.entries(m).filter(([, v]) => v.trim()).map(([k, v]) => [k, v.trim()]));

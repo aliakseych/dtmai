@@ -6,6 +6,7 @@ import { useLocale, useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
 import { PageTitle } from "@/components/PageTitle";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { useBilling } from "@/lib/billing";
 import { pick } from "@/lib/localized";
 import { useAsync } from "@/lib/useAsync";
@@ -84,6 +85,7 @@ function Panel({ subjectId }: { subjectId: string }) {
 export function PracticeView() {
   const t = useT();
   const { locale } = useLocale();
+  const { me } = useAuth();
   const subjects = useAsync(() => api.unwrap(api.client.GET("/v1/catalog/subjects")), []);
   const [active, setActive] = useState<string | null>(null);
   return (
@@ -91,10 +93,12 @@ export function PracticeView() {
       <PageTitle>{t("practice.title")}</PageTitle>
       <AsyncView state={subjects.state} onRetry={subjects.reload} isEmpty={(d) => d.length === 0}>
         {(list) => {
-          const current = active ?? list[0].id;
+          const mine = me?.subject_ids ?? [];
+          const sorted = [...list].sort((a, b) => Number(!mine.includes(a.id)) - Number(!mine.includes(b.id)));
+          const current = active ?? sorted[0].id;
           return (
             <div className="flex flex-col gap-6">
-              <Tabs items={list.map((s) => ({ id: s.id, label: pick(s.names, locale) }))} value={current} onChange={setActive} />
+              <Tabs items={sorted.map((s) => ({ id: s.id, label: pick(s.names, locale) }))} value={current} onChange={setActive} />
               <Panel subjectId={current} />
             </div>
           );

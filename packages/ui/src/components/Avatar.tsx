@@ -8,7 +8,7 @@ export function Avatar({ name, src, size = 48, className }: { name: string; src?
     <span
       role="img"
       aria-label={name}
-      className={cn("grid place-items-center rounded-full bg-blue font-extrabold text-white", className)}
+      className={cn("grid place-items-center rounded-full bg-brand font-extrabold text-white", className)}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {initials}

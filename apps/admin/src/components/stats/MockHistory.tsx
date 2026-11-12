@@ -1,4 +1,5 @@
 "use client";
+import { useT } from "@/lib/i18n";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { MockStat } from "./types";
 import { useReducedMotion } from "./useReducedMotion";
@@ -7,12 +8,13 @@ const day = (s: string) => new Date(s).toLocaleDateString("en-GB", { day: "2-dig
 
 /** Mock score trend (oldest → newest) plus a scrollable list, newest first. */
 export function MockHistory({ mocks }: { mocks: MockStat[] }) {
+  const t = useT();
   const reduced = useReducedMotion();
   const data = [...mocks].reverse().map((m) => ({ at: day(m.taken_at), score: m.score, max: m.max_score }));
   return (
-    <section aria-label="Mock history">
-      <h3 className="mb-1 text-sm">Mock exams</h3>
-      {mocks.length === 0 ? <p className="text-xs text-ink-soft">No mocks submitted yet.</p> : (
+    <section aria-label={t("admin.stats.mockHistory")}>
+      <h3 className="mb-1 text-sm">{t("admin.stats.mockExams")}</h3>
+      {mocks.length === 0 ? <p className="text-xs text-ink-soft">{t("admin.stats.noMocksSubmittedYet")}</p> : (
         <div className="space-y-2">
           {mocks.length > 1 && (
             <div className="h-36 rounded-xl border-2 border-line bg-white p-2">

@@ -15,7 +15,7 @@ const clean = (f: LFilters): LFilters => Object.fromEntries(Object.entries(f).fi
 
 export const labeling = {
   /** Claims the next item for this labeler (10-minute lease). */
-  next: (f: LFilters) => u(A.POST("/v1/labeling/queue/next", { params: { query: clean(f) } })),
+  next: (f: LFilters, exclude: string[] = []) => u(A.POST("/v1/labeling/queue/next", { params: { query: { ...clean(f), exclude } as never } })),
   get: (id: string) => u(A.GET("/v1/labeling/queue/{question_id}", { params: { path: { question_id: id } } })),
   decide: (id: string, body: DecideIn) => u(A.POST("/v1/labeling/queue/{question_id}/decide", { params: { path: { question_id: id } }, body })),
   undo: (decisionId: string) => u(A.POST("/v1/labeling/decisions/{decision_id}/undo", { params: { path: { decision_id: decisionId } } })),

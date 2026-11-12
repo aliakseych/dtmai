@@ -8,8 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.identity.wiring import build_identity_service
 from app.modules.lyceums.application.admission import LyceumAdmission
+from app.modules.lyceums.application.importer import list_runs, start_run
 from app.modules.lyceums.application.rep import PostInput
-from app.modules.lyceums.domain.admission import ContactCard
+from app.modules.lyceums.domain.admission import MAX_PHONES, ContactCard
 from app.modules.lyceums.domain.fields import (
     normalize_speciality_code,
     validate_field_subject_ids,
@@ -18,7 +19,6 @@ from app.modules.lyceums.domain.models import (
     ImportRun,
     competition_ratio,
     validate_passing_score,
-    validate_year,
 )
 from app.modules.lyceums.domain.rep import (
     Post,
@@ -88,7 +88,7 @@ class ContactCardOut(BaseModel):
 
 
 class ContactCardIn(BaseModel):
-    phones: list[str] = Field(max_length=5)
+    phones: list[str] = Field(max_length=MAX_PHONES)
     telegram: str | None = Field(default=None, max_length=200)
 
 
@@ -400,10 +400,40 @@ async def list_fields(session: SessionDep) -> list[FieldOut]:
     ]
 
 
+# edu.uz returns the Uzbek label in every name_* column of the language classifier;
+# the stem of the Uzbek name identifies the language, so English is derived here.
+_LANGUAGE_EN = (
+    ("o‘zbek", "Uzbek"),
+    ("o'zbek", "Uzbek"),
+    ("ўзбек", "Uzbek"),
+    ("rus", "Russian"),
+    ("рус", "Russian"),
+    ("qoraqalpoq", "Karakalpak"),
+    ("қорақалпоқ", "Karakalpak"),
+    ("qozoq", "Kazakh"),
+    ("қозоқ", "Kazakh"),
+    ("tojik", "Tajik"),
+    ("тожик", "Tajik"),
+    ("turkman", "Turkmen"),
+    ("туркман", "Turkmen"),
+    ("qirg", "Kyrgyz"),
+    ("қирғиз", "Kyrgyz"),
+)
+
+
+def _language_names(row: EducationLanguageRow) -> NamesOut:
+    names = _names(row)
+    probe = f"{row.name_uz} {row.name_ru}".lower()
+    en = next((en for stem, en in _LANGUAGE_EN if stem in probe), None)
+    if en is not None and names.en.strip().lower() in ("", row.name_uz.strip().lower()):
+        names.en = en
+    return names
+
+
 @router.get("/languages", response_model=list[LanguageOut], responses=ERR)
 async def list_languages(session: SessionDep, _user: CurrentUser) -> list[LanguageOut]:
     rows = await SqlLyceumQueries(session).languages()
-    return [LanguageOut(id=r.id, code=r.code, names=_names(r)) for r in rows]
+    return [LanguageOut(id=r.id, code=r.code, names=_language_names(r)) for r in rows]
 
 
 @router.get("/{lyceum_id}", response_model=LyceumDetail, responses=ERR)
@@ -441,7 +471,7 @@ async def lyceum_detail(lyceum_id: UUID, session: SessionDep, _user: CurrentUser
 
 @admin_router.post("/import", response_model=ImportRunOut, status_code=202, responses=ERR)
 async def start_import(body: ImportIn, session: SessionDep, user: CurrentUser) -> ImportRunOut:
-    run = await SqlImportRuns(session).create(validate_year(body.year), user.user_id)
+    run = await start_run(SqlImportRuns(session), body.year, user.user_id)
     await session.commit()  # the worker must see the row
     from app.interfaces.jobs.lyceums import import_year  # lazy: jobs import the broker
 
@@ -453,7 +483,9 @@ async def start_import(body: ImportIn, session: SessionDep, user: CurrentUser) -
 async def list_imports(
     session: SessionDep, limit: Annotated[int, Query(ge=1, le=100)] = 20
 ) -> list[ImportRunOut]:
-    return [_run(r) for r in await SqlImportRuns(session).list(limit)]
+    runs = await list_runs(SqlImportRuns(session), limit)
+    await session.commit()
+    return [_run(r) for r in runs]
 
 
 @admin_router.put(

@@ -1,5 +1,5 @@
 "use client";
-import { Card } from "@dtmai/ui";
+import { Card, Icon } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
 
 const BENEFITS = ["progress", "streak", "leagues", "mocks", "subjects"] as const;
@@ -13,7 +13,7 @@ export function RegisterBenefits() {
       <ul className="flex flex-col gap-2">
         {BENEFITS.map((b) => (
           <li key={b} className="flex items-start gap-2 font-bold">
-            <span aria-hidden className="text-green">✓</span>
+            <Icon name="check" size={20} className="mt-0.5 text-brand" />
             {t(`register.benefit.${b}`)}
           </li>
         ))}

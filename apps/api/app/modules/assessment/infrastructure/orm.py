@@ -11,9 +11,16 @@ from app.shared.db import Base
 class MockAttemptRow(Base):
     __tablename__ = "mock_attempts"
     __table_args__ = (
-        Index("uq_mock_attempts_one_active", "user_id", unique=True, postgresql_where=text("status = 'in_progress'")),
+        Index(
+            "uq_mock_attempts_one_active",
+            "user_id",
+            unique=True,
+            postgresql_where=text("status = 'in_progress'"),
+        ),
         Index("ix_mock_attempts_user_started", "user_id", "started_at"),
-        Index("ix_mock_attempts_deadline", "deadline", postgresql_where=text("status = 'in_progress'")),
+        Index(
+            "ix_mock_attempts_deadline", "deadline", postgresql_where=text("status = 'in_progress'")
+        ),
         {"schema": "assessment"},
     )
 

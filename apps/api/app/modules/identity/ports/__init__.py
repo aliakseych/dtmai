@@ -12,8 +12,14 @@ class UserRepository(Protocol):
     async def add(self, user: User) -> None: ...
     async def save(self, user: User) -> None: ...
     async def search(
-        self, q: str | None, role: str | None, disabled: bool | None, sort: str, descending: bool,
-        limit: int, offset: int,
+        self,
+        q: str | None,
+        role: str | None,
+        disabled: bool | None,
+        sort: str,
+        descending: bool,
+        limit: int,
+        offset: int,
     ) -> tuple[int, list[User]]: ...
     async def get_many(self, ids: list[UUID]) -> list[User]: ...
     async def count_active_admins(self) -> int: ...

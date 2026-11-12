@@ -4,8 +4,8 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from app.modules.lyceums.application.rep import PostInput, RepService
 from app.modules.lyceums.application.profile import ProfileService
+from app.modules.lyceums.application.rep import PostInput, RepService
 from app.modules.lyceums.domain.rep import (
     MembershipStatus,
     Post,
@@ -77,7 +77,9 @@ class Posts:
         return [p for p in self.rows.values() if p.lyceum_id == l]
 
     async def list_published(self, l, limit):
-        return [p for p in self.rows.values() if p.lyceum_id == l and p.status is PostStatus.PUBLISHED]
+        return [
+            p for p in self.rows.values() if p.lyceum_id == l and p.status is PostStatus.PUBLISHED
+        ]
 
     async def list_by_status(self, s, limit):
         return [p for p in self.rows.values() if p.status is s]
@@ -107,8 +109,11 @@ class Cities:
 def make():
     profiles, roles = Profiles(), Roles()
     return (
-        RepService(profiles, Members(), Posts(), roles, ProfileService(profiles, Cities()), Clock()),
-        profiles, roles,
+        RepService(
+            profiles, Members(), Posts(), roles, ProfileService(profiles, Cities()), Clock()
+        ),
+        profiles,
+        roles,
     )
 
 

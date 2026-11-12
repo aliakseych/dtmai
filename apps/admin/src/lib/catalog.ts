@@ -100,6 +100,7 @@ export const useBases = () => useQuery({ queryKey: qk.bases, queryFn: catalog.ba
 export const useTopics = (subjectId: string | undefined) =>
   useQuery({ queryKey: qk.topics(subjectId ?? ""), queryFn: () => catalog.topics.list(subjectId!), enabled: !!subjectId, staleTime: 60_000 });
 
+let lastErr = { msg: "", at: 0 };
 /** Mutation that toasts the outcome and invalidates the given query-key prefixes. */
 export function useAct<A, R>(fn: (a: A) => Promise<R>, invalidate: readonly (readonly unknown[])[], ok?: string) {
   const qc = useQueryClient();
@@ -110,6 +111,12 @@ export function useAct<A, R>(fn: (a: A) => Promise<R>, invalidate: readonly (rea
       for (const k of invalidate) void qc.invalidateQueries({ queryKey: k as unknown[] });
       if (ok) toast(ok, "success");
     },
-    onError: (e) => toast(errMsg(e), "error"),
+    onError: (e) => {
+      // One toast per distinct message per 4s so a failing burst (retries, bulk) never stacks.
+      const msg = errMsg(e), now = Date.now();
+      if (lastErr.msg === msg && now - lastErr.at < 4000) return;
+      lastErr = { msg, at: now };
+      toast(msg, "error");
+    },
   });
 }

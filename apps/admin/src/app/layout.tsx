@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "DTM AI admin", robots: { index: fals
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="uz">
       <head>
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script src="/env.js" />

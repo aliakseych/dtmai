@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Button, Mascot } from "@dtmai/ui";
+import { Button, Mascot, Icon } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
 import { RichText } from "@/components/RichText";
 import type { PathLesson } from "@/lib/api";
@@ -43,8 +43,8 @@ export function TheoryCards({ cards, title, doneLabel, onDone }: { cards: Theory
   return (
     <div role="dialog" aria-modal="true" aria-label={title ?? t("theory.title")} className="fixed inset-0 z-50 flex flex-col bg-white">
       <header className="mx-auto flex w-full max-w-3xl items-center gap-4 px-4 py-5">
-        <button type="button" aria-label={t("theory.close")} className="text-3xl font-extrabold text-ink-soft" onClick={onDone}>
-          ×
+        <button type="button" aria-label={t("theory.close")} className="grid size-10 shrink-0 place-items-center rounded-xl text-ink-soft hover:bg-snow" onClick={onDone}>
+          <Icon name="close" />
         </button>
         <ol className="flex flex-1 justify-center gap-2" aria-label={t("theory.progress", { n: i + 1, total: cards.length })}>
           {cards.map((c, k) => (
@@ -71,7 +71,7 @@ export function TheoryCards({ cards, title, doneLabel, onDone }: { cards: Theory
             className="flex flex-col gap-4"
           >
             <div className="flex items-center gap-3">
-              <Mascot mood="thinking" size={72} alt="" className="h-auto w-16 shrink-0" />
+              <Mascot mood="reading" size={72} alt="" className="h-auto w-16 shrink-0" />
               <h1 className="text-2xl">
                 <RichText text={card.title} />
               </h1>

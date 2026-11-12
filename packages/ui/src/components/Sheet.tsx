@@ -27,13 +27,13 @@ export function Sheet({
       aria-live="polite"
       className={cn(
         "sheet-in w-full border-t-2 px-4 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-8",
-        ok ? "border-green-soft bg-green-soft text-[#2f6200]" : "border-red-soft bg-red-soft text-[#a11c1c]",
+        ok ? "border-brand-soft bg-brand-soft text-correct-deep" : "border-red-soft bg-red-soft text-red-ink",
         className,
       )}
     >
       <div className="mx-auto flex max-w-3xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <span className={cn("grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white", ok ? "text-green-deep" : "text-red-deep")}>
+          <span className={cn("grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white", ok ? "text-brand" : "text-red-deep")}>
             {ok ? <CheckIcon /> : <CrossIcon />}
           </span>
           <div>

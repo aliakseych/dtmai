@@ -21,10 +21,17 @@ SOLVE_CONCURRENCY = 6
 
 def _solver(session) -> SolveService:  # noqa: ANN001
     s = get_labeling_settings()
-    return SolveService(session, get_gateway(), min_models=s.labeling_min_models, min_confidence=s.labeling_min_confidence)
+    return SolveService(
+        session,
+        get_gateway(),
+        min_models=s.labeling_min_models,
+        min_confidence=s.labeling_min_confidence,
+    )
 
 
-async def solve_many(question_ids: Iterable[UUID], trigger: str, concurrency: int = SOLVE_CONCURRENCY) -> int:
+async def solve_many(
+    question_ids: Iterable[UUID], trigger: str, concurrency: int = SOLVE_CONCURRENCY
+) -> int:
     """Solve questions concurrently, one session each (a question's latency is bound by the slowest model)."""
     sem = asyncio.Semaphore(concurrency)
     maker = get_sessionmaker()
@@ -87,8 +94,14 @@ async def _plan_followup_runs(session, created: list[UUID]) -> list[str]:  # noq
     ):
         try:
             run = await svc.create_run(
-                subject_id=subject_id, topic_id=topic_id, type_id=type_id, language=language, count=count,
-                difficulty=None, prompt_template=None, created_by=None,
+                subject_id=subject_id,
+                topic_id=topic_id,
+                type_id=type_id,
+                language=language,
+                count=count,
+                difficulty=None,
+                prompt_template=None,
+                created_by=None,
             )
         except (ValidationFailed, NotFound):
             continue  # non-generatable kind: nothing to follow up

@@ -15,8 +15,12 @@ async def import_year(run_id: str) -> None:
     try:
         async with get_sessionmaker()() as session:
             importer = LyceumImporter(
-                source, SqlImportSink(session), SqlImportRuns(session),
-                concurrency=cfg.lyceums_import_concurrency, checkpoint=session.commit,
+                source,
+                SqlImportSink(session),
+                SqlImportRuns(session),
+                concurrency=cfg.lyceums_import_concurrency,
+                checkpoint=session.commit,
+                rollback=session.rollback,
             )
             await importer.run(UUID(run_id))
     finally:

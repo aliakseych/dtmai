@@ -52,7 +52,9 @@ def upgrade() -> None:
             ["lyceum_id"], [f"{S}.lyceums.id"], ondelete="CASCADE", name="fk_yearly_stats_lyceum"
         ),
         sa.ForeignKeyConstraint(
-            ["language_id"], [f"{S}.education_languages.id"], ondelete="CASCADE",
+            ["language_id"],
+            [f"{S}.education_languages.id"],
+            ondelete="CASCADE",
             name="fk_yearly_stats_language",
         ),
         sa.UniqueConstraint(
@@ -70,8 +72,9 @@ def upgrade() -> None:
         _uuid("requested_by", nullable=True),
         sa.Column("counts", sa.JSON(), nullable=False, server_default="{}"),
         sa.Column("error", sa.Text(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
-                  server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("finished_at", sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint("id", name="pk_import_runs"),
         schema=S,

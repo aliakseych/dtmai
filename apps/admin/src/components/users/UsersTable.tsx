@@ -1,4 +1,5 @@
 "use client";
+import { useEnum, useT } from "@/lib/i18n";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Badge, Field, Input, Select, Toolbar } from "@/components/ui/controls";
@@ -13,6 +14,8 @@ const roleTone = (r: string) => (r === "admin" ? "red" : r === "student" ? "gray
 export function UsersTable({ roles, role: initialRole, allowAnyRole, onOpen, selected, toolbarExtra, queryKey }: {
   roles: readonly string[]; role: string; allowAnyRole: boolean; onOpen: (u: AdminUser) => void; selected?: string | null; toolbarExtra?: React.ReactNode; queryKey: string;
 }) {
+  const t = useT();
+  const en = useEnum();
   const [q, setQ] = useState("");
   const [term, setTerm] = useState("");
   const [role, setRole] = useState(initialRole);
@@ -34,30 +37,30 @@ export function UsersTable({ roles, role: initialRole, allowAnyRole, onOpen, sel
   return (
     <>
       <Toolbar>
-        <Field label="Search"><Input className="w-64 max-w-full" type="search" placeholder="Email, name or Telegram" value={q} onChange={(e) => setQ(e.target.value)} /></Field>
-        <Field label="Role">
+        <Field label={t("admin.common.search")}><Input className="w-64 max-w-full" type="search" placeholder={t("admin.users.emailNameOrTelegram")} value={q} onChange={(e) => setQ(e.target.value)} /></Field>
+        <Field label={t("admin.users.role")}>
           <Select value={role} onChange={(e) => reset(setRole)(e.target.value)}>
-            {allowAnyRole && <option value="">All roles</option>}
-            {roles.map((r) => <option key={r} value={r}>{r}</option>)}
+            {allowAnyRole && <option value="">{t("admin.users.allRoles")}</option>}
+            {roles.map((r) => <option key={r} value={r}>{en("role", r)}</option>)}
           </Select>
         </Field>
-        <Field label="Status">
+        <Field label={t("admin.common.status")}>
           <Select value={status} onChange={(e) => reset(setStatus)(e.target.value as "" | UserStatus)}>
-            <option value="">Any status</option><option value="active">Active</option><option value="disabled">Disabled</option>
+            <option value="">{t("admin.users.anyStatus")}</option><option value="active">{t("admin.common.active")}</option><option value="disabled">{t("admin.users.disabled")}</option>
           </Select>
         </Field>
         <div className="ml-auto flex items-center gap-2">{toolbarExtra}</div>
       </Toolbar>
       <div className="min-h-0 flex-1 overflow-auto">
         <DataTable rows={res.data?.items} loading={res.isLoading} error={res.error} rowKey={(r) => r.id} onRow={onOpen} selected={selected}
-          empty="No users match these filters." sort={sort} onSort={onSort}
+          empty={t("admin.users.noUsersMatchThese")} sort={sort} onSort={onSort}
           cols={[
-            { key: "n", head: "Name", cell: (r) => <span className="font-extrabold">{r.display_name || "—"}{r.is_system && <Badge className="ml-1" tone="blue">system</Badge>}</span> },
-            { key: "e", head: "Email / login", sortKey: "email", cell: (r) => r.email ?? (r.telegram_username ? `@${r.telegram_username}` : "—") },
-            { key: "r", head: "Roles", cell: (r) => r.roles.map((x) => <Badge key={x} tone={roleTone(x)} className="mr-1">{x}</Badge>) },
-            { key: "s", head: "Status", cell: (r) => <Badge tone={r.status === "active" ? "green" : "red"}>{r.status}</Badge> },
-            { key: "l", head: "Last seen", sortKey: "last_seen_at", cell: (r) => fmtDate(r.last_seen_at) },
-            { key: "c", head: "Joined", sortKey: "created_at", cell: (r) => fmtDate(r.created_at) },
+            { key: "n", head: t("admin.common.name"), cell: (r) => <span className="font-extrabold">{r.display_name || "—"}{r.is_system && <Badge className="ml-1" tone="blue">{t("admin.common.system")}</Badge>}</span> },
+            { key: "e", head: t("admin.users.emailLogin"), sortKey: "email", cell: (r) => r.email ?? (r.telegram_username ? `@${r.telegram_username}` : "—") },
+            { key: "r", head: t("admin.users.roles"), cell: (r) => r.roles.map((x) => <Badge key={x} tone={roleTone(x)} className="mr-1">{en("role", x)}</Badge>) },
+            { key: "s", head: t("admin.common.status"), cell: (r) => <Badge tone={r.status === "active" ? "green" : "red"}>{en("userStatus", r.status)}</Badge> },
+            { key: "l", head: t("admin.users.lastSeen"), sortKey: "last_seen_at", cell: (r) => fmtDate(r.last_seen_at) },
+            { key: "c", head: t("admin.users.joined"), sortKey: "created_at", cell: (r) => fmtDate(r.created_at) },
           ]} />
       </div>
       <Pager page={page} size={size} total={res.data?.total ?? 0} onPage={setPage} onSize={(s) => { setSize(s); setPage(1); }} />

@@ -6,14 +6,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.ai.application.errors import TutorLimitReached
 from app.modules.ai.application.gateway import AIGateway
-from app.modules.ai.domain.budget import remaining, within_quota
+from app.modules.ai.domain.budget import remaining
 from app.modules.ai.domain.guard import looks_like_injection, sanitize_user_text
 from app.modules.ai.domain.locale import language_name
 from app.modules.ai.domain.quiz import InlineQuiz, extract_quiz
 from app.modules.ai.domain.routing import Task
 from app.modules.ai.infrastructure.config import get_ai_settings
-from app.modules.ai.ports import ActiveMockChecker, LedgerRepository, LLMMessage, TutorSlotLock
+from app.modules.ai.ports import (
+    ActiveMockChecker,
+    LedgerRepository,
+    LLMMessage,
+    TutorSlotReservations,
+)
 from app.modules.bank import facade as bank
+from app.modules.catalog import facade as catalog
+from app.modules.exam_info import facade as exam_info
 from app.shared.entitlements import entitlements_for
 from app.shared.errors import Forbidden, ValidationFailed
 
@@ -43,6 +50,34 @@ class NoActiveMock:
         return False
 
 
+def _label(names: dict[str, str], locale: str) -> str:
+    for key in (locale, "uz-Latn", "ru", "en", "uz-Cyrl"):
+        if names.get(key):
+            return names[key]
+    return ""
+
+
+async def _catalog_context(session: AsyncSession, locale: str) -> str:
+    """Real subjects and exam tracks so Temur never invents the curriculum."""
+    subjects = [
+        _label(s.names, locale)
+        for s in await catalog.list_subjects(session)
+        if _label(s.names, locale)
+    ]
+    seen: set[str] = set()
+    tracks: list[str] = []
+    for p in await exam_info.list_profiles(session):
+        label = _label(p.names, locale)
+        if label and label not in seen:
+            seen.add(label)
+            tracks.append(label)
+    return (
+        "Platform catalog (authoritative; do not mention subjects or tracks outside it).\n"
+        f"Subjects: {', '.join(subjects) or 'n/a'}.\n"
+        f"Exam tracks/fields: {', '.join(tracks) or 'n/a'}."
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class Quota:
     limit: int  # -1 unlimited
@@ -64,7 +99,7 @@ class TutorService:
         gateway: AIGateway,
         ledger: LedgerRepository,
         mock_checker: ActiveMockChecker,
-        slots: TutorSlotLock,
+        slots: TutorSlotReservations,
     ) -> None:
         self._gw = gateway
         self._ledger = ledger
@@ -104,12 +139,15 @@ class TutorService:
         if any(t.role == "user" and looks_like_injection(t.content) for t in cleaned):
             raise ValidationFailed("message rejected", code="prompt_rejected")
 
-        async with self._slots.hold(user_id):
-            before = await self.quota(user_id)
-            if not within_quota(before.limit, before.used):
-                raise TutorLimitReached("Daily Ask Temur limit reached")
+        ent = await entitlements_for(user_id)
+        limit = ent.limit("ai_tutor_messages_per_day", get_ai_settings().ai_temur_daily_quota)
+        reservation = await self._slots.reserve(user_id, limit)
+        if reservation is None:
+            raise TutorLimitReached("Daily Ask Temur limit reached")
 
+        try:
             messages = [LLMMessage("system", SYSTEM.format(language=language_name(locale)))]
+            messages.append(LLMMessage("system", await _catalog_context(session, locale)))
             if question_id is not None:
                 qs = await bank.get_questions(session, [question_id])
                 if qs:
@@ -126,7 +164,10 @@ class TutorService:
                 )
 
             route = (await self._gw.routes(Task.TUTOR))[0]
-            # The gateway writes the counted ledger row before the lock is released.
-            resp = await self._gw.complete(route, messages, purpose="tutor", user_id=user_id)
-            text, quiz = extract_quiz(resp.text.strip())
-            return TutorReply(text, route.model, quiz, await self.quota(user_id))
+            # Slot is already counted (reservation row); the LLM call holds no lock or connection.
+            resp = await self._gw.complete(route, messages, purpose="tutor_llm", user_id=user_id)
+        except BaseException:
+            await self._slots.release(reservation)
+            raise
+        text, quiz = extract_quiz(resp.text.strip())
+        return TutorReply(text, route.model, quiz, await self.quota(user_id))

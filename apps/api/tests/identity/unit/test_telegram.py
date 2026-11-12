@@ -15,7 +15,9 @@ NOW = 1_700_000_000.0
 def _sign_init(fields: dict[str, str]) -> str:
     check = "\n".join(f"{k}={fields[k]}" for k in sorted(fields))
     secret = hmac.new(b"WebAppData", TOKEN.encode(), hashlib.sha256).digest()
-    return urlencode({**fields, "hash": hmac.new(secret, check.encode(), hashlib.sha256).hexdigest()})
+    return urlencode(
+        {**fields, "hash": hmac.new(secret, check.encode(), hashlib.sha256).hexdigest()}
+    )
 
 
 def _sign_widget(fields: dict[str, str]) -> dict[str, str]:

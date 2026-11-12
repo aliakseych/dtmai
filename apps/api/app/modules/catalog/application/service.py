@@ -24,7 +24,14 @@ def jsonable(v: Any) -> Any:
 
 
 # immutable after creation
-_FROZEN = {"subject": (), "topic": ("subject_id",), "path": ("subject_id",), "unit": ("path_id",), "lesson": ("unit_id",), "blueprint": ("code", "version", "status", "published_at")}
+_FROZEN = {
+    "subject": (),
+    "topic": ("subject_id",),
+    "path": ("subject_id",),
+    "unit": ("path_id",),
+    "lesson": ("unit_id",),
+    "blueprint": ("code", "version", "status", "published_at"),
+}
 # system-managed columns that API patches may not touch
 _SYSTEM = {"id", "version", "status", "published_at"}
 
@@ -52,7 +59,9 @@ class CatalogService:
             parent = await self.require("topic", d["parent_id"])
             if parent["subject_id"] != d["subject_id"]:
                 raise ValidationFailed("parent topic belongs to another subject")
-            if d.get("id") and dom.creates_cycle(await self._parent_map(d["subject_id"]), str(d["id"]), str(d["parent_id"])):
+            if d.get("id") and dom.creates_cycle(
+                await self._parent_map(d["subject_id"]), str(d["id"]), str(d["parent_id"])
+            ):
                 raise ValidationFailed("topic parent would create a cycle")
         if entity == "unit":
             await self.require("path", d["path_id"])
@@ -79,8 +88,17 @@ class CatalogService:
         for t in d["type_ids"]:
             await self.require("question_type", UUID(t))
 
-    async def _audit(self, actor: str | None, action: str, entity: str, eid: UUID, before: Any, after: Any) -> None:
-        await self.repo.add_audit(actor=actor, action=action, entity=entity, entity_id=eid, before=jsonable(before), after=jsonable(after))
+    async def _audit(
+        self, actor: str | None, action: str, entity: str, eid: UUID, before: Any, after: Any
+    ) -> None:
+        await self.repo.add_audit(
+            actor=actor,
+            action=action,
+            entity=entity,
+            entity_id=eid,
+            before=jsonable(before),
+            after=jsonable(after),
+        )
 
     async def create(self, entity: str, data: dict[str, Any], actor: str | None) -> dict[str, Any]:
         d = await self._validate(entity, data)
@@ -92,17 +110,30 @@ class CatalogService:
         if entity == "path":
             d["status"] = "draft"
         await self._check_refs(entity, d)
-        if "position" not in d and entity in {"subject", "topic", "question_type", "path", "unit", "lesson", "question_base"}:
+        if "position" not in d and entity in {
+            "subject",
+            "topic",
+            "question_type",
+            "path",
+            "unit",
+            "lesson",
+            "question_base",
+        }:
             scope = {k: d[k] for k in ("subject_id", "path_id", "unit_id") if k in d}
             d["position"] = await self.repo.max_position(entity, **scope) + 1
         row = await self.repo.insert(entity, d)
         await self._audit(actor, "create", entity, row["id"], None, row)
         return row
 
-    async def update(self, entity: str, id: UUID, patch: dict[str, Any], actor: str | None) -> dict[str, Any]:
+    async def update(
+        self, entity: str, id: UUID, patch: dict[str, Any], actor: str | None
+    ) -> dict[str, Any]:
         before = await self.require(entity, id)
         if entity == "blueprint" and before["status"] == "published":
-            raise Conflict("Published blueprints are immutable; clone to a draft", code="catalog.blueprint_published")
+            raise Conflict(
+                "Published blueprints are immutable; clone to a draft",
+                code="catalog.blueprint_published",
+            )
         frozen = set(_FROZEN.get(entity, ())) | _SYSTEM
         if bad := frozen & patch.keys():
             raise ValidationFailed(f"fields are not editable: {sorted(bad)}")
@@ -115,17 +146,24 @@ class CatalogService:
     async def delete(self, entity: str, id: UUID, actor: str | None) -> None:
         before = await self.require(entity, id)
         if entity == "blueprint" and before["status"] == "published":
-            raise Conflict("Published blueprints cannot be deleted; deactivate via a new version", code="catalog.blueprint_published")
+            raise Conflict(
+                "Published blueprints cannot be deleted; deactivate via a new version",
+                code="catalog.blueprint_published",
+            )
         await self.repo.delete(entity, id)
         await self._audit(actor, "delete", entity, id, before, None)
 
-    async def reorder(self, entity: str, ids: list[UUID], actor: str | None, **scope: Any) -> list[dict[str, Any]]:
+    async def reorder(
+        self, entity: str, ids: list[UUID], actor: str | None, **scope: Any
+    ) -> list[dict[str, Any]]:
         rows = await self.repo.list(entity, **scope)
         if not dom.sequence_is_permutation([r["id"] for r in rows], ids):
             raise ValidationFailed("ids must be exactly the current sibling set")
         for pos, i in enumerate(ids):
             await self.repo.update(entity, i, {"position": pos})
-        await self._audit(actor, "reorder", entity, ids[0] if ids else new_id(), None, {"ids": ids, **scope})
+        await self._audit(
+            actor, "reorder", entity, ids[0] if ids else new_id(), None, {"ids": ids, **scope}
+        )
         return await self.repo.list(entity, **scope)
 
     # ---- path / blueprint lifecycle -----------------------------------------------------
@@ -140,14 +178,22 @@ class CatalogService:
         if bp["status"] == "published":
             raise Conflict("Already published", code="catalog.blueprint_published")
         v = await self.repo.max_version(bp["code"]) + 1
-        row = await self.repo.update("blueprint", id, {"status": "published", "version": v, "published_at": datetime.now(UTC)})
+        row = await self.repo.update(
+            "blueprint",
+            id,
+            {"status": "published", "version": v, "published_at": datetime.now(UTC)},
+        )
         await self._audit(actor, "publish", "blueprint", id, bp, row)
         return row
 
     async def clone_blueprint(self, id: UUID, actor: str | None) -> dict[str, Any]:
         bp = await self.require("blueprint", id)
-        data = {k: bp[k] for k in ("code", "names", "kind", "sections", "duration_min", "source_id")}
+        data = {
+            k: bp[k] for k in ("code", "names", "kind", "sections", "duration_min", "source_id")
+        }
         return await self.create("blueprint", data, actor)
 
-    async def audit(self, entity: str | None, entity_id: UUID | None, limit: int = 100) -> list[dict[str, Any]]:
+    async def audit(
+        self, entity: str | None, entity_id: UUID | None, limit: int = 100
+    ) -> list[dict[str, Any]]:
         return await self.repo.list_audit(entity, entity_id, limit)

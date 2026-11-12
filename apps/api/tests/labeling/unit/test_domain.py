@@ -24,7 +24,9 @@ def v(model, choice, conf=0.9, ok=True):
 
 def test_unanimous_auto_agreed():
     d = evaluate_solve("single_choice", [v("a", "b"), v("b", "b"), v("c", "b")], official_key=None)
-    assert d.status is Status.AUTO_AGREED and d.response == {"choice": "b"} and d.reason == "unanimous"
+    assert (
+        d.status is Status.AUTO_AGREED and d.response == {"choice": "b"} and d.reason == "unanimous"
+    )
 
 
 def test_disagreement_escalates():
@@ -33,7 +35,12 @@ def test_disagreement_escalates():
 
 
 def test_low_confidence_and_few_solvers():
-    assert evaluate_solve("single_choice", [v("a", "b", 0.3), v("b", "b", 0.4)], official_key=None).reason == "low_confidence"
+    assert (
+        evaluate_solve(
+            "single_choice", [v("a", "b", 0.3), v("b", "b", 0.4)], official_key=None
+        ).reason
+        == "low_confidence"
+    )
     d = evaluate_solve("single_choice", [v("a", "b"), v("b", None, ok=False)], official_key=None)
     assert d.status is Status.ESCALATED and d.reason == "insufficient_solvers"
 
@@ -78,11 +85,16 @@ def test_allocate_sample():
     assert allocate_sample({"x": 3}, 10) == {"x": 3}
     assert allocate_sample({"x": 5, "y": 3, "z": 1}, 2) == {"x": 1, "y": 1}
     assert allocate_sample({"x": 5}, 0) == {}
-    assert allocate_sample({"x": 50, "y": 50}, 10, ) == {"x": 5, "y": 5}
+    assert allocate_sample(
+        {"x": 50, "y": 50},
+        10,
+    ) == {"x": 5, "y": 5}
 
 
 def test_audit_match_and_rate():
-    assert is_audit_match("a", "a") and not is_audit_match("a", "b") and not is_audit_match(None, None)
+    assert (
+        is_audit_match("a", "a") and not is_audit_match("a", "b") and not is_audit_match(None, None)
+    )
     assert AgreementStat(0, 0).rate is None
     assert AgreementStat(4, 3).rate == 0.75
 
@@ -92,8 +104,13 @@ def test_parse_page_and_key():
         {
             "passages": [{"key": "p1", "text": " text "}],
             "questions": [
-                {"number": "1", "kind": "single_choice", "stem": "Q", "options": [{"text": "x"}, {"text": "y"}],
-                 "passage_key": "p1"},
+                {
+                    "number": "1",
+                    "kind": "single_choice",
+                    "stem": "Q",
+                    "options": [{"text": "x"}, {"text": "y"}],
+                    "passage_key": "p1",
+                },
                 {"number": 2, "kind": "single_choice", "stem": "bad", "options": [{"text": "x"}]},
                 {"number": 3, "kind": "matching", "stem": "no"},
                 {"number": 4, "kind": "numeric", "stem": "2+2"},
@@ -123,11 +140,13 @@ def test_extraction_topic_hint_is_parsed_and_resolved():
     from app.modules.labeling.domain.extraction import parse_classification, pick_topic
 
     page = parse_page(
-        {"questions": [
-            {"number": 1, "kind": "numeric", "stem": "sin x", "topic": 8},
-            {"number": 2, "kind": "numeric", "stem": "no hint"},
-            {"number": 3, "kind": "numeric", "stem": "bogus", "topic": "99"},
-        ]}
+        {
+            "questions": [
+                {"number": 1, "kind": "numeric", "stem": "sin x", "topic": 8},
+                {"number": 2, "kind": "numeric", "stem": "no hint"},
+                {"number": 3, "kind": "numeric", "stem": "bogus", "topic": "99"},
+            ]
+        }
     )
     ids = ["t1", "t2", "t3"]
     assert [pick_topic(q.topic, ids, "dflt") for q in page.questions] == ["dflt", "dflt", "dflt"]
@@ -145,7 +164,12 @@ def test_extract_system_lists_topics():
 
 # ---- extraction hardening ----------------------------------------------------------------------
 def _q(**kw):
-    base = {"number": 1, "kind": "single_choice", "stem": "S", "options": [{"text": "x"}, {"text": "y"}]}
+    base = {
+        "number": 1,
+        "kind": "single_choice",
+        "stem": "S",
+        "options": [{"text": "x"}, {"text": "y"}],
+    }
     return {"questions": [{**base, **kw}]}
 
 
@@ -161,7 +185,12 @@ def test_figure_options_kept_only_with_figure():
     q = parse_page(_q(has_figure=True, options=pics)).questions[0]
     assert [o["text"] for o in q.options] == ["A", "B", "C"]
     assert parse_page(_q(has_figure=False, options=pics)).questions == []
-    assert parse_page(_q(has_figure=True, options=[{"id": "a", "text": ""}, {"text": "t"}])).questions[0].options[1]["text"] == "t"
+    assert (
+        parse_page(_q(has_figure=True, options=[{"id": "a", "text": ""}, {"text": "t"}]))
+        .questions[0]
+        .options[1]["text"]
+        == "t"
+    )
     assert parse_page(_q(has_figure=True, options=[{"id": "a", "text": ""}])).questions == []
 
 
@@ -178,7 +207,14 @@ def test_crop_box():
     assert crop_box([100, 100, 500, 500], 1000, 2000) == (80, 160, 520, 1040)
     assert crop_box([0, 0, 1000, 1000], 100, 100) == (0, 0, 100, 100)
     assert crop_box([10, 10, 300, 300], 1000, 1000) == (0, 0, 320, 320)
-    for bad in (None, [5, 5, 4, 9], [0, 0, 1001, 10], [0, 0, 10, 500], [1, 2, 3], [-1, 0, 500, 500]):
+    for bad in (
+        None,
+        [5, 5, 4, 9],
+        [0, 0, 1001, 10],
+        [0, 0, 10, 500],
+        [1, 2, 3],
+        [-1, 0, 500, 500],
+    ):
         assert crop_box(bad, 100, 100) is None
 
 

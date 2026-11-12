@@ -8,7 +8,9 @@ def card(title="T", body="b", ex=None):
 
 
 def test_theory_normalises_cards():
-    out = m.validate_theory([{"title": "  Fractions ", "body_md": "$\\frac12$", "example_md": "  "}])
+    out = m.validate_theory(
+        [{"title": "  Fractions ", "body_md": "$\\frac12$", "example_md": "  "}]
+    )
     assert out == [{"title": "Fractions", "body_md": "$\\frac12$", "example_md": None}]
 
 
@@ -24,7 +26,9 @@ def test_theory_max_12_cards():
         m.validate_theory([card() for _ in range(13)])
 
 
-@pytest.mark.parametrize("bad", [[card(title="")], [card(title="   ")], [{"body_md": "x"}], ["x"], "x", None])
+@pytest.mark.parametrize(
+    "bad", [[card(title="")], [card(title="   ")], [{"body_md": "x"}], ["x"], "x", None]
+)
 def test_theory_rejects_invalid(bad):
     with pytest.raises(m.Invalid):
         m.validate_theory(bad)

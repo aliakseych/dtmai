@@ -57,5 +57,6 @@ def test_subject_ids_dedupe_and_bound():
 
 def test_lyceum_rep_role_assignable():
     assert parse_roles(["student", "lyceum_rep"], actor_id=uuid4(), target_id=uuid4()) == {
-        Role.STUDENT, Role.LYCEUM_REP,
+        Role.STUDENT,
+        Role.LYCEUM_REP,
     }

@@ -97,11 +97,23 @@ def _subject(r: dict[str, Any]) -> SubjectDTO:
 
 
 def _topic(r: dict[str, Any]) -> TopicDTO:
-    return TopicDTO(r["id"], r["subject_id"], r["parent_id"], r["code"], r["names"], r["position"], r["active"])
+    return TopicDTO(
+        r["id"], r["subject_id"], r["parent_id"], r["code"], r["names"], r["position"], r["active"]
+    )
 
 
 def _bp(r: dict[str, Any]) -> BlueprintDTO:
-    return BlueprintDTO(r["id"], r["code"], r["names"], r["kind"], r["version"], r["duration_min"], r["sections"], r["status"], r["source_id"])
+    return BlueprintDTO(
+        r["id"],
+        r["code"],
+        r["names"],
+        r["kind"],
+        r["version"],
+        r["duration_min"],
+        r["sections"],
+        r["status"],
+        r["source_id"],
+    )
 
 
 async def get_subject(session: AsyncSession, id: UUID) -> SubjectDTO:
@@ -118,7 +130,9 @@ async def get_topic(session: AsyncSession, id: UUID) -> TopicDTO:
 
 
 async def list_topics(session: AsyncSession, subject_id: UUID) -> list[TopicDTO]:
-    return [_topic(r) for r in await SqlCatalogRepository(session).list("topic", subject_id=subject_id)]
+    return [
+        _topic(r) for r in await SqlCatalogRepository(session).list("topic", subject_id=subject_id)
+    ]
 
 
 async def get_question_type(session: AsyncSession, id: UUID) -> QuestionTypeDTO:
@@ -127,10 +141,16 @@ async def get_question_type(session: AsyncSession, id: UUID) -> QuestionTypeDTO:
 
 
 async def list_question_types(session: AsyncSession) -> list[QuestionTypeDTO]:
-    return [QuestionTypeDTO(r["id"], r["code"], r["kind"], r["names"], r["config"]) for r in await SqlCatalogRepository(session).list("question_type") if r["active"]]
+    return [
+        QuestionTypeDTO(r["id"], r["code"], r["kind"], r["names"], r["config"])
+        for r in await SqlCatalogRepository(session).list("question_type")
+        if r["active"]
+    ]
 
 
-async def expand_topic_ids(session: AsyncSession, subject_id: UUID, topic_ids: Sequence[UUID]) -> list[UUID]:
+async def expand_topic_ids(
+    session: AsyncSession, subject_id: UUID, topic_ids: Sequence[UUID]
+) -> list[UUID]:
     """Topic ids plus all descendants."""
     pm = await service(session)._parent_map(subject_id)
     return [UUID(x) for x in dom.descendants(pm, [str(t) for t in topic_ids])]
@@ -140,7 +160,9 @@ async def get_blueprint(session: AsyncSession, id: UUID) -> BlueprintDTO:
     return _bp(await service(session).require("blueprint", id))
 
 
-async def list_blueprints(session: AsyncSession, *, kind: str | None = None, active: bool = True) -> list[BlueprintDTO]:
+async def list_blueprints(
+    session: AsyncSession, *, kind: str | None = None, active: bool = True
+) -> list[BlueprintDTO]:
     """Latest published version per code (active=True) or every row."""
     rows = await SqlCatalogRepository(session).list("blueprint")
     if kind:
@@ -148,13 +170,23 @@ async def list_blueprints(session: AsyncSession, *, kind: str | None = None, act
     if active:
         latest: dict[str, dict[str, Any]] = {}
         for r in rows:
-            if r["status"] == "published" and r["version"] > latest.get(r["code"], {"version": 0})["version"]:
+            if (
+                r["status"] == "published"
+                and r["version"] > latest.get(r["code"], {"version": 0})["version"]
+            ):
                 latest[r["code"]] = r
         rows = list(latest.values())
     return [_bp(r) for r in rows]
 
 
-async def get_path(session: AsyncSession, subject_id: UUID, language: str, *, locale: str = "uz-Latn", include_draft: bool = False) -> PathDTO | None:
+async def get_path(
+    session: AsyncSession,
+    subject_id: UUID,
+    language: str,
+    *,
+    locale: str = "uz-Latn",
+    include_draft: bool = False,
+) -> PathDTO | None:
     """Published path with only learnable lessons (verified pool >= max(min_pool, question_count))."""
     repo = SqlCatalogRepository(session)
     paths = await repo.list("path", subject_id=subject_id, language=language)
@@ -169,24 +201,45 @@ async def get_path(session: AsyncSession, subject_id: UUID, language: str, *, lo
             topics = [UUID(t) for t in le["topic_ids"]]
             eff = await expand_topic_ids(session, subject_id, topics) if topics else []
             types = [UUID(t) for t in le["type_ids"]]
-            pool = await bank.count_verified(session, subject_id=subject_id, topic_ids=eff or None, type_ids=types or None, language=language)
+            pool = await bank.count_verified(
+                session,
+                subject_id=subject_id,
+                topic_ids=eff or None,
+                type_ids=types or None,
+                language=language,
+            )
             if dom.lesson_visible(pool, le["question_count"], min_pool) or include_draft:
-                lessons.append(LessonDTO(le["id"], le["names"], dom.pick_name(le["names"], locale), topics, eff, types, le["question_count"], le["legendary"], pool, list(le.get("theory") or [])))
+                lessons.append(
+                    LessonDTO(
+                        le["id"],
+                        le["names"],
+                        dom.pick_name(le["names"], locale),
+                        topics,
+                        eff,
+                        types,
+                        le["question_count"],
+                        le["legendary"],
+                        pool,
+                        list(le.get("theory") or []),
+                    )
+                )
         if lessons:
             units.append(UnitDTO(u["id"], u["names"], dom.pick_name(u["names"], locale), lessons))
     return PathDTO(p["id"], subject_id, language, p["names"], units)
 
 
-async def get_or_create_source(session: AsyncSession, *, code: str, name: str, year: int | None = None, kind: str = "custom") -> UUID:
+async def get_or_create_source(
+    session: AsyncSession, *, code: str, name: str, year: int | None = None, kind: str = "custom"
+) -> UUID:
     repo = SqlCatalogRepository(session)
     for r in await repo.list("question_base", code=code):
         return r["id"]
-    row = await service(session).create("question_base", {"code": code, "names": {"en": name}, "kind": kind, "year": year}, "system")
+    row = await service(session).create(
+        "question_base", {"code": code, "names": {"en": name}, "kind": kind, "year": year}, "system"
+    )
     return row["id"]
 
 
 async def require_subject_exists(session: AsyncSession, id: UUID) -> None:
     if await SqlCatalogRepository(session).get("subject", id) is None:
         raise NotFound(f"subject {id} not found")
-
-

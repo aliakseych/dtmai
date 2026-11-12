@@ -5,7 +5,7 @@ import { useT } from "@dtmai/i18n";
 import { KIND_LABEL, NEEDS_LINK, NEEDS_START, POST_KINDS, rep, type PostKind, type RepPost } from "./repApi";
 import { repErrorKey } from "./repErrors";
 
-const field = "w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-blue focus:bg-white";
+const field = "w-full rounded-2xl border-2 border-line bg-snow px-4 py-3 text-ink focus:border-brand focus:bg-white";
 
 /** ISO instant → value for <input type="datetime-local"> (local time). */
 const toLocalInput = (iso: string | null) => {

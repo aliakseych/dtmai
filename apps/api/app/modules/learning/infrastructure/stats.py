@@ -44,8 +44,11 @@ class SqlAnswerStats:
             subject: (float(weighted), int(attempts))
             for subject, weighted, attempts in (
                 await self._s.execute(
-                    select(MasteryRow.subject_id, func.sum(MasteryRow.score * MasteryRow.attempts),
-                           func.sum(MasteryRow.attempts))
+                    select(
+                        MasteryRow.subject_id,
+                        func.sum(MasteryRow.score * MasteryRow.attempts),
+                        func.sum(MasteryRow.attempts),
+                    )
                     .where(MasteryRow.user_id == user_id)
                     .group_by(MasteryRow.subject_id)
                 )
@@ -54,7 +57,9 @@ class SqlAnswerStats:
         out = []
         for subject, n, c in answers:
             weighted, attempts = mastery.get(subject, (0.0, 0))
-            out.append(SubjectAnswers(subject, int(n), int(c), weighted / attempts if attempts else None))
+            out.append(
+                SubjectAnswers(subject, int(n), int(c), weighted / attempts if attempts else None)
+            )
         return out
 
 
@@ -64,7 +69,9 @@ class FacadeProgress:
 
     async def progress(self, user_id: UUID, since: date) -> Progress:
         p = await gamification.progress_stats(self._s, user_id, since)
-        return Progress(p.xp_total, p.streak_current, p.streak_best, p.lessons_completed, p.daily_xp)
+        return Progress(
+            p.xp_total, p.streak_current, p.streak_best, p.lessons_completed, p.daily_xp
+        )
 
 
 class FacadeMockResults:

@@ -55,12 +55,14 @@ async def on_start(message: Message, command: CommandObject) -> None:
     async with get_sessionmaker()() as session:
         repo = SqlNotifyRepo(session)
         existing = await repo.chat(chat_id)
-        locale = existing.locale if existing else locale_from_telegram(message.from_user.language_code)
+        locale = (
+            existing.locale if existing else locale_from_telegram(message.from_user.language_code)
+        )
         await repo.upsert_chat(chat_id, locale)
         linked: bool | None = None
         if payload and payload.startswith(LINK_PREFIX):
             user_id = await repo.consume_link_code(
-                payload[len(LINK_PREFIX):], chat_id, datetime.now(UTC)
+                payload[len(LINK_PREFIX) :], chat_id, datetime.now(UTC)
             )
             linked = user_id is not None
             payload = None
@@ -120,10 +122,14 @@ async def on_reminders(cb: CallbackQuery) -> None:
         prefs = await repo.get_preferences(user_id)
         turn_on = not (prefs.enabled and Channel.TELEGRAM in prefs.channels)
         updated = Preferences(
-            user_id=user_id, enabled=turn_on if turn_on else prefs.enabled,
-            channels=(prefs.channels | {Channel.TELEGRAM}) if turn_on
+            user_id=user_id,
+            enabled=turn_on if turn_on else prefs.enabled,
+            channels=(prefs.channels | {Channel.TELEGRAM})
+            if turn_on
             else prefs.channels - {Channel.TELEGRAM},
-            kinds=prefs.kinds, quiet_start=prefs.quiet_start, quiet_end=prefs.quiet_end,
+            kinds=prefs.kinds,
+            quiet_start=prefs.quiet_start,
+            quiet_end=prefs.quiet_end,
             max_per_day=prefs.max_per_day,
         )
         await repo.save_preferences(updated)

@@ -1,6 +1,8 @@
 export { cn } from "./cn";
 export * from "./components/Button";
 export * from "./components/Card";
+export * from "./components/Badge";
+export * from "./components/EmptyState";
 export * from "./components/ProgressBar";
 export * from "./components/PathNode";
 export * from "./components/StreakFlame";

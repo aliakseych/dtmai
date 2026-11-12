@@ -1,4 +1,5 @@
 "use client";
+import { useT } from "@/lib/i18n";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Badge, Field, Input, Select, Toolbar } from "@/components/ui/controls";
@@ -15,6 +16,7 @@ export const dayEnd = (d: string) => (d ? new Date(`${d}T23:59:59.999`).toISOStr
 const ACTIONS = ["claim", "label", "approve", "reject", "edit", "skip", "release"] as const;
 
 export function ActivityPanel() {
+  const t = useT();
   const [actor, setActor] = useState("");
   const [action, setAction] = useState("");
   const [from, setFrom] = useState("");
@@ -32,20 +34,20 @@ export function ActivityPanel() {
   return (
     <>
       <Toolbar>
-        <Field label="Labeler"><Select value={actor} onChange={(e) => f(setActor)(e.target.value)}><option value="">All labelers</option>{people.data?.items.map((u) => <option key={u.id} value={u.id}>{u.display_name || u.email}</option>)}</Select></Field>
-        <Field label="Action"><Select value={action} onChange={(e) => f(setAction)(e.target.value)}><option value="">All actions</option>{ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}</Select></Field>
-        <Field label="From"><Input type="date" value={from} max={to || undefined} onChange={(e) => f(setFrom)(e.target.value)} /></Field>
-        <Field label="To"><Input type="date" value={to} min={from || undefined} onChange={(e) => f(setTo)(e.target.value)} /></Field>
+        <Field label={t("admin.labelers.labeler")}><Select value={actor} onChange={(e) => f(setActor)(e.target.value)}><option value="">{t("admin.labelers.allLabelers")}</option>{people.data?.items.map((u) => <option key={u.id} value={u.id}>{u.display_name || u.email}</option>)}</Select></Field>
+        <Field label={t("admin.common.action")}><Select value={action} onChange={(e) => f(setAction)(e.target.value)}><option value="">{t("admin.labelers.allActions")}</option>{ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}</Select></Field>
+        <Field label={t("admin.labelers.from")}><Input type="date" value={from} max={to || undefined} onChange={(e) => f(setFrom)(e.target.value)} /></Field>
+        <Field label={t("admin.labelers.to")}><Input type="date" value={to} min={from || undefined} onChange={(e) => f(setTo)(e.target.value)} /></Field>
       </Toolbar>
       <div className="min-h-0 flex-1 overflow-auto">
-        <DataTable rows={res.data?.items} loading={res.isLoading} error={res.error} rowKey={(r) => r.id} empty="No activity for these filters."
+        <DataTable rows={res.data?.items} loading={res.isLoading} error={res.error} rowKey={(r) => r.id} empty={t("admin.labelers.noActivityForThese")}
           sort={sort} onSort={(k) => { setSort((s) => nextSort(s, k as ActivitySort)); setPage(1); }}
           cols={[
-            { key: "t", head: "When", sortKey: "created_at", cell: (r) => fmtDate(r.created_at) },
-            { key: "a", head: "Labeler", cell: (r) => r.actor_name ?? r.actor_id.slice(0, 8) },
-            { key: "ac", head: "Action", sortKey: "action", cell: (r) => <Badge tone="blue">{r.action}</Badge> },
-            { key: "q", head: "Question", cell: (r) => (r.question_id ? <code className="text-xs">{r.question_id.slice(0, 8)}</code> : "—") },
-            { key: "d", head: "Duration", sortKey: "duration_ms", className: "text-right tabular-nums", cell: (r) => (r.duration_ms == null ? "—" : `${(r.duration_ms / 1000).toFixed(1)} s`) },
+            { key: "t", head: t("admin.labelers.when"), sortKey: "created_at", cell: (r) => fmtDate(r.created_at) },
+            { key: "a", head: t("admin.labelers.labeler"), cell: (r) => r.actor_name ?? r.actor_id.slice(0, 8) },
+            { key: "ac", head: t("admin.common.action"), sortKey: "action", cell: (r) => <Badge tone="blue">{r.action}</Badge> },
+            { key: "q", head: t("admin.common.question"), cell: (r) => (r.question_id ? <code className="text-xs">{r.question_id.slice(0, 8)}</code> : "—") },
+            { key: "d", head: t("admin.labelers.duration"), sortKey: "duration_ms", className: "text-right tabular-nums", cell: (r) => (r.duration_ms == null ? "—" : `${(r.duration_ms / 1000).toFixed(1)} s`) },
           ]} />
       </div>
       <Pager page={page} size={size} total={res.data?.total ?? 0} onPage={setPage} onSize={(s) => { setSize(s); setPage(1); }} />

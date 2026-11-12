@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button, ConfirmModal } from "@dtmai/ui";
+import { Button, ConfirmModal, Icon } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
 import { isAnswered, QuestionBody, type Response } from "@/components/lesson/QuestionBody";
@@ -65,6 +65,8 @@ function Run({ attempt }: { attempt: Attempt }) {
         setError("save");
         return;
       }
+      // Time is up: send the pending answers first so the grace window is used; a failure still submits.
+      if (mode === "auto") await save.flush();
       try {
         await withTmaReauth(() => api.unwrap(api.client.POST("/v1/assessment/attempts/{attempt_id}/submit", { params: { path: { attempt_id: attempt.id } } })));
         router.replace(mode === "auto" ? `${resultHref}&auto=1` : resultHref);
@@ -130,8 +132,8 @@ function Run({ attempt }: { attempt: Attempt }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white pt-[env(safe-area-inset-top)]">
       <header className="flex items-center gap-2 border-b-2 border-line px-4 py-3 sm:gap-3">
-        <button type="button" onClick={() => setExit(true)} aria-label={t("common.close")} className="h-10 w-10 rounded-xl border-2 border-line text-xl font-extrabold text-ink-soft">
-          ×
+        <button type="button" onClick={() => setExit(true)} aria-label={t("common.close")} className="grid size-10 shrink-0 place-items-center rounded-xl border-2 border-line text-ink-soft">
+          <Icon name="close" size={20} />
         </button>
         <div role="timer" aria-label={t("mock.timer")} className={`rounded-xl px-3 py-1 text-xl font-extrabold tabular-nums ${low ? "bg-red-soft text-red-deep" : "bg-snow text-ink"}`}>
           {clock(left)}
@@ -144,7 +146,7 @@ function Run({ attempt }: { attempt: Attempt }) {
       </header>
 
       {expired && (
-        <p role="alert" className="bg-gold px-4 py-2 text-center font-bold text-ink">
+        <p role="alert" className="bg-accent px-4 py-2 text-center font-bold text-ink">
           {t("mock.expired")}
         </p>
       )}
@@ -182,9 +184,10 @@ function Run({ attempt }: { attempt: Attempt }) {
               type="button"
               aria-pressed={flagged}
               onClick={toggleFlag}
-              className={`rounded-xl border-2 px-3 py-2 font-bold ${flagged ? "border-orange bg-orange text-white" : "border-line text-ink-soft"}`}
+              className={`inline-flex items-center gap-2 rounded-xl border-2 px-3 py-2 font-bold ${flagged ? "border-ink bg-ink text-white" : "border-line text-ink-soft"}`}
             >
-              ⚑ {flagged ? t("mock.unflag") : t("mock.flag")}
+              <Icon name="flag" size={20} />
+              {flagged ? t("mock.unflag") : t("mock.flag")}
             </button>
           </div>
         </main>

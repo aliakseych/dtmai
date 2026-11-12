@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { buttonClass, Logo } from "@dtmai/ui";
+import { buttonClass, Logo, Icon } from "@dtmai/ui";
 import { LocaleSwitcher, useT } from "@dtmai/i18n";
 
 const LINKS = [
@@ -35,10 +35,10 @@ export function LandingHeader() {
             {t("landing.header.start")}
           </Link>
           <details className="relative md:hidden">
-            <summary aria-label={t("nav.menu")} className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-xl border-2 border-line text-xl">
-              ☰
+            <summary aria-label={t("nav.menu")} className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-xl border-2 border-line">
+              <Icon name="menu" />
             </summary>
-            <div className="absolute right-0 top-12 flex w-52 flex-col gap-1 rounded-card border-2 border-line bg-white p-2 shadow-lg">
+            <div className="absolute right-0 top-12 flex w-52 flex-col gap-1 rounded-card border-2 border-line bg-white p-2 shadow-xl">
               {LINKS.map(([href, key]) => (
                 <a key={href} href={href} className="rounded-xl px-3 py-2 font-extrabold text-ink hover:bg-snow">
                   {t(key)}
@@ -48,7 +48,7 @@ export function LandingHeader() {
                 {t("auth.login.cta")}
               </Link>
               <div className="px-3 py-2 sm:hidden">
-                <LocaleSwitcher />
+                <LocaleSwitcher className="max-w-full" placement="bottom" align="end" />
               </div>
             </div>
           </details>

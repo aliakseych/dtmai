@@ -24,7 +24,10 @@ SCHEMA = "gamification"
 
 class UserStatsRow(Base):
     __tablename__ = "user_stats"
-    __table_args__ = (Index("ix_user_stats_target_lyceum_id", "target_lyceum_id"), {"schema": SCHEMA})
+    __table_args__ = (
+        Index("ix_user_stats_target_lyceum_id", "target_lyceum_id"),
+        {"schema": SCHEMA},
+    )
 
     user_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
     xp_total: Mapped[int] = mapped_column(Integer, default=0)

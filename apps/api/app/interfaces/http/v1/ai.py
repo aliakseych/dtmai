@@ -95,7 +95,7 @@ async def explain(
     body: ExplainIn | None = None,
 ) -> ExplainOut:
     locale = body.locale if body else "uz-Latn"
-    text, cached, model = await svc.explain(session, user.user_id, question_id, locale)
+    text, cached, model = await svc.explain(session, user.user_id, user.roles, question_id, locale)
     return ExplainOut(
         question_id=question_id, locale=locale, explanation=text, cached=cached, model=model
     )

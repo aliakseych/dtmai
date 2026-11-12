@@ -32,7 +32,7 @@ export function ReviewList({ review, items, flags }: { review: AttemptResult["re
     }
   }
 
-  if (review.length === 0) return <p className="font-bold text-green-deep">{t("mock.reviewNone")}</p>;
+  if (review.length === 0) return <p className="font-bold text-brand">{t("mock.reviewNone")}</p>;
   const filters: { id: Filter; label: string }[] = [
     { id: "all", label: t("mock.filterAll") },
     { id: "wrong", label: t("mock.filterWrong") },
@@ -47,7 +47,7 @@ export function ReviewList({ review, items, flags }: { review: AttemptResult["re
             type="button"
             aria-pressed={filter === f.id}
             onClick={() => setFilter(f.id)}
-            className={`rounded-xl border-2 px-3 py-1.5 font-bold ${filter === f.id ? "border-blue bg-blue text-white" : "border-line text-ink-soft"}`}
+            className={`rounded-xl border-2 px-3 py-1.5 font-bold ${filter === f.id ? "border-brand bg-brand text-white" : "border-line text-ink-soft"}`}
           >
             {f.label}
           </button>
@@ -72,7 +72,7 @@ export function ReviewList({ review, items, flags }: { review: AttemptResult["re
                     <RichText text={item.stem} />
                   </h3>
                   {r.correct ? (
-                    <p className="rounded-xl bg-green-soft px-3 py-2 font-semibold text-green-deep">
+                    <p className="rounded-xl bg-brand-soft px-3 py-2 font-semibold text-brand">
                       <span className="block text-xs font-bold uppercase">{t("mock.correctBadge")}</span>
                       {correctText(item, r.correct_response)}
                     </p>
@@ -82,7 +82,7 @@ export function ReviewList({ review, items, flags }: { review: AttemptResult["re
                         <span className="block text-xs font-bold uppercase">{t("mock.yourAnswer")}</span>
                         {mine || t("mock.noAnswer")}
                       </p>
-                      <p className="rounded-xl bg-green-soft px-3 py-2 font-semibold text-green-deep">
+                      <p className="rounded-xl bg-brand-soft px-3 py-2 font-semibold text-brand">
                         <span className="block text-xs font-bold uppercase">{t("mock.correctAnswer")}</span>
                         {correctText(item, r.correct_response)}
                       </p>
@@ -104,7 +104,7 @@ export function ReviewList({ review, items, flags }: { review: AttemptResult["re
               ) : ex?.failed ? (
                 <p className="font-semibold">{t("common.error")}</p>
               ) : (
-                <button type="button" onClick={() => void ask(r.question_id)} disabled={ex?.busy} className="self-start font-extrabold text-blue-deep underline">
+                <button type="button" onClick={() => void ask(r.question_id)} disabled={ex?.busy} className="self-start font-extrabold text-brand underline">
                   {ex?.busy ? t("lesson.explaining") : t("lesson.explain")}
                 </button>
               )}

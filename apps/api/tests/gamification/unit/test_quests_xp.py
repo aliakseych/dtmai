@@ -49,19 +49,3 @@ def test_quest_action_maps_every_metric() -> None:
     }
     assert {m: quest_action(m) for m in METRICS} == expected
     assert quest_action("unknown") == "any"
-
-
-def test_quest_action_maps_every_metric() -> None:
-    from app.modules.gamification.domain.quests import METRICS, quest_action
-
-    expected = {
-        "lessons_completed": "lesson",
-        "perfect_sessions": "lesson",
-        "xp_earned": "lesson",
-        "streak_kept": "lesson",
-        "review_sessions": "review",
-        "mocks_submitted": "mock",
-        "correct_answers": "drill",
-    }
-    assert {m: quest_action(m) for m in METRICS} == expected
-    assert quest_action("unknown") == "any"

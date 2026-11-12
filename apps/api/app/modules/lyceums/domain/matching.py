@@ -75,6 +75,8 @@ _NOISE = frozenset(
         "mtu",
     }
 )
+# Tokens are normalised (x -> h) before filtering, so the noise words must be too.
+_NOISE = frozenset(w.replace("x", "h") for w in _NOISE)
 _STEM = 6
 _TOKEN_MATCH = 0.8
 THRESHOLD = 0.7

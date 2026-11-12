@@ -2,12 +2,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { Avatar, buttonClass, cn, Logo, Mascot, Modal } from "@dtmai/ui";
+import { Avatar, buttonClass, cn, Logo, Mascot, Modal, Icon } from "@dtmai/ui";
 import { LocaleSwitcher, useT } from "@dtmai/i18n";
 import { useAuth } from "@/lib/auth";
 import { useBilling } from "@/lib/billing";
 import { MAIN_NAV, MORE_NAV, TAB_NAV } from "./nav";
-import { NavIcon } from "./NavIcon";
 import { QuestsPanel } from "./QuestsPanel";
 import { TopStats } from "./TopStats";
 
@@ -25,7 +24,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh overflow-x-clip bg-white">
-      <aside className="fixed inset-y-0 left-0 hidden w-72 flex-col gap-2 border-r-2 border-line bg-white p-4 lg:flex">
+      <aside className="fixed inset-y-0 left-0 hidden w-72 flex-col gap-2 overflow-y-auto border-r-2 border-line bg-white p-4 lg:flex">
         <Link href="/learn/" aria-label={t("app.name")} className="mb-4 px-3 pt-1">
           <Logo name={t("app.name")} size={36} />
         </Link>
@@ -36,11 +35,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               href={n.href}
               aria-current={active(n.href) ? "page" : undefined}
               className={cn(
-                "flex items-center gap-4 rounded-2xl border-2 px-4 py-3 text-[15px] font-extrabold uppercase tracking-wide transition active:scale-[0.98]",
+                "flex items-center gap-3 rounded-2xl border-2 px-4 py-2 text-[15px] font-extrabold uppercase tracking-wide transition active:scale-[0.98]",
                 active(n.href) ? "border-brand bg-brand-soft text-brand" : "border-transparent text-ink-soft hover:bg-snow hover:text-ink",
               )}
             >
-              <NavIcon name={n.icon} />
+              <Icon name={n.icon} size={24} />
               {t(n.label)}
             </Link>
           ))}
@@ -105,7 +104,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-extrabold", active(n.href) ? "text-brand" : "text-ink-soft")}
           >
             <span className={cn("grid h-9 w-12 place-items-center rounded-xl transition", active(n.href) && "bg-brand-soft")}>
-              <NavIcon name={n.icon} size={26} />
+              <Icon name={n.icon} />
             </span>
             <span className="max-w-full truncate px-1">{t(n.label)}</span>
           </Link>
@@ -119,7 +118,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-extrabold", moreActive ? "text-brand" : "text-ink-soft")}
           >
             <span className={cn("grid h-9 w-12 place-items-center rounded-xl transition", moreActive && "bg-brand-soft")}>
-              <NavIcon name="more" size={26} />
+              <Icon name="more" />
             </span>
             <span className="max-w-full truncate px-1">{t("nav.more")}</span>
           </button>
@@ -136,7 +135,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 aria-current={active(n.href) ? "page" : undefined}
                 className="flex items-center gap-4 rounded-2xl px-3 py-3 font-extrabold text-ink hover:bg-snow"
               >
-                <NavIcon name={n.icon} size={24} />
+                <Icon name={n.icon} />
                 {t(n.label)}
               </Link>
             </li>

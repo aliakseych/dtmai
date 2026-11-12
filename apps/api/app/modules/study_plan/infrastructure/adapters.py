@@ -13,6 +13,7 @@ from app.modules.study_plan.domain.exam import ROLE_IQ, CertRule, ExamProfile, E
 from app.modules.study_plan.ports import (
     DailyGrade,
     DailyQuestion,
+    DreamTarget,
     MockPoint,
     SubjectInfo,
     WeakSpot,
@@ -72,6 +73,7 @@ class ExamInfoAdapter:
             p.mock_blueprint_id,
             sections,
             rules,
+            p.date_verified,
         )
 
 
@@ -103,6 +105,11 @@ class LearningAdapter:
         done, start_unit = await learning.path_progress(self._s, user_id, subject_id, ids)
         return [le.id for u in path.units[start_unit:] for le in u.lessons if le.id not in done]
 
+    async def pool(self, subject_id: UUID, language: str) -> int:
+        return await bank.count_verified(
+            self._s, subject_id=subject_id, topic_ids=None, type_ids=None, language=language
+        )
+
 
 class CatalogAdapter:
     def __init__(self, session: AsyncSession) -> None:
@@ -113,6 +120,29 @@ class CatalogAdapter:
 
     async def mock_minutes(self, blueprint_id: UUID) -> int:
         return (await catalog.get_blueprint(self._s, blueprint_id)).duration_min
+
+    async def mock_servable(self, blueprint_id: UUID, language: str) -> bool:
+        """Mirrors assessment.start: a section is empty when it has no fixed questions and
+        the verified pool for its filters has nothing to draw."""
+        bp = await catalog.get_blueprint(self._s, blueprint_id)
+        if not bp.sections:
+            return False
+        for sec in bp.sections:
+            if sec.get("question_ids"):
+                continue
+            n = await bank.count_verified(
+                self._s,
+                subject_id=UUID(str(sec["subject_id"])),
+                topic_ids=[UUID(str(t)) for t in sec.get("topic_ids") or []] or None,
+                type_ids=[UUID(str(t)) for t in sec.get("type_ids") or []] or None,
+                language=language,
+            )
+            if n < 1:
+                return False
+        return True
+
+    async def topic_names(self, topic_id: UUID) -> dict[str, str]:
+        return (await catalog.get_topic(self._s, topic_id)).names
 
 
 class QuestionAdapter:
@@ -140,3 +170,23 @@ class QuestionAdapter:
 class EntitlementAdapter:
     async def has_feature(self, user_id: UUID, feature: str) -> bool:
         return (await entitlements_for(user_id)).has(feature)
+
+
+class DreamAdapter:
+    def __init__(self, session: AsyncSession) -> None:
+        self._s = session
+
+    async def target(self, user_id: UUID) -> DreamTarget | None:
+        # Lazy: identity and lyceums are sibling modules built independently.
+        from app.modules.identity.wiring import build_identity_service
+        from app.modules.lyceums.facade import LyceumBenchmark
+
+        lyceum_id = (await build_identity_service(self._s).get_me(user_id)).target_lyceum_id
+        if lyceum_id is None:
+            return None
+        b = await LyceumBenchmark().benchmark(lyceum_id)
+        if b is None:
+            return DreamTarget(lyceum_id)
+        score = float(b.passing_score) if b.passing_score is not None else None
+        ratio = float(b.competition_ratio) if b.competition_ratio is not None else None
+        return DreamTarget(lyceum_id, b.year, score, ratio)

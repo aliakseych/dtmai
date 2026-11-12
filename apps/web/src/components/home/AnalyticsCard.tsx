@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { buttonClass, LockIcon } from "@dtmai/ui";
+import { buttonClass, Card, Mascot } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
 import { useBilling } from "@/lib/billing";
@@ -33,11 +33,11 @@ function Locked({ canBuy }: { canBuy: boolean }) {
     <div className="relative overflow-hidden rounded-card border-2 border-line bg-white">
       <div aria-hidden className="pointer-events-none flex select-none flex-col gap-3 p-4 blur-sm">
         {[80, 55, 35].map((w) => (
-          <div key={w} className="h-4 rounded-full bg-blue-soft" style={{ width: `${w}%` }} />
+          <div key={w} className="h-4 rounded-full bg-brand-soft" style={{ width: `${w}%` }} />
         ))}
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/60 p-4 text-center">
-        <LockIcon />
+        <Mascot mood="lock" size={72} alt="" className="h-auto w-16" />
         <p className="font-extrabold">{t("analytics.locked")}</p>
         {canBuy && (
           <Link href="/premium/" className={buttonClass("primary")}>
@@ -52,7 +52,7 @@ function Locked({ canBuy }: { canBuy: boolean }) {
 function Stats({ a }: { a: AnalyticsOut }) {
   const t = useT();
   return (
-    <div className="flex flex-col gap-3 rounded-card border-2 border-line bg-white p-4">
+    <Card pad="sm" className="flex flex-col gap-3">
       <dl className="grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-snow p-3">
           <dt className="text-xs font-bold uppercase text-ink-soft">{t("analytics.accuracy")}</dt>
@@ -82,6 +82,6 @@ function Stats({ a }: { a: AnalyticsOut }) {
           </ul>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

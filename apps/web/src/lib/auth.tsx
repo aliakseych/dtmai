@@ -123,11 +123,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const rt = readTokens()?.refresh_token;
     try {
       if (rt) await api.client.POST("/v1/identity/logout", { body: { refresh_token: rt } });
-    } finally {
-      writeTokens(null);
-      resetStats();
-      setMe(null);
+    } catch {
+      /* the local session is dropped regardless */
     }
+    writeTokens(null);
+    resetStats();
+    // Hard navigation: clearing `me` first would let RequireAuth mint a new guest before the landing page loads.
+    window.location.assign("/");
   }, []);
 
   const value = useMemo<Ctx>(
@@ -164,7 +166,7 @@ function MergeBanner() {
   const [busy, setBusy] = useState(false);
   if (!mergePending) return null;
   return (
-    <div role="alert" className="flex flex-wrap items-center justify-center gap-3 bg-gold/20 px-4 py-2 text-sm font-bold">
+    <div role="alert" className="flex flex-wrap items-center justify-center gap-3 bg-accent/20 px-4 py-2 text-sm font-bold">
       <span>{t("auth.merge.failed")}</span>
       <button
         type="button"

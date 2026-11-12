@@ -41,7 +41,9 @@ class S3MediaStore:
         s = get_settings()
         self._bucket = s.s3_bucket
         self._c = boto3.client(
-            "s3", endpoint_url=s.s3_endpoint, aws_access_key_id=s.s3_access_key,
+            "s3",
+            endpoint_url=s.s3_endpoint,
+            aws_access_key_id=s.s3_access_key,
             aws_secret_access_key=s.s3_secret_key,
         )
 

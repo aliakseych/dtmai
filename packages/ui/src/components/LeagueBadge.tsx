@@ -1,6 +1,6 @@
 import { cn } from "../cn";
 
-const TIERS = ["bg-[#cd7f32]", "bg-[#b0b8c1]", "bg-gold", "bg-blue", "bg-green", "bg-brand", "bg-red", "bg-orange"];
+const TIERS = ["bg-ink-mute", "bg-ink-soft", "bg-accent-ink", "bg-correct", "bg-brand", "bg-brand-deep", "bg-red", "bg-ink"];
 
 /** tier is 0-based; names come from the API. */
 export function LeagueBadge({ tier, name, size = 64, className }: { tier: number; name: string; size?: number; className?: string }) {

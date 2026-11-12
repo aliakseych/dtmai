@@ -1,10 +1,9 @@
 "use client";
-import { Card, cn } from "@dtmai/ui";
+import { Card, cn, Icon, type IconName } from "@dtmai/ui";
 import { useT, type MessageKey } from "@dtmai/i18n";
-import { NavIcon } from "@/components/layout/NavIcon";
 import { Reveal } from "@/components/motion/Reveal";
 
-const FEATURES: { id: string; icon: string; tone: string }[] = [
+const FEATURES: { id: string; icon: IconName; tone: string }[] = [
   { id: "path", icon: "learn", tone: "bg-brand text-white" },
   { id: "mocks", icon: "mocks", tone: "bg-accent text-ink" },
   { id: "personal", icon: "practice", tone: "bg-ink text-white" },
@@ -23,7 +22,7 @@ export function Features() {
           <Reveal key={f.id} delay={(i % 3) * 0.08}>
             <Card className="flex h-full flex-col gap-3">
               <span className={cn("grid h-14 w-14 place-items-center rounded-2xl", f.tone)}>
-                <NavIcon name={f.icon} />
+                <Icon name={f.icon} size={28} />
               </span>
               <h3 className="text-xl">{t(`landing.features.${f.id}.title` as MessageKey)}</h3>
               <p className="text-ink-soft">{t(`landing.features.${f.id}.text` as MessageKey)}</p>

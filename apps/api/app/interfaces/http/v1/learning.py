@@ -10,6 +10,7 @@ from app.interfaces.http.v1._media import MediaOut, to_media
 from app.modules.catalog import facade as catalog
 from app.modules.catalog.domain.models import pick_name
 from app.modules.gamification import facade as gamification
+from app.modules.identity.wiring import IdentityServiceDep
 from app.modules.learning import facade as learning_facade
 from app.modules.learning.application.service import (
     AnswerResult,
@@ -24,6 +25,7 @@ from app.modules.learning.wiring import LearningServiceDep
 from app.shared.db import get_session
 from app.shared.deps import CurrentUser
 from app.shared.errors import Forbidden, NotFound, ProblemDetails
+from app.shared.events import dispatch_pending
 from app.shared.locale import pick_locale
 from app.shared.security import decode_access_token
 
@@ -477,12 +479,19 @@ async def weak_areas(
     "/merge-guest", response_model=OkOut, responses=ERR, operation_id="learning_merge_guest"
 )
 async def merge_guest(
-    body: MergeGuestIn, user: CurrentUser, session: Annotated[AsyncSession, Depends(get_session)]
+    body: MergeGuestIn,
+    user: CurrentUser,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    identity: IdentityServiceDep,
 ) -> OkOut:
     """Merge a guest's progress into the signed-in account (needs the guest's own access token)."""
+    if "guest" in user.roles:
+        raise Forbidden("guests cannot be a merge target", code="guest_cannot_merge")
     guest = decode_access_token(body.guest_access_token)
     if "guest" not in guest.roles:
         raise Forbidden("token does not belong to a guest", code="not_a_guest")
+    await dispatch_pending()  # flush the guest's outbox so no event lands after the merge
     await learning_facade.merge_guest(session, guest.user_id, user.user_id)
     await gamification.merge_guest(session, guest.user_id, user.user_id)
+    await identity.retire_guest(guest.user_id, user.user_id)
     return OkOut()

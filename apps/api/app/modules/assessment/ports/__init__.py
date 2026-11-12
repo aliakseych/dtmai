@@ -34,6 +34,7 @@ class Blueprint:
     duration_min: int
     sections: list[dict[str, Any]]
     source_id: UUID | None = None
+    status: str = "published"
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,8 +55,14 @@ class ContentPort(Protocol):
     async def blueprints(self) -> list[Blueprint]: ...
     async def items(self, ids: Sequence[UUID]) -> list[Item]: ...
     async def pick(
-        self, *, subject_id: UUID, topic_ids: Sequence[UUID] | None, type_ids: Sequence[UUID] | None,
-        language: str, n: int, exclude_ids: Sequence[UUID] = (),
+        self,
+        *,
+        subject_id: UUID,
+        topic_ids: Sequence[UUID] | None,
+        type_ids: Sequence[UUID] | None,
+        language: str,
+        n: int,
+        exclude_ids: Sequence[UUID] = (),
     ) -> list[Item]: ...
     async def grade(self, question_id: UUID, response: dict[str, Any]) -> Graded: ...
     async def weak_spots(self, user_id: UUID, subject_id: UUID) -> list[WeakSpot]: ...

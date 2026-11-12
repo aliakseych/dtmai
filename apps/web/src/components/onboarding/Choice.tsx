@@ -12,7 +12,7 @@ export function Choice({ on, onClick, multi, children }: { on: boolean; onClick:
       onClick={onClick}
       className={cn(
         "flex w-full items-center gap-3 rounded-2xl border-2 border-b-4 px-4 py-3 text-left font-extrabold transition-colors",
-        on ? "border-blue bg-blue-soft text-blue-deep" : "border-line bg-white hover:bg-snow",
+        on ? "border-brand bg-brand-soft text-brand" : "border-line bg-white hover:bg-snow",
       )}
     >
       {children}

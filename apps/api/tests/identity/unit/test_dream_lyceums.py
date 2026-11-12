@@ -27,5 +27,8 @@ def test_duplicate():
 
 def test_target_is_first_choice():
     a = uuid4()
-    assert User(id=uuid4(), name="n", email="a@b.c", dream_lyceum_ids=[a, uuid4()]).target_lyceum_id == a
+    assert (
+        User(id=uuid4(), name="n", email="a@b.c", dream_lyceum_ids=[a, uuid4()]).target_lyceum_id
+        == a
+    )
     assert User(id=uuid4(), name="n", email="a@b.c").target_lyceum_id is None

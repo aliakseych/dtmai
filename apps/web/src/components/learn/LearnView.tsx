@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Tabs } from "@dtmai/ui";
 import { useLocale, useT } from "@dtmai/i18n";
+import { PageTitle } from "@/components/PageTitle";
 import { AsyncView } from "@/components/AsyncView";
 import { GoalRing } from "@/components/GoalRing";
 import { api } from "@/lib/api";
@@ -36,6 +37,8 @@ export function LearnView() {
     }
   };
   return (
+    <>
+    <PageTitle>{t("nav.learn")}</PageTitle>
     <AsyncView state={subjects.state} onRetry={subjects.reload} isEmpty={(d) => d.length === 0}>
       {(all) => {
         // The learner's chosen subjects lead; the rest stay reachable after them.
@@ -61,5 +64,6 @@ export function LearnView() {
         );
       }}
     </AsyncView>
+    </>
   );
 }

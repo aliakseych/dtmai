@@ -58,7 +58,7 @@ export function GeneratingScreen({ request, onDone, onBack }: { request: () => P
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-xl flex-col items-center justify-center gap-6 px-4" aria-busy={!finished}>
-      <Mascot mood={finished ? "celebrate" : "thinking"} size={160} alt={t("mascot.alt")} className="h-auto w-32" />
+      <Mascot mood={finished ? "celebrate" : "calendar"} size={160} alt={t("mascot.alt")} className="h-auto w-32" />
       <h1 className="text-center text-2xl">{finished ? t("plan.gen.done") : t("plan.gen.title")}</h1>
       <ul className="flex w-full flex-col gap-2" aria-live="polite">
         {ITEMS.map((k, i) => {

@@ -5,7 +5,14 @@ from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.study_plan.domain.models import Plan, PlanSettings, Task, TaskKind, TaskStatus
+from app.modules.study_plan.domain.models import (
+    Plan,
+    PlanSettings,
+    Task,
+    TaskKind,
+    TaskStatus,
+    matches_blueprint,
+)
 from app.modules.study_plan.infrastructure.orm import DailySetRow, PlanRow, TaskRow
 
 
@@ -70,6 +77,19 @@ class SqlPlanRepository:
         ).scalar_one_or_none()
         return _plan(r) if r else None
 
+    async def study_schedules(
+        self, user_ids: list[UUID]
+    ) -> dict[UUID, tuple[str, tuple[int, ...]]]:
+        """(study_time, study_days) of the given users that named a study time."""
+        rows = await self._s.execute(
+            select(PlanRow.user_id, PlanRow.settings).where(PlanRow.user_id.in_(user_ids))
+        )
+        out: dict[UUID, tuple[str, tuple[int, ...]]] = {}
+        for user_id, settings in rows:
+            if settings.get("study_time"):
+                out[user_id] = (settings["study_time"], tuple(settings.get("study_days") or ()))
+        return out
+
     async def insert_plan(self, plan: Plan) -> bool:
         """Create the user's plan; False when a concurrent request already created it."""
         stmt = (
@@ -115,7 +135,14 @@ class SqlPlanRepository:
         r = (await self._s.execute(q)).scalar_one_or_none()
         return _task(r) if r else None
 
-    async def first_open(self, plan_id: UUID, kind: TaskKind, on_or_before: date) -> Task | None:
+    async def first_open(
+        self,
+        plan_id: UUID,
+        kind: TaskKind,
+        on_or_before: date,
+        *,
+        blueprint_id: UUID | None = None,
+    ) -> Task | None:
         q = (
             select(TaskRow)
             .where(
@@ -125,10 +152,11 @@ class SqlPlanRepository:
                 TaskRow.day <= on_or_before,
             )
             .order_by(TaskRow.day.desc(), TaskRow.position)
-            .limit(1)
         )
-        r = (await self._s.execute(q)).scalar_one_or_none()
-        return _task(r) if r else None
+        for r in (await self._s.execute(q)).scalars():
+            if matches_blueprint(r.target, blueprint_id):
+                return _task(r)
+        return None
 
     async def has_source(self, plan_id: UUID, source_ref: UUID) -> bool:
         q = select(TaskRow.id).where(TaskRow.plan_id == plan_id, TaskRow.source_ref == source_ref)
@@ -207,3 +235,20 @@ class SqlPlanRepository:
             .values(user_id=user_id, day=day, question_ids=[str(i) for i in ids])
             .on_conflict_do_nothing()
         )
+
+    async def claim_daily_answer(self, user_id: UUID, day: date, question_id: UUID) -> bool:
+        row = (
+            await self._s.execute(
+                select(DailySetRow)
+                .where(DailySetRow.user_id == user_id, DailySetRow.day == day)
+                .with_for_update()
+            )
+        ).scalar_one_or_none()
+        if row is None:
+            return False
+        answered = list(row.answered or [])
+        if str(question_id) in answered:
+            return False
+        row.answered = [*answered, str(question_id)]
+        await self._s.flush()
+        return True

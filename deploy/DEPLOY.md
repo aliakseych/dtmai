@@ -10,7 +10,7 @@ A records (TTL 300) to the VPS IPv4 (add matching AAAA only if the VPS has IPv6 
 |---|---|---|---|
 | `dtm-ai.uz` | A | VPS IP | landing (web) |
 | `app.dtm-ai.uz` | A | VPS IP | learner app + Mini App `/tg` (web) |
-| `api.dtm-ai.uz` | A | VPS IP | API, `/tg/webhook`, `/billing/click/*` |
+| `api.dtm-ai.uz` | A | VPS IP | API, `/tg/webhook`, `/v1/billing/click/*` |
 | `admin.dtm-ai.uz` | A | VPS IP | admin panel |
 
 Wait until all four resolve (`dig +short app.dtm-ai.uz`) before issuing certificates.
@@ -24,7 +24,7 @@ nginx needs certs to start, so issue them standalone once (ports 80/443 free):
 docker compose -f docker-compose.prod.yaml run --rm -p 80:80 --entrypoint certbot certbot certonly --standalone \
   -d dtm-ai.uz -d app.dtm-ai.uz -d admin.dtm-ai.uz -d api.dtm-ai.uz --email you@dtm-ai.uz --agree-tos
 ```
-One SAN cert named `dtm-ai.uz` is used by all sites. The `certbot` service renews via webroot every 12 h; `docker compose exec edge nginx -s reload` after renewal (cron weekly).
+One SAN cert named `dtm-ai.uz` is used by all sites. The `certbot` service renews via webroot every 12 h; the `edge` container reloads nginx every 6 h (its command), so renewed certs are picked up automatically with no cron.
 
 ## 5. Start
 ```
@@ -32,6 +32,8 @@ docker compose -f docker-compose.prod.yaml --env-file .env pull
 docker compose -f docker-compose.prod.yaml --env-file .env up -d
 ```
 `migrate` (one-shot, `alembic upgrade heads` then the insert-only exam-info seed, which never overwrites admin edits) runs before api/worker/scheduler; `bot-webhook-setup` (one-shot) registers the Telegram webhook, commands and menu button once the api is healthy, so step 6 is only needed for manual repair. Bot updates are served by the api (`/tg/webhook`); there is no separate bot process. Check `curl https://api.dtm-ai.uz/healthz`.
+
+In production (`ENV=prod`, set by compose) the api refuses to start unless: `JWT_SECRET` is >= 32 chars, `MAIL_BACKEND=smtp`, S3 keys are set, CORS origins have no localhost, `TELEGRAM_WEBHOOK_SECRET` is set when a bot token is, and all `CLICK_*` credentials are set when `PAYMENTS_ENABLED=true`. `/docs`, `/redoc` and `/openapi.json` are disabled in prod (the OpenAPI drift check/`gen:api` export the schema offline). Logs are JSON lines (`docker compose logs api`). Sentry is not wired (`sentry-sdk` is not a dependency).
 
 Images (built by `deploy.yml`): `ghcr.io/aliakseych/dtmai-{api,web,admin}:${IMAGE_TAG}`. Local build: `docker build -t dtmai-api apps/api`; `docker build -f apps/web/Dockerfile --build-arg NEXT_PUBLIC_API_URL=https://api.dtm-ai.uz --build-arg NEXT_PUBLIC_TG_BOT=<bot> -t dtmai-web .` (admin likewise).
 
@@ -45,9 +47,9 @@ curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
 BotFather: `/setdomain` -> `app.dtm-ai.uz` (Login Widget); `/mybots` -> Bot Settings -> Menu Button / Configure Mini App -> URL `https://app.dtm-ai.uz/tg`.
 
 ## 7. Click (cabinet merchant.click.uz)
-- Prepare URL: `https://api.dtm-ai.uz/billing/click/prepare`
-- Complete URL: `https://api.dtm-ai.uz/billing/click/complete`
-- Put service_id / merchant_id / merchant_user_id / secret_key in `.env`. Requests are verified with the md5 `sign_string`.
+- Prepare URL: `https://api.dtm-ai.uz/v1/billing/click/prepare`
+- Complete URL: `https://api.dtm-ai.uz/v1/billing/click/complete`
+- Put service_id / merchant_id / merchant_user_id / secret_key in `.env`, then set `PAYMENTS_ENABLED=true` and recreate (`up -d`). Optionally restrict callers with `CLICK_ALLOWED_IPS='["<click ip/cidr>"]'`. Requests are verified with the md5 `sign_string`.
 
 ## 8. First admin
 1. Register at `https://app.dtm-ai.uz/register` and verify the email code.
@@ -59,11 +61,12 @@ docker compose -f docker-compose.prod.yaml exec postgres psql -U dtmai -d dtmai 
 3. Log out/in (roles are in the JWT), then open `https://admin.dtm-ai.uz`. Further admins/editors are managed in the admin panel.
 
 ## 9. Backups
-Daily cron on host:
+The `backup` compose service runs `pg_dump -Fc` at start and every 24 h into the `dtmai_backups` volume (`/backups/dtmai-YYYY-MM-DD.dump`), deleting dumps older than 14 days. It is not off-host: copy them regularly, e.g. host cron:
 ```
-docker compose -f docker-compose.prod.yaml exec -T postgres pg_dump -U dtmai -Fc dtmai > /backups/dtmai-$(date +%F).dump
+docker run --rm -v dtmai_backups:/b:ro -v ~/.config/rclone:/config/rclone rclone/rclone sync /b remote:dtmai-backups
 ```
-Keep 14 days; copy off-host (rclone to S3). RustFS: back up the `dtmai_s3` volume (`docker run --rm -v dtmai_s3:/d -v /backups:/b alpine tar czf /b/s3-$(date +%F).tgz -C /d .`). Restore: `pg_restore -U dtmai -d dtmai --clean`. Test restore monthly.
+(or `docker cp dtmai-backup-1:/backups/. /somewhere` then `rsync`/`scp` to another machine). Check it works: `docker compose -f docker-compose.prod.yaml logs backup`.
+RustFS: back up the `dtmai_s3` volume (`docker run --rm -v dtmai_s3:/d -v /backups:/b alpine tar czf /b/s3-$(date +%F).tgz -C /d .`). Restore: `pg_restore -U dtmai -d dtmai --clean`. Test restore monthly.
 
 ## 10. GitHub Actions deploy
 `ci.yml` (PR/main): api `uv sync` + pytest, web/admin `bun install` + lint + build, OpenAPI drift check (`bun run gen:api` then `git diff --exit-code`).

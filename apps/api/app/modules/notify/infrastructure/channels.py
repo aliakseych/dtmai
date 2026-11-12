@@ -62,14 +62,22 @@ class FcmPush:
             acc = self._account()
             now = int(time.time())
             assertion = jwt.encode(
-                {"iss": acc["client_email"], "scope": FCM_SCOPE, "aud": acc["token_uri"],
-                 "iat": now, "exp": now + 3600},
-                acc["private_key"], algorithm="RS256",
+                {
+                    "iss": acc["client_email"],
+                    "scope": FCM_SCOPE,
+                    "aud": acc["token_uri"],
+                    "iat": now,
+                    "exp": now + 3600,
+                },
+                acc["private_key"],
+                algorithm="RS256",
             )
             resp = await client.post(
                 acc["token_uri"],
-                data={"grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
-                      "assertion": assertion},
+                data={
+                    "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                    "assertion": assertion,
+                },
             )
             resp.raise_for_status()
             body = resp.json()
@@ -85,8 +93,12 @@ class FcmPush:
             resp = await client.post(
                 f"https://fcm.googleapis.com/v1/projects/{self._project}/messages:send",
                 headers={"Authorization": f"Bearer {access}"},
-                json={"message": {"token": token,
-                                  "notification": {"title": message.title, "body": message.body}}},
+                json={
+                    "message": {
+                        "token": token,
+                        "notification": {"title": message.title, "body": message.body},
+                    }
+                },
             )
         if resp.status_code == 404 or (resp.status_code == 400 and "UNREGISTERED" in resp.text):
             return False

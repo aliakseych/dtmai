@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Card, Mascot, buttonClass } from "@dtmai/ui";
+import { Card, Mascot, buttonClass, Icon, FlameIcon, XpIcon, EmptyState } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
 import { Reveal } from "@/components/motion/Reveal";
@@ -9,7 +9,7 @@ import { api } from "@/lib/api";
 import { useAsync } from "@/lib/useAsync";
 import { AccuracyRing } from "./AccuracyRing";
 import { ActivityBars } from "./ActivityBars";
-import { BrandIcon, KpiCard } from "./KpiCard";
+import { KpiCard } from "./KpiCard";
 import { MockHistoryChart } from "./MockHistoryChart";
 import { StreakHeatmap } from "./StreakHeatmap";
 import { SubjectMastery } from "./SubjectMastery";
@@ -45,7 +45,7 @@ export function StatsSection() {
           isEmpty(s) ? (
             <Reveal>
               <Card className="flex flex-col items-center gap-3 py-8 text-center">
-                <Mascot mood="thinking" size={140} alt="" className="h-auto w-28" />
+                <Mascot mood="point" size={140} alt="" className="h-auto w-28" />
                 <h3 className="text-lg">{t("profile.stats.empty.title")}</h3>
                 <p className="max-w-sm text-ink-soft">{t("profile.stats.empty.text")}</p>
                 <Link href="/learn/" className={buttonClass("primary")}>
@@ -57,10 +57,10 @@ export function StatsSection() {
             <div className="flex min-w-0 flex-col gap-3">
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
                 {[
-                  <KpiCard key="xp" icon={<BrandIcon name="xp" />} value={s.xp_total} label={t("stat.xp")} />,
-                  <KpiCard key="cur" icon={<BrandIcon name="streak" />} value={s.streak_current} label={t("profile.stats.streakCurrent")} />,
-                  <KpiCard key="best" icon={<BrandIcon name="trophy" />} value={s.streak_best} label={t("profile.stats.streakBest")} />,
-                  <KpiCard key="les" icon={<BrandIcon name="lesson" />} value={s.lessons_completed} label={t("profile.stats.lessons")} />,
+                  <KpiCard key="xp" icon={<XpIcon width={28} height={28} />} value={s.xp_total} label={t("stat.xp")} />,
+                  <KpiCard key="cur" icon={<FlameIcon width={28} height={28} />} value={s.streak_current} label={t("profile.stats.streakCurrent")} />,
+                  <KpiCard key="best" icon={<Icon name="leagues" size={28} />} value={s.streak_best} label={t("profile.stats.streakBest")} />,
+                  <KpiCard key="les" icon={<Icon name="learn" size={28} />} value={s.lessons_completed} label={t("profile.stats.lessons")} />,
                   <KpiCard
                     key="acc"
                     className="col-span-2 md:col-span-1"
@@ -91,7 +91,7 @@ export function StatsSection() {
                     <MockHistoryChart mocks={s.mocks} />
                   ) : (
                     <div className="flex flex-col items-center gap-2 py-6 text-center">
-                      <BrandIcon name="mock" size={48} />
+                      <Icon name="mocks" size={32} className="text-ink-soft" />
                       <p className="text-ink-soft">{t("profile.stats.mocksEmpty")}</p>
                       <Link href="/mocks/" className={buttonClass("secondary")}>
                         {t("profile.stats.mocksCta")}

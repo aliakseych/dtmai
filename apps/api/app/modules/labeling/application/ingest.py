@@ -36,7 +36,11 @@ ACTOR = "labeling:ingest"
 
 class IngestService:
     def __init__(
-        self, session: AsyncSession, gateway: AIGateway, *, renderer: PageRenderer | None = None,
+        self,
+        session: AsyncSession,
+        gateway: AIGateway,
+        *,
+        renderer: PageRenderer | None = None,
         store: FileStore | None = None,
     ) -> None:
         self._s = session
@@ -46,9 +50,19 @@ class IngestService:
 
     # ---- batch lifecycle ---------------------------------------------------------------------
     async def create_batch(
-        self, *, root: str, source_code: str, source_name: str | None, source_year: int | None,
-        subject_id: UUID, language: str, base: str | None, has_answer_key: bool, topic_id: UUID | None,
-        type_ids: dict[str, UUID] | None, created_by: UUID | None,
+        self,
+        *,
+        root: str,
+        source_code: str,
+        source_name: str | None,
+        source_year: int | None,
+        subject_id: UUID,
+        language: str,
+        base: str | None,
+        has_answer_key: bool,
+        topic_id: UUID | None,
+        type_ids: dict[str, UUID] | None,
+        created_by: UUID | None,
     ) -> ImportBatchRow:
         store = self._store or store_for(root)
         paths = await store.list(root)
@@ -56,18 +70,37 @@ class IngestService:
             raise ValidationFailed(f"no importable files under {root}", code="no_files")
         topic = topic_id or await catalog_adapter.first_topic(self._s, subject_id)
         if topic is None:
-            raise ValidationFailed("topic_id required (no topics found for subject)", code="topic_required")
-        types = {**{k: str(v) for k, v in (await catalog_adapter.find_type_ids(self._s)).items()},
-                 **{k: str(v) for k, v in (type_ids or {}).items()}}
+            raise ValidationFailed(
+                "topic_id required (no topics found for subject)", code="topic_required"
+            )
+        types = {
+            **{k: str(v) for k, v in (await catalog_adapter.find_type_ids(self._s)).items()},
+            **{k: str(v) for k, v in (type_ids or {}).items()},
+        }
         batch = ImportBatchRow(
-            id=new_id(), source_code=source_code, source_name=source_name, source_year=source_year,
-            subject_id=subject_id, language=language, base=base, has_answer_key=has_answer_key, root=root,
-            topic_id=topic, type_ids=types, status="pending", files_total=len(paths), created_by=created_by,
+            id=new_id(),
+            source_code=source_code,
+            source_name=source_name,
+            source_year=source_year,
+            subject_id=subject_id,
+            language=language,
+            base=base,
+            has_answer_key=has_answer_key,
+            root=root,
+            topic_id=topic,
+            type_ids=types,
+            status="pending",
+            files_total=len(paths),
+            created_by=created_by,
         )
         self._s.add(batch)
         await self._s.flush()
         for p in paths:
-            self._s.add(ImportFileRow(id=new_id(), batch_id=batch.id, path=p, status="pending", question_ids=[]))
+            self._s.add(
+                ImportFileRow(
+                    id=new_id(), batch_id=batch.id, path=p, status="pending", question_ids=[]
+                )
+            )
         await self._s.flush()
         return batch
 
@@ -75,7 +108,9 @@ class IngestService:
         batch = await self._require(batch_id)
         if batch.status == "running":
             raise Conflict("Batch is already running", code="batch_running")
-        files = (await self._s.execute(select(ImportFileRow).where(ImportFileRow.batch_id == batch_id))).scalars()
+        files = (
+            await self._s.execute(select(ImportFileRow).where(ImportFileRow.batch_id == batch_id))
+        ).scalars()
         for f in files:
             if f.status == "failed" or (all_files and not f.question_ids):
                 f.status = "pending"
@@ -101,12 +136,16 @@ class IngestService:
         files = list(
             (
                 await self._s.execute(
-                    select(ImportFileRow).where(ImportFileRow.batch_id == batch_id).order_by(ImportFileRow.path)
+                    select(ImportFileRow)
+                    .where(ImportFileRow.batch_id == batch_id)
+                    .order_by(ImportFileRow.path)
                 )
             ).scalars()
         )
         route = (await self._gw.routes(Task.EXTRACT))[0]
-        system = extract_system([label for _, label in await catalog_adapter.ordered_topics(self._s, batch.subject_id)])
+        system = extract_system(
+            [label for _, label in await catalog_adapter.ordered_topics(self._s, batch.subject_id)]
+        )
         for f in files:
             if f.status == "pending":
                 await self._extract_file(batch, f, store, route, system)
@@ -122,15 +161,19 @@ class IngestService:
         await self._s.commit()
         return created
 
-    async def _extract_file(self, batch: ImportBatchRow, f: ImportFileRow, store: FileStore, route: Any, system: str) -> None:
+    async def _extract_file(
+        self, batch: ImportBatchRow, f: ImportFileRow, store: FileStore, route: Any, system: str
+    ) -> None:
         try:
             data = await store.read(f.path)
             pages = self._renderer.pages(Path(f.path).name, data)
             out: list[dict[str, Any]] = []
             for pg in pages:
                 parsed, _ = await self._gw.complete_json(
-                    route, [LLMMessage("system", system), LLMMessage("user", _content(pg))],
-                    purpose="ingestion.extract", ref=f"{f.id}:{pg.number}",
+                    route,
+                    [LLMMessage("system", system), LLMMessage("user", _content(pg))],
+                    purpose="ingestion.extract",
+                    ref=f"{f.id}:{pg.number}",
                 )
                 out.append({"page": pg.number, "data": parsed})
             f.extracted = {"pages": out}
@@ -143,17 +186,25 @@ class IngestService:
             log.exception("extract failed for %s", f.path)
             f.status, f.error = "failed", f"{type(e).__name__}: {e}"[:500]
 
-    async def _assemble(self, batch: ImportBatchRow, files: list[ImportFileRow], store: FileStore) -> list[UUID]:
+    async def _assemble(
+        self, batch: ImportBatchRow, files: list[ImportFileRow], store: FileStore
+    ) -> list[UUID]:
         ready = [f for f in files if f.status == "extracted"]
         if not ready:
             return []
         parsed: dict[UUID, list[tuple[int, PageExtraction]]] = {
-            f.id: [(p["page"], parse_page(p["data"])) for p in (f.extracted or {}).get("pages", [])] for f in ready
+            f.id: [(p["page"], parse_page(p["data"])) for p in (f.extracted or {}).get("pages", [])]
+            for f in ready
         }
         source_id = await catalog_adapter.get_or_create_source(
-            self._s, code=batch.source_code, name=batch.source_name or batch.source_code, year=batch.source_year
+            self._s,
+            code=batch.source_code,
+            name=batch.source_name or batch.source_code,
+            year=batch.source_year,
         )
-        topic_ids = [tid for tid, _ in await catalog_adapter.ordered_topics(self._s, batch.subject_id)]
+        topic_ids = [
+            tid for tid, _ in await catalog_adapter.ordered_topics(self._s, batch.subject_id)
+        ]
         created: list[UUID] = []
         for f in ready:
             ids: list[UUID] = []
@@ -165,11 +216,24 @@ class IngestService:
                     for pi, (page_no, ex) in enumerate(parsed[f.id]):
                         for p in ex.passages:
                             passage_ids[p.key] = await bank.create_passage(
-                                self._s, language=batch.language, text=p.text, title=p.title, source_id=source_id
+                                self._s,
+                                language=batch.language,
+                                text=p.text,
+                                title=p.title,
+                                source_id=source_id,
                             )
                         for qi, q in enumerate(ex.questions):
                             qid = await self._create_question(
-                                batch, f, source_id, page_no, qi, q, keys.get((pi, qi)), passage_ids, store, topic_ids
+                                batch,
+                                f,
+                                source_id,
+                                page_no,
+                                qi,
+                                q,
+                                keys.get((pi, qi)),
+                                passage_ids,
+                                store,
+                                topic_ids,
                             )
                             if qid is not None:
                                 ids.append(qid)
@@ -183,8 +247,17 @@ class IngestService:
         return created
 
     async def _create_question(
-        self, batch: ImportBatchRow, f: ImportFileRow, source_id: UUID, page_no: int, idx: int, q: ExtractedQuestion,
-        key_raw: str | None, passage_ids: dict[str, UUID], store: FileStore, topic_ids: list[UUID],
+        self,
+        batch: ImportBatchRow,
+        f: ImportFileRow,
+        source_id: UUID,
+        page_no: int,
+        idx: int,
+        q: ExtractedQuestion,
+        key_raw: str | None,
+        passage_ids: dict[str, UUID],
+        store: FileStore,
+        topic_ids: list[UUID],
     ) -> UUID | None:
         type_id = (batch.type_ids or {}).get(q.kind)
         if type_id is None or batch.topic_id is None:
@@ -203,21 +276,38 @@ class IngestService:
         if q.has_figure:
             image = await self._page_image(f, page_no, store)
             media_key = await store.put_public(
-                f"ingest/{batch.id}/{f.id}-p{page_no}-q{idx}.png", crop_png(image, q.bbox) or image, "image/png"
+                f"ingest/{batch.id}/{f.id}-p{page_no}-q{idx}.png",
+                crop_png(image, q.bbox) or image,
+                "image/png",
             )
             if media_key:
                 media.append({"type": "image", "key": media_key})
         cmd = bank.CreateQuestionCmd(
-            subject_id=batch.subject_id, topic_id=pick_topic(q.topic, topic_ids, batch.topic_id), type_id=UUID(type_id), kind=q.kind,
-            language=batch.language, stem=q.stem,
-            payload={"options": q.options} if q.options else {}, answer=answer, media=media,
-            passage_id=passage_ids.get(q.passage_key) if q.passage_key else None, source_id=source_id,
+            subject_id=batch.subject_id,
+            topic_id=pick_topic(q.topic, topic_ids, batch.topic_id),
+            type_id=UUID(type_id),
+            kind=q.kind,
+            language=batch.language,
+            stem=q.stem,
+            payload={"options": q.options} if q.options else {},
+            answer=answer,
+            media=media,
+            passage_id=passage_ids.get(q.passage_key) if q.passage_key else None,
+            source_id=source_id,
             source_ref={
-                "batch": str(batch.id), "file": f.path, "page": page_no, "number": q.number,
-                "base": batch.base, "has_figure": q.has_figure, "answer_placeholder": official is None,
-                "answer_source": answer_source, "options_generated": q.options_generated,
+                "batch": str(batch.id),
+                "file": f.path,
+                "page": page_no,
+                "number": q.number,
+                "base": batch.base,
+                "has_figure": q.has_figure,
+                "answer_placeholder": official is None,
+                "answer_source": answer_source,
+                "options_generated": q.options_generated,
             },
-            status="draft", answer_official=official is not None, created_by=ACTOR,
+            status="draft",
+            answer_official=official is not None,
+            created_by=ACTOR,
         )
         return await bank.create_question(self._s, cmd)
 
@@ -230,7 +320,9 @@ class IngestService:
 
 
 def _content(pg: Page) -> list[dict[str, Any]]:
-    parts: list[dict[str, Any]] = [{"type": "text", "text": "Extract all questions from this page."}]
+    parts: list[dict[str, Any]] = [
+        {"type": "text", "text": "Extract all questions from this page."}
+    ]
     if pg.text:
         parts.append({"type": "text", "text": f"TEXT LAYER:\n{pg.text}"})
     if pg.image:

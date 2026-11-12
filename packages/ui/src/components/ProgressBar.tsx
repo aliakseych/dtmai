@@ -3,7 +3,7 @@ import { cn } from "../cn";
 export function ProgressBar({
   value,
   max = 100,
-  color = "bg-green",
+  color = "bg-brand",
   label,
   className,
 }: {

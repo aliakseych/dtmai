@@ -12,8 +12,8 @@ from app.modules.notify.wiring import NotifyRepoDep, iter_recipients
 from app.shared.audit import audit_admin
 from app.shared.db import get_session
 from app.shared.deps import CurrentUser, require_role
-from app.shared.security import Principal
 from app.shared.errors import ProblemDetails
+from app.shared.security import Principal
 
 router = APIRouter(tags=["notify"])
 admin_router = APIRouter(tags=["notify-admin"])
@@ -57,8 +57,12 @@ class LinkCodeOut(BaseModel):
 
 def _out(p: Preferences) -> PreferencesOut:
     return PreferencesOut(
-        enabled=p.enabled, channels=sorted(p.channels), kinds=sorted(p.kinds),
-        quiet_start=p.quiet_start, quiet_end=p.quiet_end, max_per_day=p.max_per_day,
+        enabled=p.enabled,
+        channels=sorted(p.channels),
+        kinds=sorted(p.kinds),
+        quiet_start=p.quiet_start,
+        quiet_end=p.quiet_end,
+        max_per_day=p.max_per_day,
     )
 
 
@@ -72,8 +76,12 @@ async def put_preferences(
     body: PreferencesIn, user: CurrentUser, repo: NotifyRepoDep
 ) -> PreferencesOut:
     prefs = Preferences(
-        user_id=user.user_id, enabled=body.enabled, channels=set(body.channels),
-        kinds=set(body.kinds), quiet_start=body.quiet_start, quiet_end=body.quiet_end,
+        user_id=user.user_id,
+        enabled=body.enabled,
+        channels=set(body.channels),
+        kinds=set(body.kinds),
+        quiet_start=body.quiet_start,
+        quiet_end=body.quiet_end,
         max_per_day=body.max_per_day,
     )
     prefs.validate()
@@ -136,7 +144,12 @@ async def broadcast(
         await broadcast_job.kiq(body.channel.value, body.locale, body.title, body.body)
         queued = recipients
     audit_admin(
-        who, "notify.broadcast", channel=body.channel.value, locale=body.locale,
-        dry_run=body.dry_run, recipients=recipients, queued=queued,
+        who,
+        "notify.broadcast",
+        channel=body.channel.value,
+        locale=body.locale,
+        dry_run=body.dry_run,
+        recipients=recipients,
+        queued=queued,
     )
     return BroadcastOut(recipients=recipients, queued=queued)

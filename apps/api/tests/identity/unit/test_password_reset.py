@@ -6,7 +6,7 @@ import pytest
 
 from app.modules.identity.application.service import IdentityConfig, IdentityService, _sha
 from app.modules.identity.domain.models import EmailCode, User
-from app.shared.errors import Unauthorized, ValidationFailed
+from app.shared.errors import ValidationFailed
 from app.shared.ids import new_id
 
 NOW = datetime(2026, 1, 1, tzinfo=UTC)
@@ -125,7 +125,7 @@ def test_reset_with_valid_code_sets_password_and_consumes():
         tokens.access_token and users.u.password_hash == "h:newpassword" and users.u.email_verified
     )
     assert codes.items[-1].consumed
-    with pytest.raises(Unauthorized):  # single use
+    with pytest.raises(ValidationFailed):  # single use
         asyncio.run(svc.reset_password("a@b.uz", code, "another-pass"))
 
 
@@ -133,17 +133,17 @@ def test_reset_rejects_wrong_expired_unknown_and_weak():
     user = _user()
     svc, users, codes, mail = make(user)
     asyncio.run(svc.forgot_password("a@b.uz"))
-    with pytest.raises(Unauthorized):
+    with pytest.raises(ValidationFailed):
         asyncio.run(svc.reset_password("a@b.uz", "000000x", "newpassword"))
     assert codes.items[-1].attempts == 1
-    with pytest.raises(Unauthorized):
+    with pytest.raises(ValidationFailed):
         asyncio.run(svc.reset_password("nobody@b.uz", "123456", "newpassword"))
     with pytest.raises(ValidationFailed):
         asyncio.run(svc.reset_password("a@b.uz", "123456", "short"))
     codes.items[-1] = replace(
         codes.items[-1], expires_at=NOW - timedelta(seconds=1), code_hash=_sha(f"{user.id}:123456")
     )
-    with pytest.raises(Unauthorized):
+    with pytest.raises(ValidationFailed):
         asyncio.run(svc.reset_password("a@b.uz", "123456", "newpassword"))
     assert users.u.password_hash == "h:oldpassword"
 
@@ -154,3 +154,11 @@ def test_admin_reset_password_revokes_refresh_tokens():
     refresh = svc._refresh
     asyncio.run(svc.reset_user_password(user.id, "brand-new-pass"))
     assert users.u.password_hash == "h:brand-new-pass" and refresh.revoked_for == [user.id]
+
+
+def test_invalid_code_is_not_401():
+    svc, _, _, _ = make(_user())
+    asyncio.run(svc.forgot_password("a@b.uz"))
+    with pytest.raises(ValidationFailed) as e:
+        asyncio.run(svc.reset_password("a@b.uz", "000000x", "newpassword"))
+    assert e.value.status == 422 and e.value.code == "invalid_code"

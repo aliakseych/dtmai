@@ -23,10 +23,37 @@ export const daysBetween = (a: string, b: string) => Math.round((fromISO(b).getT
 export const weekdayOf = (iso: string) => (fromISO(iso).getDay() + 6) % 7;
 export const startOfWeek = (iso: string) => addDays(iso, -weekdayOf(iso));
 export const intlTag = (l: Locale) => (l === "uz-Latn" ? "uz-Latn-UZ" : l === "uz-Cyrl" ? "uz-Cyrl-UZ" : l);
+const isUz = (l: Locale): l is "uz-Latn" | "uz-Cyrl" => l === "uz-Latn" || l === "uz-Cyrl";
+// Browser ICU often lacks Uzbek data ("2027 M07 25", "Wed"), so uz names are built by hand. Monday-based.
+const UZ_WEEKDAYS: Record<"uz-Latn" | "uz-Cyrl", Record<"short" | "long", string[]>> = {
+  "uz-Latn": {
+    short: ["Du", "Se", "Ch", "Pa", "Ju", "Sh", "Ya"],
+    long: ["dushanba", "seshanba", "chorshanba", "payshanba", "juma", "shanba", "yakshanba"],
+  },
+  "uz-Cyrl": {
+    short: ["Ду", "Се", "Чо", "Па", "Жу", "Ша", "Як"],
+    long: ["душанба", "сешанба", "чоршанба", "пайшанба", "жума", "шанба", "якшанба"],
+  },
+};
 /** Localized weekday name for a Monday-based index. */
 export const weekdayName = (i: number, l: Locale, style: "short" | "long" = "short") =>
-  new Intl.DateTimeFormat(intlTag(l), { weekday: style }).format(new Date(2024, 0, 1 + i, 12));
-export const formatDay = (iso: string, l: Locale, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "long" }) => new Intl.DateTimeFormat(intlTag(l), opts).format(fromISO(iso));
+  isUz(l) ? UZ_WEEKDAYS[l][style][i]! : new Intl.DateTimeFormat(intlTag(l), { weekday: style }).format(new Date(2024, 0, 1 + i, 12));
+const UZ_MONTHS: Record<"uz-Latn" | "uz-Cyrl", string[]> = {
+  "uz-Latn": ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"],
+  "uz-Cyrl": ["январ", "феврал", "март", "апрел", "май", "июн", "июл", "август", "сентябр", "октябр", "ноябр", "декабр"],
+};
+/** Localized date; uz is built by hand (see UZ_WEEKDAYS). */
+export const formatDay = (iso: string, l: Locale, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "long" }) => {
+  if (isUz(l) && (opts.month || opts.weekday)) {
+    const d = fromISO(iso);
+    const day = opts.day ? `${d.getDate()}-` : "";
+    const month = opts.month ? UZ_MONTHS[l][d.getMonth()]! : "";
+    const date = `${day}${month}${opts.year ? ` ${d.getFullYear()}` : ""}`.trim();
+    const wd = opts.weekday ? weekdayName(weekdayOf(iso), l, opts.weekday === "long" ? "long" : "short") : "";
+    return [date, wd].filter(Boolean).join(", ");
+  }
+  return new Intl.DateTimeFormat(intlTag(l), opts).format(fromISO(iso));
+};
 
 export const MIN_LEAD_DAYS = 14;
 export const MAX_DAY_MINUTES = 150;

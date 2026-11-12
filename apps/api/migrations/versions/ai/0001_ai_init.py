@@ -20,7 +20,7 @@ UUID = postgresql.UUID(as_uuid=True)
 # Model routes seed (micro-USD per 1M tokens); tune in admin.
 ROUTES = [
     # Slugs/prices verified against openrouter.ai/api/v1/models (USD/Mtok × 1e6 = micro).
-    ("extract", 0, "google/gemini-3.7-flash", 0.1, 32768, 750_000, 3_750_000),
+    ("extract", 0, "google/gemini-3.7-flash", 0.1, 32000, 750_000, 3_750_000),
     ("solve", 0, "google/gemini-3.7-flash", 0.1, 4096, 750_000, 3_750_000),
     ("solve", 1, "deepseek/deepseek-v4-pro", 0.1, 4096, 955_260, 1_910_520),
     ("solve", 2, "anthropic/claude-haiku-5.5", 0.1, 4096, 100_000, 500_000),
@@ -45,7 +45,9 @@ def upgrade() -> None:
         sa.Column("price_out_micro_per_mtok", sa.BigInteger(), nullable=False, server_default="0"),
         sa.Column("enabled", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("updated_by", UUID),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.PrimaryKeyConstraint("task", "slot", name="pk_model_routes"),
         schema=S,
     )
@@ -56,14 +58,18 @@ def upgrade() -> None:
         sa.Column("daily_spend_cap_micro", sa.BigInteger(), nullable=False),
         sa.Column("user_daily_token_budget", sa.BigInteger(), nullable=False),
         sa.Column("updated_by", UUID),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_limits"),
         schema=S,
     )
     op.create_table(
         "ledger",
         sa.Column("id", UUID, nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("day", sa.Date(), nullable=False),
         sa.Column("user_id", UUID),
         sa.Column("purpose", sa.String(40), nullable=False),
@@ -93,8 +99,14 @@ def upgrade() -> None:
         routes,
         [
             {
-                "task": t, "slot": s, "model": m, "temperature": temp, "max_tokens": mt,
-                "price_in_micro_per_mtok": pi, "price_out_micro_per_mtok": po, "enabled": True,
+                "task": t,
+                "slot": s,
+                "model": m,
+                "temperature": temp,
+                "max_tokens": mt,
+                "price_in_micro_per_mtok": pi,
+                "price_out_micro_per_mtok": po,
+                "enabled": True,
             }
             for t, s, m, temp, mt, pi, po in ROUTES
         ],
@@ -102,7 +114,14 @@ def upgrade() -> None:
     # $20/day global cap, 200k tokens per user per day
     op.bulk_insert(
         limits,
-        [{"id": 1, "enabled": True, "daily_spend_cap_micro": 20_000_000, "user_daily_token_budget": 200_000}],
+        [
+            {
+                "id": 1,
+                "enabled": True,
+                "daily_spend_cap_micro": 20_000_000,
+                "user_daily_token_budget": 200_000,
+            }
+        ],
     )
 
 

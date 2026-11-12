@@ -9,7 +9,7 @@ export function ActiveAttemptCard({ attempt }: { attempt: Attempt }) {
   const t = useT();
   const left = useCountdown(attempt.deadline);
   return (
-    <Card className="flex flex-wrap items-center justify-between gap-3 border-blue bg-blue-soft">
+    <Card className="flex flex-wrap items-center justify-between gap-3 border-brand bg-brand-soft">
       <div>
         <h2 className="text-lg">{t("mock.resume")}</h2>
         <p className="font-bold text-ink-soft">{t("mock.timeLeft", { time: clock(left) })}</p>

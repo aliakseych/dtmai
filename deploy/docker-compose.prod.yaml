@@ -32,6 +32,8 @@ x-api-env: &api-env
   CLICK_MERCHANT_ID: ${CLICK_MERCHANT_ID}
   CLICK_MERCHANT_USER_ID: ${CLICK_MERCHANT_USER_ID}
   CLICK_SECRET_KEY: ${CLICK_SECRET_KEY}
+  PAYMENTS_ENABLED: ${PAYMENTS_ENABLED:-false}
+  CLICK_ALLOWED_IPS: ${CLICK_ALLOWED_IPS:-[]}
   TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
   TELEGRAM_WEBHOOK_URL: https://api.dtm-ai.uz/tg/webhook
   TELEGRAM_MINI_APP_URL: https://app.dtm-ai.uz/tg
@@ -64,6 +66,10 @@ services:
     image: redis:7.4.12-alpine
     command: ["redis-server", "--appendonly", "yes"]
     volumes: [redis:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 10
     networks: [internal]
   rustfs:
     <<: *hardened
@@ -84,7 +90,7 @@ services:
     command: ["python", "-m", "app", "api"]
     depends_on:
       migrate: {condition: service_completed_successfully}
-      redis: {condition: service_started}
+      redis: {condition: service_healthy}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/healthz')"]
       interval: 15s
@@ -96,16 +102,19 @@ services:
     restart: "no"
     depends_on:
       api: {condition: service_healthy}
+  # Worker/scheduler have no HTTP surface; a redis-reachability probe would not prove the loop is alive, so no healthcheck.
   worker:
     <<: *app
     command: ["python", "-m", "app", "worker"]
     depends_on:
       migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
   scheduler:
     <<: *app
     command: ["python", "-m", "app", "scheduler"]
     depends_on:
       migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
   web:
     <<: *hardened
     image: ghcr.io/aliakseych/dtmai-web:${IMAGE_TAG}
@@ -126,6 +135,8 @@ services:
     cap_drop: [ALL]
     cap_add: [NET_BIND_SERVICE, CHOWN, SETGID, SETUID]
     ports: ["80:80", "443:443"]
+    # Reload every 6 h so certificates renewed by the certbot service are picked up (no docker socket needed).
+    command: ["/bin/sh", "-c", "while :; do sleep 6h; nginx -s reload; done & exec nginx -g 'daemon off;'"]
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/sites:/etc/nginx/sites:ro
@@ -140,6 +151,27 @@ services:
     cap_drop: []
     volumes: [certs:/etc/letsencrypt, acme:/var/www/acme]
     networks: [internal]
+  # Daily pg_dump -Fc into the `backups` volume, 14-day rotation. Copy off-host: see DEPLOY.md section 9.
+  backup:
+    <<: *hardened
+    image: postgres:16.15-alpine
+    cap_drop: []
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        while :; do
+          f=/backups/dtmai-$$(date +%F).dump
+          if pg_dump -h postgres -U dtmai -Fc -f "$$f.tmp" dtmai; then mv "$$f.tmp" "$$f"; else rm -f "$$f.tmp"; echo "backup failed" >&2; fi
+          find /backups -name 'dtmai-*.dump' -mtime +14 -delete
+          sleep 86400
+        done
+    volumes: [backups:/backups]
+    depends_on:
+      postgres: {condition: service_healthy}
+    networks: [internal]
 
 networks:
   internal:
@@ -149,3 +181,4 @@ volumes:
   s3:
   certs:
   acme:
+  backups:

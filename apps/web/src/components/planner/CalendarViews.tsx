@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Button, cn } from "@dtmai/ui";
+import { Button, cn, Icon } from "@dtmai/ui";
 import { useLocale, useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
 import { addDays, formatDay, fromISO, startOfWeek, toISO, todayISO, weekdayName } from "@/lib/planDates";
@@ -22,13 +22,13 @@ function Nav({ label, onPrev, onNext, onToday }: { label: string; onPrev: () => 
   return (
     <div className="flex items-center justify-between gap-2">
       <Button variant="secondary" onClick={onPrev} aria-label={t("plan.prev")} className="px-4">
-        ‹
+        <Icon name="chevron-left" size={20} />
       </Button>
       <button type="button" onClick={onToday} className="min-w-0 truncate rounded-xl px-2 py-1 text-lg font-extrabold" title={t("plan.thisPeriod")}>
         {label}
       </button>
       <Button variant="secondary" onClick={onNext} aria-label={t("plan.next")} className="px-4">
-        ›
+        <Icon name="chevron-right" size={20} />
       </Button>
     </div>
   );
@@ -114,7 +114,7 @@ export function MonthView() {
                       aria-label={formatDay(d, locale)}
                       className={cn(
                         "flex aspect-square min-w-0 flex-col items-center justify-between rounded-xl border-2 p-1 text-sm font-extrabold",
-                        selected === d ? "border-blue" : "border-line",
+                        selected === d ? "border-brand" : "border-line",
                         taper && "bg-accent-soft",
                         d === today && "ring-2 ring-brand",
                         !inMonth && "pointer-events-none opacity-40",

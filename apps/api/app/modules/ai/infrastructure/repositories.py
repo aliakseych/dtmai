@@ -1,5 +1,3 @@
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from datetime import timedelta
 from uuid import UUID
 
@@ -7,7 +5,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.modules.ai.domain.budget import Limits
+from app.modules.ai.domain.budget import Limits, within_quota
 from app.modules.ai.domain.routing import ModelRoute, Task
 from app.modules.ai.infrastructure.clock import tashkent_today
 from app.modules.ai.infrastructure.orm import LedgerRow, LimitsRow, ModelRouteRow
@@ -188,15 +186,44 @@ class SqlLedgerRepository:
         )
 
 
-class PgTutorSlotLock:
-    """Per-user/per-Tashkent-day Postgres advisory transaction lock, held until the chat finishes."""
+class SqlTutorSlotReservations:
+    """Reserve = short transaction under a per-user advisory lock that counts and inserts a counted
+    `tutor` ledger row. The LLM call (purpose `tutor_llm`) runs afterwards with no lock or connection held."""
 
     def __init__(self, maker: async_sessionmaker[AsyncSession]) -> None:
         self._maker = maker
 
-    @asynccontextmanager
-    async def hold(self, user_id: UUID) -> AsyncIterator[None]:
-        key = f"tutor:{user_id}:{tashkent_today().isoformat()}"
+    async def reserve(self, user_id: UUID, limit: int) -> UUID | None:
+        key = f"tutor:{user_id}"
         async with self._maker() as s, s.begin():
             await s.execute(select(func.pg_advisory_xact_lock(func.hashtextextended(key, 0))))
-            yield
+            used = int(
+                await s.scalar(
+                    select(func.count()).where(
+                        LedgerRow.day == tashkent_today(),
+                        LedgerRow.user_id == user_id,
+                        LedgerRow.purpose == "tutor",
+                        LedgerRow.ok.is_(True),
+                    )
+                )
+                or 0
+            )
+            if not within_quota(limit, used):
+                return None
+            rid = new_id()
+            s.add(
+                LedgerRow(
+                    id=rid,
+                    day=tashkent_today(),
+                    user_id=user_id,
+                    purpose="tutor",
+                    task="tutor",
+                    model="reservation",
+                    ok=True,
+                )
+            )
+            return rid
+
+    async def release(self, reservation_id: UUID) -> None:
+        async with self._maker() as s, s.begin():
+            await s.execute(delete(LedgerRow).where(LedgerRow.id == reservation_id))

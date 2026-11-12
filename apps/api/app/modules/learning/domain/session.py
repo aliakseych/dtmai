@@ -1,6 +1,7 @@
 """Practice session rules."""
 
 from enum import StrEnum
+from uuid import UUID
 
 from app.shared.errors import Conflict, ValidationFailed
 
@@ -15,6 +16,7 @@ class Mode(StrEnum):
 
 HEART_MODES = frozenset({Mode.LESSON, Mode.DRILL})  # only these cost hearts
 PERFECT_BONUS = 5
+PERFECT_MIN_TOTAL = 5  # a 1-question drill must not farm the perfect bonus
 XP_PER_CORRECT = 2
 
 
@@ -31,7 +33,7 @@ def xp_base(mode: Mode, correct: int, total: int) -> int:
     if mode in (Mode.PLACEMENT, Mode.RUSH) or total <= 0:  # rush xp lives in domain.rush
         return 0
     base = correct * XP_PER_CORRECT
-    if mode in HEART_MODES and correct == total:
+    if mode in HEART_MODES and correct == total and total >= PERFECT_MIN_TOTAL:
         base += PERFECT_BONUS
     return base
 
@@ -42,10 +44,25 @@ def validate_count(n: int, *, maximum: int = 30) -> int:
     return n
 
 
+def lesson_unlocked(
+    units: list[list[UUID]], done: set[UUID], start_unit: int, lesson_id: UUID
+) -> bool:
+    """Same sequential rule as the learner path: a lesson is open when it is done or every
+    earlier lesson (from the placement start unit on) is done; units before the start are open."""
+    all_prev_done = True
+    for ui, lessons in enumerate(units):
+        if ui == start_unit:
+            all_prev_done = True
+        for lid in lessons:
+            if lid == lesson_id:
+                return lid in done or all_prev_done or ui < start_unit
+            all_prev_done = all_prev_done and lid in done
+    return True  # not on a known path: nothing to gate
+
+
 from dataclasses import dataclass, field  # noqa: E402
 from datetime import datetime  # noqa: E402
 from typing import Any  # noqa: E402
-from uuid import UUID  # noqa: E402
 
 IN_PROGRESS = "in_progress"
 COMPLETED = "completed"

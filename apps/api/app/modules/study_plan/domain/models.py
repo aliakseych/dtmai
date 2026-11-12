@@ -13,6 +13,17 @@ MAX_HORIZON_DAYS = 400  # longest span between start and exam date
 MAX_START_AHEAD_DAYS = 30  # how far in the future a plan may start
 
 
+def matches_blueprint(target: dict[str, Any], blueprint_id: UUID | None) -> bool:
+    """A mock task is ticked only by a mock of the blueprint it plans; no filter matches anything."""
+    return blueprint_id is None or str(target.get("blueprint_id")) == str(blueprint_id)
+
+
+def valid_study_time(value: str) -> bool:
+    if len(value) != 5 or value[2] != ":" or not (value[:2] + value[3:]).isdigit():
+        return False
+    return int(value[:2]) < 24 and int(value[3:]) < 60
+
+
 class TaskKind(StrEnum):
     LESSON = "lesson"
     DRILL = "drill"
@@ -38,6 +49,8 @@ class PlanSettings:
     target_lyceum_ids: tuple[UUID, ...] = ()
     certificates: tuple[Certificate, ...] = ()
     choice_subject_id: UUID | None = None  # chosen foreign language
+    study_time: str | None = None  # implementation intention: "HH:MM" local (Asia/Tashkent)
+    study_days: tuple[int, ...] = ()  # weekdays 0=Mon..6=Sun; empty = every day
 
     def __post_init__(self) -> None:
         if self.language not in LANGUAGES:
@@ -52,6 +65,12 @@ class PlanSettings:
             raise ValidationFailed("exam date is too far ahead", code="exam_date_too_far")
         if len(self.target_lyceum_ids) > MAX_TARGET_LYCEUMS:
             raise ValidationFailed("at most 3 target lyceums", code="too_many_lyceums")
+        if self.study_time is not None and not valid_study_time(self.study_time):
+            raise ValidationFailed("study time must be HH:MM", code="invalid_study_time")
+        if any(not 0 <= d <= 6 for d in self.study_days) or len(set(self.study_days)) != len(
+            self.study_days
+        ):
+            raise ValidationFailed("study days are weekdays 0-6", code="invalid_study_days")
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -74,6 +93,8 @@ class PlanSettings:
                 for c in self.certificates
             ],
             "choice_subject_id": str(self.choice_subject_id) if self.choice_subject_id else None,
+            "study_time": self.study_time,
+            "study_days": list(self.study_days),
         }
 
     @classmethod
@@ -96,6 +117,8 @@ class PlanSettings:
                 for c in d["certificates"]
             ),
             choice_subject_id=UUID(d["choice_subject_id"]) if d.get("choice_subject_id") else None,
+            study_time=d.get("study_time"),
+            study_days=tuple(d.get("study_days") or ()),
         )
 
 
@@ -127,3 +150,12 @@ class Task:
         self.status = TaskStatus.DONE
         self.done_at = at
         self.source_ref = source_ref
+
+    @property
+    def undoable(self) -> bool:
+        """Only a hand-ticked task can be reopened; activity-completed ones reflect real work."""
+        return self.status is TaskStatus.DONE and self.source_ref is None
+
+    def reopen(self) -> None:
+        self.status = TaskStatus.TODO
+        self.done_at = None

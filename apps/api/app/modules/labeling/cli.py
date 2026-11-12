@@ -47,9 +47,17 @@ async def run(argv: list[str]) -> int:
         gw = get_gateway()
         svc = IngestService(session, gw)
         batch = await svc.create_batch(
-            root=a.path, source_code=a.source, source_name=a.source_name, source_year=a.year,
-            subject_id=subject_id, language=a.language, base=a.base, has_answer_key=a.key, topic_id=a.topic_id,
-            type_ids={k: UUID(v) for k, _, v in (t.partition("=") for t in a.type)}, created_by=None,
+            root=a.path,
+            source_code=a.source,
+            source_name=a.source_name,
+            source_year=a.year,
+            subject_id=subject_id,
+            language=a.language,
+            base=a.base,
+            has_answer_key=a.key,
+            topic_id=a.topic_id,
+            type_ids={k: UUID(v) for k, _, v in (t.partition("=") for t in a.type)},
+            created_by=None,
         )
         await session.commit()
         created = await svc.run(batch.id)
@@ -73,14 +81,24 @@ async def reclassify(argv: list[str]) -> int:
     p.add_argument("--subject", required=True)
     a = p.parse_args(argv)
     async with get_sessionmaker()() as session:
-        hit = next((s for s in await catalog_adapter.list_subjects(session) if s.code.lower() == a.subject.lower()), None)
+        hit = next(
+            (
+                s
+                for s in await catalog_adapter.list_subjects(session)
+                if s.code.lower() == a.subject.lower()
+            ),
+            None,
+        )
         if hit is None:
             print("unknown subject")
             return 2
         rows = await session.execute(
-            text("SELECT id FROM bank.questions WHERE subject_id=:s ORDER BY created_at, id"), {"s": hit.id}
+            text("SELECT id FROM bank.questions WHERE subject_id=:s ORDER BY created_at, id"),
+            {"s": hit.id},
         )
-        changed = await classify_topics(session, get_gateway(), subject_id=hit.id, question_ids=[r[0] for r in rows])
+        changed = await classify_topics(
+            session, get_gateway(), subject_id=hit.id, question_ids=[r[0] for r in rows]
+        )
         print(f"{len(changed)} question(s) re-assigned")
     return 0
 
@@ -91,12 +109,21 @@ async def solve_drafts(argv: list[str]) -> int:
     p.add_argument("--subject", required=True)
     a = p.parse_args(argv)
     async with get_sessionmaker()() as session:
-        hit = next((s for s in await catalog_adapter.list_subjects(session) if s.code.lower() == a.subject.lower()), None)
+        hit = next(
+            (
+                s
+                for s in await catalog_adapter.list_subjects(session)
+                if s.code.lower() == a.subject.lower()
+            ),
+            None,
+        )
         if hit is None:
             print("unknown subject")
             return 2
         rows = await session.execute(
-            text("SELECT id FROM bank.questions WHERE subject_id=:s AND status='draft' ORDER BY created_at, id"),
+            text(
+                "SELECT id FROM bank.questions WHERE subject_id=:s AND status='draft' ORDER BY created_at, id"
+            ),
             {"s": hit.id},
         )
         ids = [r[0] for r in rows]

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { LocaleSwitcher, useT } from "@dtmai/i18n";
 import { Mascot } from "@dtmai/ui";
 
@@ -9,7 +9,7 @@ export function AuthFrame({ title, children, footer }: { title: string; children
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-4 py-8">
       <div className="flex items-center justify-between">
-        <Link href="/" className="text-3xl font-extrabold text-green">
+        <Link href="/" className="text-3xl font-extrabold text-brand">
           {t("app.name")}
         </Link>
         <LocaleSwitcher />
@@ -22,14 +22,53 @@ export function AuthFrame({ title, children, footer }: { title: string; children
   );
 }
 
-export function Field({ label, ...rest }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+export function Field({
+  label,
+  error,
+  hint,
+  reveal,
+  type,
+  ...rest
+}: { label: string; error?: string | null; hint?: string; reveal?: boolean } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const t = useT();
+  const id = useId();
+  const [shown, setShown] = useState(false);
+  const describedBy = [error ? `${id}-err` : null, hint ? `${id}-hint` : null].filter(Boolean).join(" ") || undefined;
   return (
-    <label className="flex flex-col gap-1 text-sm font-extrabold text-ink-soft">
-      {label}
-      <input
-        {...rest}
-        className="rounded-2xl border-2 border-line bg-snow px-4 py-3 text-base font-bold text-ink focus:border-blue focus:bg-white"
-      />
-    </label>
+    <div className="flex flex-col gap-1 text-sm font-extrabold text-ink-soft">
+      <label htmlFor={id}>{label}</label>
+      <div className="relative">
+        <input
+          {...rest}
+          id={id}
+          type={reveal && shown ? "text" : type}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          className={`w-full rounded-2xl border-2 bg-snow px-4 py-3 text-base font-bold text-ink focus:border-brand focus:bg-white ${
+            error ? "border-red-deep" : "border-line"
+          } ${reveal ? "pr-24" : ""}`}
+        />
+        {reveal && (
+          <button
+            type="button"
+            aria-pressed={shown}
+            onClick={() => setShown((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-extrabold text-brand underline"
+          >
+            {shown ? t("auth.password.hide") : t("auth.password.show")}
+          </button>
+        )}
+      </div>
+      {hint && !error && (
+        <p id={`${id}-hint`} className="font-bold">
+          {hint}
+        </p>
+      )}
+      {error && (
+        <p id={`${id}-err`} className="font-bold text-red-deep">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
