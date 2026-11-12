@@ -38,7 +38,7 @@ export function ImageSlot({ label, value, onChange }: { label: string; value: st
     <Field label={label}>
       <div className="flex items-center gap-2">
         {value ? <img src={mediaUrl(value)} alt="" className="size-14 rounded-xl border border-line object-cover" /> : <div className="size-14 rounded-xl border border-dashed border-line" />}
-        <FileBtn accept="image/*" disabled={busy} onFiles={(f, i) => void pick(f?.[0], i)} />
+        <FileBtn accept="image/png,image/jpeg,image/webp,image/gif" disabled={busy} onFiles={(f, i) => void pick(f?.[0], i)} />
         {busy && <Spinner />}
         {value && <Btn variant="ghost" onClick={() => onChange("")}>{t("admin.common.remove")}</Btn>}
       </div>
@@ -68,7 +68,7 @@ function Gallery({ value, onChange }: { value: string[]; onChange: (v: string[])
             <button type="button" aria-label={t("admin.lyceums.removeImage")} onClick={() => onChange(value.filter((_, j) => j !== i))} className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-red text-white"><Icon name="close" size={16} /></button>
           </div>
         ))}
-        <FileBtn accept="image/*" multiple disabled={busy} onFiles={(f, i) => { void add(f); i.value = ""; }} />
+        <FileBtn accept="image/png,image/jpeg,image/webp,image/gif" multiple disabled={busy} onFiles={(f, i) => { void add(f); i.value = ""; }} />
         {busy && <Spinner />}
       </div>
     </Field>

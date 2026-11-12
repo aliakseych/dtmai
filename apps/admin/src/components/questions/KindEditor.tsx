@@ -31,7 +31,7 @@ function OptList({ title, list, onChange, prefix, marker }: { title: string; lis
             {o.text.includes("$") && <div className="mt-0.5 text-xs text-ink-soft"><Md text={o.text} /></div>}
             {o.media && <img alt="" src={mediaUrl(o.media)} className="mt-1 max-h-16 rounded border border-line" />}
           </div>
-          <label className="cursor-pointer rounded border border-line px-1.5 py-1 text-xs hover:bg-snow">{t("admin.questions.img")}<input type="file" accept="image/*" hidden onChange={(e) => upload(i, e.target.files?.[0])} /></label>
+          <label className="cursor-pointer rounded border border-line px-1.5 py-1 text-xs hover:bg-snow">{t("admin.questions.img")}<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden onChange={(e) => upload(i, e.target.files?.[0])} /></label>
           <Btn variant="ghost" aria-label={t("admin.common.remove")} onClick={() => onChange(list.filter((_, j) => j !== i))}><Icon name="close" size={16} /></Btn>
         </div>
       ))}

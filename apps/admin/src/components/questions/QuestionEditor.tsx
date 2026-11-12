@@ -88,7 +88,7 @@ export function QuestionEditor({ id, preset, onClose }: { id: string | null | "n
             {isNew && <Check checked={f.answer_official} onChange={(answer_official) => set({ answer_official })} label={t("admin.questions.answerIsFromThe")} />}
             <div className="space-y-1.5"><h4 className="text-xs font-extrabold uppercase text-ink-soft">{t("admin.questions.images")}</h4>
               {f.media.map((m, i) => <div key={m.key} className="flex items-center gap-2"><img alt="" src={mediaUrl(m.key)} className="h-10 rounded-lg border border-line" /><code className="min-w-0 flex-1 truncate text-xs">{m.key}</code><Btn variant="ghost" aria-label={t("admin.common.remove")} onClick={() => set({ media: f.media.filter((_, j) => j !== i) })}><Icon name="close" size={16} /></Btn></div>)}
-              <label className="inline-block cursor-pointer rounded border border-line px-2 py-1 text-sm hover:bg-snow">{t("admin.questions.uploadImage")}<input type="file" accept="image/*" hidden onChange={(e) => addImage(e.target.files?.[0])} /></label>
+              <label className="inline-block cursor-pointer rounded border border-line px-2 py-1 text-sm hover:bg-snow">{t("admin.questions.uploadImage")}<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden onChange={(e) => addImage(e.target.files?.[0])} /></label>
               <div className="flex gap-1"><Input placeholder={t("admin.questions.orPasteAStorage")} value={key} onChange={(e) => setKey(e.target.value)} /><Btn disabled={!key.trim()} onClick={() => { set({ media: [...f.media, { type: "image", key: key.trim() }] }); setKey(""); }}>{t("admin.questions.add")}</Btn></div>
             </div>
           </div>
