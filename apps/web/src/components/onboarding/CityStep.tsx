@@ -29,9 +29,9 @@ function List({ cities, locale, value, onChange }: { cities: City[]; locale: Par
   const t = useT();
   const [sort, setSort] = useState<"name" | "count">("name");
   const items = useMemo(() => {
-    const rows = cities.map((c) => ({ value: c.code, label: pick(c.names, locale), hint: t("onb.city.count", { n: c.lyceum_count }), count: c.lyceum_count }));
+    const rows = cities.filter((c) => c.lyceum_count > 0 || c.code === value).map((c) => ({ value: c.code, label: pick(c.names, locale), hint: t("onb.city.count", { n: c.lyceum_count }), count: c.lyceum_count }));
     return rows.sort((a, b) => (sort === "count" ? b.count - a.count || a.label.localeCompare(b.label, locale) : a.label.localeCompare(b.label, locale)));
-  }, [cities, locale, sort, t]);
+  }, [cities, locale, sort, t, value]);
   return (
     <>
     <div role="group" aria-label={t("onb.city.sort")} className="flex items-center gap-2 text-sm font-extrabold">
@@ -42,7 +42,7 @@ function List({ cities, locale, value, onChange }: { cities: City[]; locale: Par
           type="button"
           aria-pressed={sort === k}
           onClick={() => setSort(k)}
-          className={sort === k ? "rounded-full bg-brand px-3 py-1 text-white" : "rounded-full border-2 border-line px-3 py-1 text-ink"}
+          className={sort === k ? "min-h-11 rounded-full bg-brand px-4 py-2 text-white" : "min-h-11 rounded-full border-2 border-line px-4 py-2 text-ink"}
         >
           {t(k === "name" ? "onb.city.sort.name" : "onb.city.sort.count")}
         </button>

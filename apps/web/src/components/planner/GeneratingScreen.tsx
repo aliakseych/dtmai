@@ -73,7 +73,6 @@ export function GeneratingScreen({ request, onDone, onBack }: { request: () => P
             >
               {done ? <BouncyCheck /> : <span aria-hidden="true" className="size-7 shrink-0 rounded-full border-2 border-line" />}
               <span>{t(k)}</span>
-              {done && <span className="sr-only">{t("plan.gen.ok")}</span>}
             </motion.li>
           );
         })}

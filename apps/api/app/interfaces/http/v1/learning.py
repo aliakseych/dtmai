@@ -22,6 +22,7 @@ from app.modules.learning.application.service import (
 from app.modules.learning.domain.stats import UserStats
 from app.modules.learning.ports import Item
 from app.modules.learning.wiring import LearningServiceDep
+from app.modules.study_plan import facade as study_plan
 from app.shared.db import get_session
 from app.shared.deps import CurrentUser
 from app.shared.errors import Forbidden, NotFound, ProblemDetails
@@ -514,5 +515,6 @@ async def merge_guest(
     await dispatch_pending()  # flush the guest's outbox so no event lands after the merge
     await learning_facade.merge_guest(session, guest.user_id, user.user_id)
     await gamification.merge_guest(session, guest.user_id, user.user_id)
+    await study_plan.merge_guest(session, guest.user_id, user.user_id)
     await identity.retire_guest(guest.user_id, user.user_id)
     return OkOut()

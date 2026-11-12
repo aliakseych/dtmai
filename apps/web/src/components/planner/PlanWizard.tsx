@@ -8,6 +8,7 @@ import { useSubjectNames } from "@/components/mocks/useSubjectNames";
 import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
 import { Choice } from "@/components/onboarding/Choice";
 import { useAuth, useLearnLanguage } from "@/lib/auth";
+import { fetchFields } from "@/lib/fields";
 import { addDays, clampMinutes, datesError, formatDay, MAX_DAY_MINUTES, MIN_LEAD_DAYS, todayISO, type DatesError } from "@/lib/planDates";
 import { getSettings, listProfiles, profileName, saveSettings, type CertRule, type Certificate, type ExamProfile, type ExamSection as Section } from "@/lib/planner";
 import { useAsync } from "@/lib/useAsync";
@@ -26,6 +27,7 @@ export function PlanWizard() {
   const { me } = useAuth();
   const profiles = useAsync(listProfiles, []);
   const { name: subjectName } = useSubjectNames();
+  const fields = useAsync(fetchFields, []);
   const today = todayISO();
 
   const [i, setI] = useState(0);
@@ -43,6 +45,18 @@ export function PlanWizard() {
   const list = useMemo(() => (profiles.state.status === "ready" ? profiles.state.data.filter((p) => p.kind === "academic_lyceum") : []), [profiles.state]);
   const prefill = me?.field_code ? list.find((p) => p.direction_code === me.field_code || p.code === me.field_code)?.code : undefined;
   const profile = list.find((p) => p.code === (code ?? prefill));
+  const fieldRows = fields.state.status === "ready" ? fields.state.data : [];
+  // Same label as onboarding: the field name plus its subjects, never the opaque profile code.
+  const fieldLabel = (p: ExamProfile) => {
+    const f = fieldRows.find((x) => x.code === (p.direction_code ?? p.code));
+    return {
+      name: f?.name ?? profileName(p, locale),
+      subjects: f ? f.subject_ids.map((id) => subjectName(id)).filter(Boolean).join(" · ") : "",
+    };
+  };
+  // Onboarding already chose the field: no list, and the whole step goes away unless a subject choice is still open.
+  const fieldFixed = !!prefill && code === null;
+  const needsChoice = !!profile && profile.sections.some((s) => s.choice_group);
   const examDate = exam ?? profile?.exam_date ?? "";
 
   const sectionName = (s: Section) => {
@@ -72,7 +86,7 @@ export function PlanWizard() {
   };
   // The certificate question only applies when the track has an exemptible subject with accepted certificates.
   const hasCert = !profile || profile.sections.some((s) => s.exemptible && s.role === "subject" && profile.certificate_rules.some((r) => r.section_id === s.id && r.min_value !== null));
-  const steps = hasCert ? STEPS : STEPS.filter((s) => s !== "cert");
+  const steps = STEPS.filter((s) => (s !== "cert" || hasCert) && (s !== "field" || !fieldFixed || needsChoice));
   const key = steps[i]!;
 
   const request = useCallback(async () => {
@@ -104,7 +118,7 @@ export function PlanWizard() {
           stepKey={key}
           step={i + 1}
           total={steps.length}
-          speech={t(`plan.wizard.${key}.speech`)}
+          speech={key === "field" && fieldFixed ? t("plan.wizard.choice.speech") : t(`plan.wizard.${key}.speech`)}
           mood={key === "review" ? "celebrate" : "calendar"}
           onBack={() => (i === 0 ? router.back() : setI(i - 1))}
           onContinue={() => (key === "review" ? setGenerating(true) : setI(i + 1))}
@@ -112,7 +126,7 @@ export function PlanWizard() {
           continueLabel={key === "review" ? t("plan.wizard.generate") : undefined}
         >
           {key === "field" && (
-            <FieldStep list={list} selected={profile?.code} onPick={(c) => { setCode(c); setChoices({}); setRules({}); setExam(null); }} profile={profile} sectionName={sectionName} choices={choices} setChoices={setChoices} subjectName={subjectName} />
+            <FieldStep fixed={fieldFixed} label={fieldLabel} list={list} selected={profile?.code} onPick={(c) => { setCode(c); setChoices({}); setRules({}); setExam(null); }} profile={profile} sectionName={sectionName} choices={choices} setChoices={setChoices} subjectName={subjectName} />
           )}
           {key === "cert" && profile && <CertStep profile={profile} choices={choices} rules={rules} setRules={setRules} sectionName={sectionName} />}
           {key === "days" && <DaysStep school={school} setSchool={setSchool} weekend={weekend} setWeekend={setWeekend} />}
@@ -121,6 +135,7 @@ export function PlanWizard() {
           {key === "review" && profile && (
             <ReviewStep
               profile={profile}
+              title={fieldLabel(profile).name}
               sectionName={sectionName}
               exempt={certificates().map((c) => c.section_id)}
               rows={[
@@ -154,6 +169,8 @@ function SectionRow({ s, label, exempt }: { s: Section; label: string; exempt?: 
 }
 
 function FieldStep({
+  fixed,
+  label,
   list,
   selected,
   onPick,
@@ -163,6 +180,8 @@ function FieldStep({
   setChoices,
   subjectName,
 }: {
+  fixed: boolean;
+  label: (p: ExamProfile) => { name: string; subjects: string };
   list: ExamProfile[];
   selected: string | undefined;
   onPick: (code: string) => void;
@@ -173,20 +192,20 @@ function FieldStep({
   subjectName: (id: string) => string;
 }) {
   const t = useT();
-  const { locale } = useLocale();
   return (
     <>
-      <p className="text-ink-soft">{t("plan.wizard.field.hint")}</p>
-      <div role="radiogroup" aria-label={t("plan.wizard.field.speech")} className="flex flex-col gap-2">
+      {!fixed && <p className="text-ink-soft">{t("plan.wizard.field.hint")}</p>}
+      {!fixed && <div role="radiogroup" aria-label={t("plan.wizard.field.speech")} className="flex flex-col gap-2">
         {list.map((p) => (
           <Choice key={p.code} on={p.code === selected} onClick={() => onPick(p.code)}>
             <span className="min-w-0 flex-1">
-              <span className="block break-words">{profileName(p, locale)}</span>
+              <span className="block break-words">{label(p).name}</span>
+              {label(p).subjects && <span className="block text-sm font-bold text-ink-soft">{label(p).subjects}</span>}
               {p.sections.some((s) => !s.available) && <span className="mt-1 inline-block rounded-lg bg-snow px-2 py-0.5 text-sm font-bold text-ink-soft">{t("plan.wizard.partialSubjects")}</span>}
             </span>
           </Choice>
         ))}
-      </div>
+      </div>}
       {profile && (
         <section aria-label={t("plan.wizard.exam")} className="flex flex-col gap-2">
           <h2 className="text-sm uppercase text-ink-soft">{t("plan.wizard.exam")}</h2>
@@ -289,13 +308,13 @@ function Stepper({ label, value, onChange }: { label: string; value: number; onC
     <div className="flex items-center justify-between gap-3 rounded-2xl border-2 border-line bg-white px-4 py-3">
       <span className="min-w-0 font-extrabold">{label}</span>
       <span className="flex shrink-0 items-center gap-2">
-        <Button variant="secondary" aria-label={`${label}: ${t("common.decrease")}`} onClick={() => onChange(clampMinutes(value - 5))} className="px-3 py-1">
+        <Button variant="secondary" aria-label={`${label}: ${t("common.decrease")}`} onClick={() => onChange(clampMinutes(value - 5))} className="min-h-11 min-w-11 px-3 py-1">
           <Icon name="minus" size={20} />
         </Button>
         <output className="min-w-16 text-center text-lg font-extrabold">
           {value} {t("plan.min")}
         </output>
-        <Button variant="secondary" aria-label={`${label}: ${t("common.increase")}`} onClick={() => onChange(clampMinutes(value + 5))} className="px-3 py-1">
+        <Button variant="secondary" aria-label={`${label}: ${t("common.increase")}`} onClick={() => onChange(clampMinutes(value + 5))} className="min-h-11 min-w-11 px-3 py-1">
           <Icon name="plus" size={20} />
         </Button>
       </span>
@@ -355,12 +374,11 @@ function DatesStep({
   );
 }
 
-function ReviewStep({ profile, sectionName, exempt, rows }: { profile: ExamProfile; sectionName: (s: Section) => string; exempt: string[]; rows: [string, string][] }) {
+function ReviewStep({ profile, title, sectionName, exempt, rows }: { profile: ExamProfile; title: string; sectionName: (s: Section) => string; exempt: string[]; rows: [string, string][] }) {
   const t = useT();
-  const { locale } = useLocale();
   return (
     <>
-      <h2 className="text-xl">{profileName(profile, locale)}</h2>
+      <h2 className="text-xl">{title}</h2>
       <ul className="flex flex-col gap-2">
         {profile.sections.map((s) => (
           <SectionRow key={s.id} s={s} label={sectionName(s)} exempt={exempt.includes(s.id)} />

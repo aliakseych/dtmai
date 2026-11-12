@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { buttonClass, CheckIcon, cn, Icon, type IconName } from "@dtmai/ui";
 import { useT, type MessageKey } from "@dtmai/i18n";
+import { useAuth } from "@/lib/auth";
 import { completeTask, taskHref, uncompleteTask, type TaskKind, type TaskOut } from "@/lib/planner";
 
 /** Circular progress; the stroke animates in unless the user prefers reduced motion. */
@@ -102,7 +103,9 @@ export function KindIcon({ kind, className }: { kind: TaskKind; className?: stri
 /** One planned task: icon, title, subject/minutes, then a tick (done) or a start link (todo). */
 export function TaskCard({ task, onOpen, onDone }: { task: TaskOut; onOpen?: () => void; onDone?: () => void }) {
   const t = useT();
-  const href = taskHref(task.kind);
+  const { isGuest } = useAuth();
+  // Guests have no practice access until they create an account.
+  const href = isGuest ? "/account/" : taskHref(task.kind);
   const [override, setOverride] = useState<"done" | "open" | null>(null);
   const done = (override ?? task.status) === "done";
   const open = !done;

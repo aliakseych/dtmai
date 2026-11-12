@@ -9,15 +9,15 @@ export function AuthFrame({ title, children, footer }: { title: string; children
   const t = useT();
   useDocumentTitle(title);
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-4 py-8">
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4 py-6 sm:gap-6 sm:py-8">
       <div className="flex items-center justify-between">
-        <Link href="/" aria-label={t("app.name")}>
+        <Link href="/" aria-label={t("app.name")} className="inline-flex min-h-11 items-center">
           <Logo name={t("app.name")} size={40} />
         </Link>
         <LocaleSwitcher />
       </div>
-      <Mascot mood="wave" size={120} alt={t("mascot.alt")} className="mx-auto h-auto w-28" />
-      <h1 className="text-center text-3xl">{title}</h1>
+      <Mascot mood="wave" size={120} alt={t("mascot.alt")} className="mx-auto h-auto w-20 sm:w-28" />
+      <h1 className="text-center text-2xl sm:text-3xl">{title}</h1>
       {children}
       <p className="text-center text-ink-soft">{footer}</p>
     </div>
@@ -55,7 +55,7 @@ export function Field({
             type="button"
             aria-pressed={shown}
             onClick={() => setShown((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-extrabold text-brand underline"
+            className="absolute right-1 top-1/2 grid min-h-11 -translate-y-1/2 place-items-center px-2 text-sm font-extrabold text-brand underline"
           >
             {shown ? t("auth.password.hide") : t("auth.password.show")}
           </button>

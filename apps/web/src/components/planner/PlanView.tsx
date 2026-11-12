@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Badge, buttonClass, Card, EmptyState, Tabs } from "@dtmai/ui";
 import { useLocale, useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
+import { useGoogleClientId } from "@/components/auth/GoogleSignIn";
 import { useAuth } from "@/lib/auth";
 import { PageTitle } from "@/components/PageTitle";
 import { getHome, getProfile, getSettings, getToday, type HomeOut, type TodayOut } from "@/lib/planner";
@@ -18,6 +19,7 @@ type Tab = "focus" | "week" | "month";
 export function PlanView() {
   const t = useT();
   const { isGuest } = useAuth();
+  const google = useGoogleClientId();
   const plan = useAsync(getSettings, []);
   const [tab, setTab] = useState<Tab>("focus");
   const home = useAsync(getHome, []);
@@ -27,7 +29,7 @@ export function PlanView() {
       {isGuest && (
         <Card className="mb-5 flex flex-col items-center gap-3 text-center">
           <h2 className="text-xl">{t("account.gate.title")}</h2>
-          <p className="text-ink-soft">{t("account.gate.body")}</p>
+          <p className="text-ink-soft">{t(google ? "account.gate.body" : "account.gate.body.noGoogle")}</p>
           <Link href="/account/" className={buttonClass("primary", true, "min-h-11")}>
             {t("account.gate.cta")}
           </Link>

@@ -5,7 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.modules.study_plan.infrastructure.repositories import SqlPlanRepository
 from app.modules.study_plan.wiring import build_plan_service
 
-__all__ = ["study_schedules", "today_summary"]
+__all__ = ["merge_guest", "study_schedules", "today_summary"]
+
+
+async def merge_guest(session: AsyncSession, from_id: UUID, into_id: UUID) -> None:
+    await build_plan_service(session).merge_guest(from_id, into_id)
 
 
 async def study_schedules(

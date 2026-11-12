@@ -434,6 +434,10 @@ class PlanService:
         task.complete(self._now(), event_id)
         await self._r.save_task(task)
 
+    async def merge_guest(self, from_id: UUID, into_id: UUID) -> None:
+        if from_id != into_id:
+            await self._r.merge(from_id, into_id)
+
     async def today_counts(self, user_id: UUID) -> tuple[int, int]:
         """(open, total) tasks planned for today; (0, 0) without a plan."""
         plan = await self._r.get_plan(user_id)

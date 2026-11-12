@@ -30,11 +30,18 @@ function loadGis(): Promise<void> {
   });
 }
 
+const loadConfig = () => api.unwrap(api.client.GET("/v1/identity/config"));
+
+/** Google client id from the API; `null` while loading or when Google sign-in is not configured. */
+export function useGoogleClientId(): string | null {
+  const cfg = useAsync(loadConfig, []);
+  return cfg.state.status === "ready" ? cfg.state.data.google_client_id : null;
+}
+
 /** "Sign in with Google" (Google Identity Services). Renders nothing unless the API reports a client id. */
 export function GoogleSignIn({ dest }: { dest?: string }) {
   const t = useT();
-  const cfg = useAsync(() => api.unwrap(api.client.GET("/v1/identity/config")), []);
-  const clientId = cfg.state.status === "ready" ? cfg.state.data.google_client_id : null;
+  const clientId = useGoogleClientId();
   const host = useRef<HTMLDivElement>(null);
   const signedIn = useSignedIn(dest);
   const signedInRef = useRef(signedIn);

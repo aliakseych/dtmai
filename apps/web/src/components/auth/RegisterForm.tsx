@@ -7,7 +7,7 @@ import { useLocale, useT } from "@dtmai/i18n";
 import { AuthFrame, Field } from "@/components/auth/AuthFrame";
 import { RegisterBenefits } from "@/components/auth/RegisterBenefits";
 import { OrDivider } from "@/components/auth/OrDivider";
-import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
+import { GoogleSignIn, useGoogleClientId } from "@/components/auth/GoogleSignIn";
 import { TelegramLogin } from "@/components/auth/TelegramLogin";
 import { useSignedIn } from "@/components/auth/useSignedIn";
 import { api } from "@/lib/api";
@@ -20,6 +20,7 @@ export function RegisterForm({ gate }: { gate?: boolean }) {
   const t = useT();
   const { locale } = useLocale();
   const { isGuest } = useAuth();
+  const google = useGoogleClientId();
   const signedIn = useSignedIn(gate ? "/plan/" : undefined);
   useRedirectIfSignedIn(gate ? "/plan/" : undefined);
   const [fields, setFields] = useState<FieldErrors>({});
@@ -88,14 +89,13 @@ export function RegisterForm({ gate }: { gate?: boolean }) {
       footer={
         <>
           {t("auth.haveAccount")}{" "}
-          <Link href="/login/" className="font-extrabold text-brand underline">
+          <Link href="/login/" className="inline-flex min-h-11 items-center font-extrabold text-brand underline">
             {t("auth.login.title")}
           </Link>
         </>
       }
     >
-      {gate ? <p className="text-center text-ink-soft">{t("account.text")}</p> : isGuest && <p className="text-center text-ink-soft">{t("auth.save.text")}</p>}
-      {step === "details" && <RegisterBenefits />}
+      {gate ? <p className="text-center text-ink-soft">{t(google ? "account.text" : "account.text.noGoogle")}</p> : isGuest && <p className="text-center text-ink-soft">{t("auth.save.text")}</p>}
       <form onSubmit={submit} noValidate className="flex flex-col gap-4">
         {step === "details" ? (
           <>
@@ -107,7 +107,7 @@ export function RegisterForm({ gate }: { gate?: boolean }) {
           <>
             <p className="text-ink-soft">{t("auth.codeSent", { email })}</p>
             <Field label={t("auth.code")} inputMode="numeric" autoComplete="one-time-code" error={fields.code && t(fields.code)} value={code} onChange={(e) => setCode(e.target.value)} />
-            <div className="flex flex-wrap gap-4 text-sm font-extrabold text-brand underline">
+            <div className="flex flex-wrap gap-x-4 text-sm font-extrabold text-brand underline [&>button]:min-h-11">
               <button type="button" onClick={resend}>
                 {t("auth.resend")}
               </button>
@@ -129,9 +129,10 @@ export function RegisterForm({ gate }: { gate?: boolean }) {
       </form>
       {step === "details" && (
         <>
-          <OrDivider />
+          {(google || process.env.NEXT_PUBLIC_TG_BOT) && <OrDivider />}
           <GoogleSignIn dest={gate ? "/plan/" : undefined} />
           <TelegramLogin dest={gate ? "/plan/" : undefined} />
+          <RegisterBenefits />
         </>
       )}
     </AuthFrame>

@@ -212,7 +212,6 @@
   "lyceums.passing": "Ўтиш бали",
   "nav.main": "Асосий навигация",
   "nav.menu": "Меню",
-  "onb.guestNote": "Аккаунт шарт эмас — кейинроқ рўйхатдан ўтишингиз мумкин.",
   "onb.placement.skip": "Тестни ўтказиб юбориш",
   "plan.months": "{n} ой",
   "practice.drill": "Машқ қилиш",
@@ -673,7 +672,7 @@
   "plan.wizard.study.speech": "Қачон шуғулланасиз? Белгиланган вақт одатга айланади.",
   "plan.wizard.study.time": "Машғулот вақти",
   "plan.wizard.study.days": "Машғулот кунлари",
-  "plan.wizard.study.hint": "Ихтиёрий. Шу вақтда эслатамиз. Бўш қолдирсанг — ҳар куни 19:00 да эслатамиз.",
+  "plan.wizard.study.hint": "Ихтиёрий. Шу вақтда эслатамиз. Бўш қолдирсангиз — ҳар куни 19:00 да эслатамиз.",
   "admin.admins.accountsWithStaffRoles": "Ходим ролларига эга аккаунтлар. Администраторлар аккаунт яратиши ва ролларни ўзгартириши мумкин.",
   "admin.admins.adminsStaff": "Администраторлар ва ходимлар",
   "admin.ai.aiEnabled": "AI ёқилган",
@@ -1690,5 +1689,9 @@
   "account.text": "Ҳисоб яратинг ёки Google орқали киринг — шундан сўнг иловага киргасиз.",
   "account.gate.title": "Режангиз тайёр!",
   "account.gate.body": "Иловага кириш учун логин ва парол яратинг ёки Google ҳисобидан фойдаланинг.",
-  "account.gate.cta": "Давом этиш"
+  "account.gate.cta": "Давом этиш",
+  "plan.wizard.choice.speech": "Қайси тилни танлайсиз?",
+  "account.text.noGoogle": "Email ва парол билан ҳисоб яратинг — шундан сўнг иловага киргасиз.",
+  "account.gate.body.noGoogle": "Иловага кириш учун логин ва парол яратинг.",
+  "onb.placement.done": "Даража тести якунланди!"
 }

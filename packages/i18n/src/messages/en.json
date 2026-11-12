@@ -212,7 +212,6 @@
   "lyceums.passing": "Passing score",
   "nav.main": "Main navigation",
   "nav.menu": "Menu",
-  "onb.guestNote": "No account needed — you can sign up later.",
   "onb.placement.skip": "Skip the test",
   "plan.months": "{n} mo.",
   "practice.drill": "Drill",
@@ -1690,5 +1689,9 @@
   "account.text": "Create an account or sign in with Google to open the app.",
   "account.gate.title": "Your plan is ready!",
   "account.gate.body": "Set a login and password or use your Google account to enter the app.",
-  "account.gate.cta": "Continue"
+  "account.gate.cta": "Continue",
+  "plan.wizard.choice.speech": "Which language do you choose?",
+  "account.text.noGoogle": "Create an account with your email and password to open the app.",
+  "account.gate.body.noGoogle": "Set a login and password to enter the app.",
+  "onb.placement.done": "Placement test complete!"
 }

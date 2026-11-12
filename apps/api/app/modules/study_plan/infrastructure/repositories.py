@@ -252,3 +252,20 @@ class SqlPlanRepository:
         row.answered = [*answered, str(question_id)]
         await self._s.flush()
         return True
+
+    async def merge(self, from_id: UUID, into_id: UUID) -> None:
+        """The destination keeps what it has; the guest's plan (with its tasks) and daily sets fill gaps."""
+        s = self._s
+        if await s.scalar(select(PlanRow.id).where(PlanRow.user_id == into_id)) is None:
+            await s.execute(
+                update(PlanRow).where(PlanRow.user_id == from_id).values(user_id=into_id)
+            )
+        else:
+            await s.execute(delete(PlanRow).where(PlanRow.user_id == from_id))  # tasks cascade
+        have = select(DailySetRow.day).where(DailySetRow.user_id == into_id)
+        await s.execute(
+            update(DailySetRow)
+            .where(DailySetRow.user_id == from_id, DailySetRow.day.not_in(have))
+            .values(user_id=into_id)
+        )
+        await s.execute(delete(DailySetRow).where(DailySetRow.user_id == from_id))

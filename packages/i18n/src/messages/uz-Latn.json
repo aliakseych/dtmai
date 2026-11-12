@@ -212,7 +212,6 @@
   "lyceums.passing": "O‘tish bali",
   "nav.main": "Asosiy navigatsiya",
   "nav.menu": "Menyu",
-  "onb.guestNote": "Akkaunt shart emas — keyinroq ro‘yxatdan o‘tishingiz mumkin.",
   "onb.placement.skip": "Testni o‘tkazib yuborish",
   "plan.months": "{n} oy",
   "practice.drill": "Mashq qilish",
@@ -673,7 +672,7 @@
   "plan.wizard.study.speech": "Qachon shug‘ullanasiz? Belgilangan vaqt odatga aylanadi.",
   "plan.wizard.study.time": "Mashg‘ulot vaqti",
   "plan.wizard.study.days": "Mashg‘ulot kunlari",
-  "plan.wizard.study.hint": "Ixtiyoriy. Shu vaqtda eslatamiz. Bo‘sh qoldirsang — har kuni 19:00 da eslatamiz.",
+  "plan.wizard.study.hint": "Ixtiyoriy. Shu vaqtda eslatamiz. Bo‘sh qoldirsangiz — har kuni 19:00 da eslatamiz.",
   "admin.admins.accountsWithStaffRoles": "Xodim rollariga ega akkauntlar. Administratorlar akkaunt yaratishi va rollarni o‘zgartirishi mumkin.",
   "admin.admins.adminsStaff": "Administratorlar va xodimlar",
   "admin.ai.aiEnabled": "AI yoqilgan",
@@ -1690,5 +1689,9 @@
   "account.text": "Hisob yarating yoki Google orqali kiring — shundan so‘ng ilovaga kirasiz.",
   "account.gate.title": "Rejangiz tayyor!",
   "account.gate.body": "Ilovaga kirish uchun login va parol yarating yoki Google hisobidan foydalaning.",
-  "account.gate.cta": "Davom etish"
+  "account.gate.cta": "Davom etish",
+  "plan.wizard.choice.speech": "Qaysi tilni tanlaysiz?",
+  "account.text.noGoogle": "Email va parol bilan hisob yarating — shundan so‘ng ilovaga kirasiz.",
+  "account.gate.body.noGoogle": "Ilovaga kirish uchun login va parol yarating.",
+  "onb.placement.done": "Daraja testi yakunlandi!"
 }

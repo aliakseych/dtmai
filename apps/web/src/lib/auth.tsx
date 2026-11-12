@@ -190,7 +190,8 @@ function MergeBanner() {
  * Guest-first: an anonymous visitor on any page gets a guest session (falling back to /login/ only if that fails),
  * and a user without a target lyceum is sent to /onboarding/.
  */
-export function RequireAuth({ children, allowUnonboarded }: { children: ReactNode; allowUnonboarded?: boolean }) {
+/** `account`: guests are sent to `/account/` (like the (app) routes) instead of using the page. */
+export function RequireAuth({ children, allowUnonboarded, account }: { children: ReactNode; allowUnonboarded?: boolean; account?: boolean }) {
   const { me, loading, onboarded, isGuest, startGuest } = useAuth();
   const router = useRouter();
   const starting = useRef(false);
@@ -205,8 +206,9 @@ export function RequireAuth({ children, allowUnonboarded }: { children: ReactNod
           starting.current = false;
         });
     } else if (!onboarded && !allowUnonboarded) router.replace("/onboarding/");
-  }, [loading, me, onboarded, allowUnonboarded, router, startGuest]);
-  if (loading || !me || (!onboarded && !allowUnonboarded)) return <div className="grid min-h-dvh place-items-center" aria-busy="true" />;
+    else if (account && isGuest) router.replace("/account/");
+  }, [loading, me, onboarded, allowUnonboarded, account, isGuest, router, startGuest]);
+  if (loading || !me || (!onboarded && !allowUnonboarded) || (account && isGuest)) return <div className="grid min-h-dvh place-items-center" aria-busy="true" />;
   return (
     <>
       <MergeBanner />

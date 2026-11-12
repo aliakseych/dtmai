@@ -5,7 +5,7 @@ import { RequireAuth } from "@/lib/auth";
 
 export default function RushPage() {
   return (
-    <RequireAuth>
+    <RequireAuth account>
       <Suspense>
         <RushView />
       </Suspense>

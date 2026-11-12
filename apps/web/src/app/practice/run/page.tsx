@@ -33,7 +33,7 @@ function Run() {
 
 export default function PracticeRunPage() {
   return (
-    <RequireAuth>
+    <RequireAuth account>
       <Suspense>
         <Run />
       </Suspense>

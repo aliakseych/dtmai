@@ -25,7 +25,7 @@ export function Onboarding() {
   const t = useT();
   const { locale } = useLocale();
   const router = useRouter();
-  const { isGuest, reloadMe, me } = useAuth();
+  const { reloadMe, me } = useAuth();
   // Resume: prefill from the saved profile and open the first unanswered step.
   const [i, setI] = useState(() => (!me?.city ? 0 : !me.education_language_id ? 1 : !me.field_code ? 2 : me.dream_lyceum_ids.length === 0 ? 3 : 5));
   const [city, setCity] = useState<CityChoice>(me?.city ?? undefined);
@@ -105,7 +105,7 @@ export function Onboarding() {
   const back = i > 0 ? () => setI((n) => n - 1) : undefined;
 
   if (step === "placement")
-    return <PlacementStep subjectName={firstSubject ? pick(firstSubject.names, locale) : ""} noContent={placementEmpty} busy={busy} error={saveError} isGuest={isGuest} onStart={start} onSkip={skip} onBack={() => setI(i - 1)} />;
+    return <PlacementStep subjectName={firstSubject ? pick(firstSubject.names, locale) : ""} noContent={placementEmpty} busy={busy} error={saveError} onStart={start} onSkip={skip} onBack={() => setI(i - 1)} />;
 
   const frame = { stepKey: step, step: i + 1, total: STEPS.length, onBack: back, onContinue: next };
   return (

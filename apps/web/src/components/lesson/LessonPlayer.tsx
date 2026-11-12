@@ -263,7 +263,7 @@ function Runner({ session, exitHref, doneHref, theory, onRestart }: { onRestart:
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 px-4 text-center">
         <Mascot mood={summary.total > 0 && summary.correct * 2 < summary.total ? "sad" : "celebrate"} size={220} alt="" className="pop-in h-auto w-48" />
-        <h1 className="text-3xl">{session.mode === "lesson" || session.mode === "placement" ? t("lesson.done") : t("lesson.drillDone")}</h1>
+        <h1 className="text-3xl">{session.mode === "placement" ? t("onb.placement.done") : session.mode === "lesson" ? t("lesson.done") : t("lesson.drillDone")}</h1>
         <p className="text-lg text-ink-soft">
           +{summary.xp_base} {t("stat.xp")} · {summary.correct}/{summary.total}
         </p>
