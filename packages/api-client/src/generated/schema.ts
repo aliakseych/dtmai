@@ -2775,7 +2775,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Stats */
+        /**
+         * Stats
+         * @description Admins see every labeler; others only their own row.
+         */
         get: operations["labeling_stats"];
         put?: never;
         post?: never;

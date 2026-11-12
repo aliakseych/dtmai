@@ -2309,6 +2309,7 @@
       "CertificateIO": {
         "properties": {
           "cert_type": {
+            "maxLength": 50,
             "title": "Cert Type",
             "type": "string"
           },
@@ -3005,6 +3006,7 @@
             "anyOf": [
               {
                 "additionalProperties": true,
+                "maxProperties": 50,
                 "type": "object"
               },
               {
@@ -10036,6 +10038,7 @@
                   "additionalProperties": true,
                   "type": "object"
                 },
+                "maxProperties": 200,
                 "propertyNames": {
                   "format": "uuid"
                 },
@@ -10055,6 +10058,7 @@
                   "format": "uuid",
                   "type": "string"
                 },
+                "maxItems": 200,
                 "type": "array"
               },
               {
@@ -10265,6 +10269,7 @@
             "items": {
               "$ref": "#/components/schemas/CertificateIO"
             },
+            "maxItems": 20,
             "title": "Certificates",
             "type": "array"
           },
@@ -10281,6 +10286,7 @@
             "title": "Choice Subject Id"
           },
           "direction_code": {
+            "maxLength": 50,
             "title": "Direction Code",
             "type": "string"
           },
@@ -10299,16 +10305,21 @@
           },
           "language": {
             "description": "Education language: uz | ru",
+            "maxLength": 10,
             "title": "Language",
             "type": "string"
           },
           "minutes_school_day": {
             "default": 45,
+            "maximum": 600.0,
+            "minimum": 5.0,
             "title": "Minutes School Day",
             "type": "integer"
           },
           "minutes_weekend_day": {
             "default": 90,
+            "maximum": 600.0,
+            "minimum": 5.0,
             "title": "Minutes Weekend Day",
             "type": "integer"
           },
@@ -10329,8 +10340,11 @@
             "default": [],
             "description": "Weekdays 0=Mon..6=Sun; empty = every day",
             "items": {
+              "maximum": 6.0,
+              "minimum": 0.0,
               "type": "integer"
             },
+            "maxItems": 7,
             "title": "Study Days",
             "type": "array"
           },
@@ -10353,6 +10367,7 @@
               "format": "uuid",
               "type": "string"
             },
+            "maxItems": 20,
             "title": "Target Lyceum Ids",
             "type": "array"
           }
@@ -31324,6 +31339,7 @@
     },
     "/v1/labeling/stats": {
       "get": {
+        "description": "Admins see every labeler; others only their own row.",
         "operationId": "labeling_stats",
         "parameters": [
           {
@@ -32687,6 +32703,8 @@
             "required": false,
             "schema": {
               "default": 5,
+              "maximum": 50,
+              "minimum": 1,
               "title": "Limit",
               "type": "integer"
             }
