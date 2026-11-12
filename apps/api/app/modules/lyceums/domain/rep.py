@@ -1,10 +1,12 @@
 """Lyceum representative rules: membership scoping and post moderation. Pure."""
 
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
+from app.modules.lyceums.domain.admission import normalize_telegram, validate_phones
 from app.shared.errors import Conflict, Forbidden, ValidationFailed
 
 LOCALES = ("uz-Latn", "uz-Cyrl", "ru", "en")
@@ -12,6 +14,8 @@ MAX_TITLE = 200
 MAX_BODY = 5000
 MAX_COURSES = 50
 MAX_GALLERY = 20
+MAX_COURSE_LEN = 200
+EMAIL_RE = re.compile(r"[^@\s]{1,64}@[^@\s]{1,255}\.[^@\s.]{2,}")
 CONTACT_KEYS = ("phone", "telegram", "email")
 
 
@@ -41,6 +45,7 @@ class PostStatus(StrEnum):
 class MembershipStatus(StrEnum):
     PENDING = "pending"
     APPROVED = "approved"
+    REVOKED = "revoked"
 
 
 def parse_kind(raw: str) -> PostKind:
@@ -83,6 +88,12 @@ class RepMembership:
         self.status = MembershipStatus.APPROVED
         self.decided_at = now
 
+    def revoke(self, now: datetime) -> None:
+        if self.status is not MembershipStatus.APPROVED:
+            raise Conflict("membership is not approved", code="rep_not_approved")
+        self.status = MembershipStatus.REVOKED
+        self.decided_at = now
+
     def ensure_manages(self, lyceum_id: UUID) -> None:
         """Rep content rights are scoped to one lyceum and require approval."""
         if self.lyceum_id != lyceum_id or self.status is not MembershipStatus.APPROVED:
@@ -94,6 +105,8 @@ def ensure_can_apply(existing: RepMembership | None) -> None:
         return
     if existing.status is MembershipStatus.APPROVED:
         raise Conflict("already a representative", code="rep_already_approved")
+    if existing.status is MembershipStatus.REVOKED:
+        raise Conflict("representative access was revoked", code="rep_revoked")
     raise Conflict("application already pending", code="rep_application_pending")
 
 
@@ -180,11 +193,21 @@ def validate_contacts(contacts: dict[str, str]) -> dict[str, str]:
     bad = [k for k in contacts if k not in CONTACT_KEYS]
     if bad:
         raise ValidationFailed(f"unknown contact: {bad[0]}", code="invalid_contacts")
-    return {k: v.strip() for k, v in contacts.items() if v.strip()}
+    cleaned = {k: v.strip() for k, v in contacts.items() if v.strip()}
+    if "telegram" in cleaned:
+        cleaned["telegram"] = normalize_telegram(cleaned["telegram"]) or ""
+    if "phone" in cleaned:
+        phones = validate_phones([cleaned["phone"]])
+        cleaned["phone"] = phones[0]
+    if "email" in cleaned and not EMAIL_RE.fullmatch(cleaned["email"]):
+        raise ValidationFailed("invalid email", code="invalid_email")
+    return {k: v for k, v in cleaned.items() if v}
 
 
 def validate_string_list(items: list[str], *, limit: int, code: str) -> list[str]:
     cleaned = list(dict.fromkeys(i.strip() for i in items if i.strip()))
+    if any(len(i) > MAX_COURSE_LEN for i in cleaned):
+        raise ValidationFailed("item too long", code=code)
     if len(cleaned) > limit:
         raise ValidationFailed("too many items", code=code)
     return cleaned

@@ -56,6 +56,13 @@ class Members:
     async def list_pending(self, limit):
         return [m for m in self.rows.values() if m.status is MembershipStatus.PENDING]
 
+    async def count_approved(self, u):
+        return sum(
+            1
+            for m in self.rows.values()
+            if m.user_id == u and m.status is MembershipStatus.APPROVED
+        )
+
 
 class Posts:
     def __init__(self) -> None:
@@ -88,9 +95,17 @@ class Posts:
 class Roles:
     def __init__(self) -> None:
         self.granted: list[UUID] = []
+        self.held: set[UUID] = set()
 
     async def grant_lyceum_rep(self, user_id):
         self.granted.append(user_id)
+        self.held.add(user_id)
+
+    async def revoke_lyceum_rep(self, user_id):
+        self.held.discard(user_id)
+
+    async def has_lyceum_rep(self, user_id):
+        return user_id in self.held
 
 
 class Clock:
@@ -300,6 +315,65 @@ def test_description_locales():
 
 
 def test_contacts_keys():
-    assert validate_contacts({"phone": " +998 ", "email": ""}) == {"phone": "+998"}
+    out = validate_contacts({"phone": " +998 90 123 45 67 ", "email": ""})
+    assert out["phone"].startswith("+998") and "email" not in out
     with pytest.raises(ValidationFailed):
         validate_contacts({"fax": "1"})
+
+
+# --- revoke / role check ---------------------------------------------------------
+def test_revoke_removes_role_and_access():
+    svc, _, roles = make()
+    u = uuid4()
+    run(approved(svc, u))
+    m = run(svc.revoke(u, L1))
+    assert m.status is MembershipStatus.REVOKED and u not in roles.held
+    with pytest.raises(Forbidden):
+        run(svc.create_post(u, L1, post_in()))
+    with pytest.raises(Conflict):
+        run(svc.revoke(u, L1))
+    with pytest.raises(Conflict):
+        run(svc.apply(u, L1, None, is_guest=False))
+
+
+def test_revoke_keeps_role_with_other_approved_lyceum():
+    svc, _, roles = make()
+    u = uuid4()
+    run(approved(svc, u, L1))
+    run(approved(svc, u, L2))
+    run(svc.revoke(u, L1))
+    assert u in roles.held
+    assert run(svc.create_post(u, L2, post_in()))
+
+
+def test_revoke_unknown_membership():
+    svc, _, _ = make()
+    with pytest.raises(NotFound):
+        run(svc.revoke(uuid4(), L1))
+
+
+def test_scoped_requires_role():
+    svc, _, roles = make()
+    u = uuid4()
+    run(approved(svc, u))
+    roles.held.discard(u)  # role removed out-of-band
+    with pytest.raises(Forbidden):
+        run(svc.create_post(u, L1, post_in()))
+
+
+# --- contact / list validation ---------------------------------------------------
+def test_contacts_normalised_and_validated():
+    out = validate_contacts(
+        {"phone": "+998 90 123 45 67", "telegram": "@dtm_lyceum", "email": "a@b.uz"}
+    )
+    assert out["telegram"] == "https://t.me/dtm_lyceum" and out["email"] == "a@b.uz"
+    for bad in ({"phone": "abc"}, {"telegram": "a b"}, {"email": "nope"}):
+        with pytest.raises(ValidationFailed):
+            validate_contacts(bad)
+
+
+def test_course_item_length_capped():
+    from app.modules.lyceums.domain.rep import validate_string_list
+
+    with pytest.raises(ValidationFailed):
+        validate_string_list(["x" * 201], limit=50, code="c")

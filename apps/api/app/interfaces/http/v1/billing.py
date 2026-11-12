@@ -1,7 +1,7 @@
 import ipaddress
 import json
 from datetime import datetime
-from typing import Any
+from typing import Annotated, Any
 from urllib.parse import parse_qsl
 from uuid import UUID
 
@@ -11,11 +11,14 @@ from pydantic import AwareDatetime, BaseModel, Field
 from app.modules.billing.domain.plans import Plan, Subscription
 from app.modules.billing.settings import get_billing_settings
 from app.modules.billing.wiring import BillingServiceDep
+from app.shared.audit import audit_admin
 from app.shared.deps import CurrentUser, require_role
 from app.shared.errors import Forbidden, ProblemDetails
+from app.shared.security import Principal
 
 router = APIRouter(tags=["billing"])
 admin_router = APIRouter(tags=["billing-admin"], dependencies=[Depends(require_role("admin"))])
+Admin = Annotated[Principal, Depends(require_role("admin"))]
 
 ERR: dict[int | str, dict[str, Any]] = {
     401: {"model": ProblemDetails, "description": "Unauthorized"},
@@ -40,7 +43,7 @@ class PlanOut(BaseModel):
 class PlanIn(BaseModel):
     names: dict[str, str]
     price_uzs: int = Field(ge=0)
-    period_months: int = 1
+    period_months: int = Field(default=1, ge=1, le=36)
     features: list[str] = Field(default_factory=list)
     limits: dict[str, int] = Field(default_factory=dict)
     active: bool = True
@@ -54,7 +57,7 @@ class PlanCreate(PlanIn):
 class PlanPatch(BaseModel):
     names: dict[str, str] | None = None
     price_uzs: int | None = Field(default=None, ge=0)
-    period_months: int | None = None
+    period_months: int | None = Field(default=None, ge=1, le=36)
     features: list[str] | None = None
     limits: dict[str, int] | None = None
     active: bool | None = None
@@ -226,7 +229,7 @@ async def admin_list_plans(svc: BillingServiceDep) -> list[PlanOut]:
 @admin_router.post(
     "/plans", status_code=201, operation_id="billing_admin_create_plan", responses=ERR
 )
-async def admin_create_plan(body: PlanCreate, svc: BillingServiceDep) -> PlanOut:
+async def admin_create_plan(body: PlanCreate, svc: BillingServiceDep, who: Admin) -> PlanOut:
     plan = Plan(
         code=body.code,
         names=body.names,
@@ -237,30 +240,45 @@ async def admin_create_plan(body: PlanCreate, svc: BillingServiceDep) -> PlanOut
         active=body.active,
         sort_order=body.sort_order,
     )
-    return _plan(await svc.create_plan(plan))
+    created = await svc.create_plan(plan)
+    audit_admin(who, "billing.plan_create", code=created.code, price_uzs=created.price_uzs)
+    return _plan(created)
 
 
 @admin_router.patch("/plans/{code}", operation_id="billing_admin_update_plan", responses=ERR)
-async def admin_update_plan(code: str, body: PlanPatch, svc: BillingServiceDep) -> PlanOut:
+async def admin_update_plan(
+    code: str, body: PlanPatch, svc: BillingServiceDep, who: Admin
+) -> PlanOut:
     changes = body.model_dump(exclude_unset=True)
     if "features" in changes and changes["features"] is not None:
         changes["features"] = frozenset(changes["features"])
     changes = {k: v for k, v in changes.items() if v is not None}
-    return _plan(await svc.update_plan(code, **changes))
+    updated = await svc.update_plan(code, **changes)
+    audit_admin(who, "billing.plan_update", code=code, fields=sorted(changes))
+    return _plan(updated)
 
 
 @admin_router.delete(
     "/plans/{code}", status_code=204, operation_id="billing_admin_delete_plan", responses=ERR
 )
-async def admin_delete_plan(code: str, svc: BillingServiceDep) -> Response:
+async def admin_delete_plan(code: str, svc: BillingServiceDep, who: Admin) -> Response:
     await svc.delete_plan(code)
+    audit_admin(who, "billing.plan_delete", code=code)
     return Response(status_code=204)
 
 
 @admin_router.post("/grants", status_code=201, operation_id="billing_admin_grant", responses=ERR)
-async def admin_grant(body: GrantIn, svc: BillingServiceDep) -> GrantOut:
+async def admin_grant(body: GrantIn, svc: BillingServiceDep, who: Admin) -> GrantOut:
     sub, warnings = await svc.admin_grant(
         body.user_id, body.plan_code, months=body.months, until=body.until
+    )
+    audit_admin(
+        who,
+        "billing.grant",
+        user_id=str(body.user_id),
+        plan_code=body.plan_code,
+        subscription_id=str(sub.id),
+        until=sub.until.isoformat(),
     )
     return GrantOut(**_sub(sub).model_dump(), warnings=warnings)
 
@@ -268,8 +286,14 @@ async def admin_grant(body: GrantIn, svc: BillingServiceDep) -> GrantOut:
 @admin_router.post(
     "/subscriptions/{subscription_id}/revoke", operation_id="billing_admin_revoke", responses=ERR
 )
-async def admin_revoke(subscription_id: UUID, svc: BillingServiceDep) -> SubscriptionOut:
-    return _sub(await svc.revoke(subscription_id))
+async def admin_revoke(
+    subscription_id: UUID, svc: BillingServiceDep, who: Admin
+) -> SubscriptionOut:
+    sub = await svc.revoke(subscription_id)
+    audit_admin(
+        who, "billing.revoke", subscription_id=str(subscription_id), user_id=str(sub.user_id)
+    )
+    return _sub(sub)
 
 
 @admin_router.get(

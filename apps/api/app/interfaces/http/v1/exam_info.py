@@ -21,6 +21,8 @@ from app.shared.errors import ProblemDetails, ValidationFailed
 from app.shared.locale import SUPPORTED
 from app.shared.security import Principal
 
+SourceUrl = Annotated[str, Field(pattern=r"^https?://", max_length=2048)]
+
 router = APIRouter(tags=["exam-info"])
 admin_router = APIRouter(tags=["exam-info-admin"], dependencies=[Depends(require_role("admin"))])
 
@@ -281,7 +283,7 @@ class FaqIn(BaseModel):
     position: int = 0
     published: bool = True
     verified: bool = False
-    source_url: str | None = None
+    source_url: SourceUrl | None = None
 
 
 @admin_router.get(
@@ -333,7 +335,7 @@ class EventIn(BaseModel):
     ends_on: date | None = None
     label: Texts
     verified: bool = False
-    source_url: str | None = None
+    source_url: SourceUrl | None = None
     position: int = 0
 
 
@@ -395,7 +397,7 @@ class ProfilePatch(BaseModel):
     trust_self_declared: bool | None = None
     taper_days: int | None = Field(default=None, ge=5, le=7)
     mock_blueprint_id: UUID | None = None
-    source_url: str | None = None
+    source_url: SourceUrl | None = None
     position: int | None = None
 
 
@@ -415,7 +417,7 @@ class CertRuleIn(BaseModel):
     awarded_fraction: Decimal = Decimal(1)
     note: Texts = Field(default_factory=dict)
     verified: bool = False
-    source_url: str | None = None
+    source_url: SourceUrl | None = None
     active: bool = True
 
 

@@ -675,9 +675,9 @@ async def rep_delete_post(
 
 
 class ContactsIn(BaseModel):
-    phone: str | None = None
-    telegram: str | None = None
-    email: str | None = None
+    phone: str | None = Field(default=None, max_length=32)
+    telegram: str | None = Field(default=None, max_length=200)
+    email: str | None = Field(default=None, max_length=320)
 
 
 def _sent_changes(body: BaseModel) -> dict[str, Any]:
@@ -694,8 +694,10 @@ def _sent_changes(body: BaseModel) -> dict[str, Any]:
 
 
 class RepProfilePatch(BaseModel):
-    description: dict[str, str] | None = None
-    courses: list[str] | None = None
+    description: dict[str, Annotated[str, Field(max_length=5000)]] | None = Field(
+        default=None, max_length=4
+    )
+    courses: list[Annotated[str, Field(max_length=200)]] | None = Field(default=None, max_length=50)
     contacts: ContactsIn | None = None
     dormitory_status: DormitoryStatusLiteral | None = None
     dormitory_description: dict[str, str] | None = None
@@ -723,8 +725,10 @@ class LyceumPatch(BaseModel):
     logo_url: str | None = Field(default=None, max_length=500)
     campus_photo_url: str | None = Field(default=None, max_length=500)
     gallery_urls: list[str] | None = None
-    description: dict[str, str] | None = None
-    courses: list[str] | None = None
+    description: dict[str, Annotated[str, Field(max_length=5000)]] | None = Field(
+        default=None, max_length=4
+    )
+    courses: list[Annotated[str, Field(max_length=200)]] | None = Field(default=None, max_length=50)
     university_name: str | None = Field(default=None, max_length=300)
     city: str | None = Field(default=None, max_length=100)
     website: str | None = Field(default=None, max_length=500)
@@ -780,6 +784,17 @@ async def reject_rep(lyceum_id: UUID, user_id: UUID, session: SessionDep, who: A
     await build_rep_service(session).reject_application(user_id, lyceum_id)
     audit_admin(who, "lyceums.rep_reject", lyceum_id=str(lyceum_id), user_id=str(user_id))
     return Response(status_code=204)
+
+
+@admin_router.post(
+    "/{lyceum_id}/rep/{user_id}/revoke", operation_id="lyceums_admin_revoke_rep", responses=ERR
+)
+async def revoke_rep(
+    lyceum_id: UUID, user_id: UUID, session: SessionDep, who: Admin
+) -> MembershipOut:
+    m = await build_rep_service(session).revoke(user_id, lyceum_id)
+    audit_admin(who, "lyceums.rep_revoke", lyceum_id=str(lyceum_id), user_id=str(user_id))
+    return _membership(m)
 
 
 @admin_router.get("/posts", operation_id="lyceums_admin_list_posts", responses=ERR)

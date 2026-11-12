@@ -82,6 +82,14 @@ class RepService:
         await self._profiles.mark_verified_rep(lyceum_id)
         return m
 
+    async def revoke(self, user_id: UUID, lyceum_id: UUID) -> RepMembership:
+        m = await self._pending(user_id, lyceum_id)
+        m.revoke(self._clock.now())
+        await self._members.save(m)
+        if await self._members.count_approved(user_id) == 0:
+            await self._roles.revoke_lyceum_rep(user_id)
+        return m
+
     async def reject_application(self, user_id: UUID, lyceum_id: UUID) -> None:
         m = await self._pending(user_id, lyceum_id)
         if m.status is MembershipStatus.APPROVED:
@@ -93,6 +101,8 @@ class RepService:
         if m is None:
             raise Forbidden("not a representative of this lyceum", code="rep_forbidden")
         m.ensure_manages(lyceum_id)
+        if not await self._roles.has_lyceum_rep(user_id):
+            raise Forbidden("not a representative of this lyceum", code="rep_forbidden")
         return m
 
     # --- rep profile ------------------------------------------------------

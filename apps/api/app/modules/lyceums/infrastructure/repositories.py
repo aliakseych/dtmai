@@ -512,6 +512,17 @@ class SqlMemberships:
             )
         )
 
+    async def count_approved(self, user_id: UUID) -> int:
+        n = await self._s.scalar(
+            select(func.count())
+            .select_from(RepMembershipRow)
+            .where(
+                RepMembershipRow.user_id == user_id,
+                RepMembershipRow.status == MembershipStatus.APPROVED.value,
+            )
+        )
+        return int(n or 0)
+
     async def list_pending(self, limit: int) -> list[RepMembership]:
         rows = await self._s.scalars(
             select(RepMembershipRow)

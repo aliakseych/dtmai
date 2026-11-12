@@ -409,6 +409,14 @@ class IdentityService:
             await self._users.save(user)
         return user
 
+    async def revoke_role(self, user_id: UUID, role: Role) -> User:
+        """Remove a role (idempotent); a user left without roles becomes a student."""
+        user = await self.get_me(user_id)
+        if role in user.roles:
+            user.roles = (user.roles - {role}) or {Role.STUDENT}
+            await self._users.save(user)
+        return user
+
     async def count_dreamers(self, lyceum_id: UUID) -> int:
         return await self._users.count_by_dream_lyceum(lyceum_id)
 

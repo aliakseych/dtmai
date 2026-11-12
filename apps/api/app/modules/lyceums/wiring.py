@@ -29,6 +29,13 @@ class _IdentityRoleGranter:
     async def grant_lyceum_rep(self, user_id: UUID) -> None:
         await build_identity_service(self._session).grant_role(user_id, Role.LYCEUM_REP)
 
+    async def revoke_lyceum_rep(self, user_id: UUID) -> None:
+        await build_identity_service(self._session).revoke_role(user_id, Role.LYCEUM_REP)
+
+    async def has_lyceum_rep(self, user_id: UUID) -> bool:
+        user = await build_identity_service(self._session).get_me(user_id)
+        return Role.LYCEUM_REP in user.roles
+
 
 def build_profile_service(session: AsyncSession) -> ProfileService:
     return ProfileService(SqlLyceumProfiles(session), SqlCities(session))
