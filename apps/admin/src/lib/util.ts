@@ -50,7 +50,11 @@ export function fieldErrors(e: unknown): Record<string, string> {
   }
   return out;
 }
-export const fmtNum = (n: number) => new Intl.NumberFormat(currentLocale().startsWith("uz") ? "uz" : currentLocale()).format(n);
+/** Thousands grouped with a no-break space for uz/ru ("49 000"); locale default otherwise. */
+export const fmtNum = (n: number) => {
+  const loc = currentLocale();
+  return loc === "en" ? new Intl.NumberFormat("en").format(n) : new Intl.NumberFormat("en").format(n).replace(/,/g, "\u00A0");
+};
 export const uuid = () => crypto.randomUUID();
 export function fmtDate(s?: string | null) {
   return s ? new Intl.DateTimeFormat(currentLocale() === "uz-Cyrl" ? "uz-Cyrl-UZ" : currentLocale(), { dateStyle: "short", timeStyle: "short" }).format(new Date(s)) : "—";

@@ -56,7 +56,7 @@ export default function BillingPage() {
             cols={[
               { key: "c", head: t("admin.common.code"), cell: (r) => <code>{r.code}</code> },
               { key: "n", head: t("admin.common.name"), cell: (r) => nm(r.names) },
-              { key: "p", head: t("admin.billing.priceUzs"), cell: (r) => fmtNum(r.price_uzs) },
+              { key: "p", head: t("admin.billing.priceUzs"), cell: (r) => t("admin.billing.priceFmt", { n: fmtNum(r.price_uzs) }) },
               { key: "m", head: t("admin.billing.months"), cell: (r) => r.period_months },
               { key: "f", head: t("admin.billing.features"), cell: (r) => r.features.map((x) => en("planFeature", x)).join(", ") },
               { key: "a", head: t("admin.common.state"), cell: (r) => <Badge tone={r.active ? "green" : "gray"}>{r.active ? t("admin.common.active") : t("admin.topics.inactive")}</Badge> },
@@ -72,10 +72,11 @@ export default function BillingPage() {
                 <ul className="divide-y divide-line rounded-xl border border-line">
                   {found.data.items.map((u) => (
                     <li key={u.id}><button type="button" onClick={() => setPicked(u)} className="flex w-full flex-wrap items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-snow">
-                      <span><b>{u.display_name}</b> · {u.email ?? "—"}</span>
+                      <span><b>{u.display_name}</b> · {u.email ?? <code>{u.id.slice(0, 8)}</code>} · <span className="text-ink-soft">{fmtDate(u.created_at)}</span></span>
                       <span className="flex gap-1"><Badge tone={u.status === "active" ? "green" : "gray"}>{en("userStatus", u.status)}</Badge>{u.roles.map((r) => <Badge key={r} tone="gray">{en("role", r)}</Badge>)}</span>
                     </button></li>
                   ))}
+                  {found.data.total > found.data.items.length && <li className="px-3 py-2 text-xs font-bold text-ink-soft">{t("admin.billing.moreResults", { n: found.data.total - found.data.items.length })}</li>}
                 </ul>
               ) : found.isLoading ? null : <EmptyState compact title={t("admin.billing.noUserFound")} />)}
               {picked && (
@@ -91,7 +92,7 @@ export default function BillingPage() {
                 <div className="flex items-end gap-3 rounded-xl border border-line bg-white p-4">
                   <Field label={t("admin.billing.grantPlan")} error={ge.plan_code}><Select value={grant.plan} onChange={(e) => setGrant({ ...grant, plan: e.target.value })}><option value="">—</option>{plans.data?.map((p) => <option key={p.code} value={p.code}>{nm(p.names)} · {p.code}</option>)}</Select></Field>
                   <Field label={t("admin.billing.months")} error={ge.months}><Input type="number" min={1} max={36} value={grant.months} onChange={(e) => setGrant({ ...grant, months: Number(e.target.value) })} /></Field>
-                  <Btn variant="primary" disabled={!grant.plan || picked?.status === "disabled" || grant.months < 1 || give.isPending} onClick={() => { const w = picked ? warnings(picked) : []; ask({ title: t("admin.billing.confirmGrant"), name: `${picked?.display_name} · ${picked?.email ?? "—"}`, body: w.join(" ") || `${grant.plan} · ${grant.months}`, danger: w.length > 0, confirmLabel: t("admin.billing.grant") }, () => give.mutate(undefined)); }}>{t("admin.billing.grant")}</Btn>
+                  <Btn variant="primary" disabled={!grant.plan || picked?.status === "disabled" || grant.months < 1 || give.isPending} onClick={() => { const w = picked ? warnings(picked) : []; ask({ title: t("admin.billing.confirmGrant"), name: `${picked?.display_name} · ${picked?.email ?? "—"}`, body: <div className="space-y-1"><p className="font-bold">{nm(plans.data?.find((p) => p.code === grant.plan)?.names) } · {grant.plan} · {grant.months} {t("admin.billing.months")}</p>{w.map((x) => <p key={x} className="font-bold text-red-deep">{x}</p>)}</div>, danger: w.length > 0, confirmLabel: t("admin.billing.grant") }, () => give.mutate(undefined)); }}>{t("admin.billing.grant")}</Btn>
                 </div>
                 <DataTable rows={subs.data} loading={subs.isLoading} error={subs.error} rowKey={(r) => r.id} empty={t("admin.billing.noSubscriptions")}
                   cols={[

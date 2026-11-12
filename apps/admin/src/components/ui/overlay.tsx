@@ -71,7 +71,7 @@ export function Drawer({ open, onClose, title, children, footer, width = "max-w-
       <aside ref={ref} role="dialog" aria-modal="true" aria-labelledby={titleId} onInput={touch} onChange={touch} className={cn("flex h-full w-full flex-col bg-white", width)}>
         <header className="flex items-center justify-between gap-2 border-b border-line px-4 py-2.5">
           <h2 id={titleId} className="min-w-0 break-words text-base">{title}</h2>
-          <button type="button" aria-label={t("admin.common.close")} onClick={request} className="grid size-9 shrink-0 place-items-center rounded-xl hover:bg-snow"><Icon name="close" size={20} /></button>
+          <button type="button" aria-label={t("admin.common.close")} onClick={request} className="grid size-11 shrink-0 place-items-center rounded-xl hover:bg-snow"><Icon name="close" size={20} /></button>
         </header>
         <div data-modal-body className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
         {footer && <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-4 py-2.5">{footer}</footer>}

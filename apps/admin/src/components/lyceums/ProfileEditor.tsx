@@ -8,7 +8,7 @@ import { useAct } from "@/lib/catalog";
 import { uploadMedia } from "@/lib/media";
 import { mediaUrl } from "@/lib/env";
 import { errMsg, LOCALE_LIST, nm } from "@/lib/util";
-import { Btn, Check, ErrorBox, Field, Input, Select, Spinner, Textarea } from "@/components/ui/controls";
+import { Btn, Check, FileBtn, ErrorBox, Field, Input, Select, Spinner, Textarea } from "@/components/ui/controls";
 import { CampusEditor, campusForm, campusPatch, type CampusForm } from "./CampusEditor";
 import { Drawer } from "@/components/ui/overlay";
 
@@ -38,7 +38,7 @@ export function ImageSlot({ label, value, onChange }: { label: string; value: st
     <Field label={label}>
       <div className="flex items-center gap-2">
         {value ? <img src={mediaUrl(value)} alt="" className="size-14 rounded-xl border border-line object-cover" /> : <div className="size-14 rounded-xl border border-dashed border-line" />}
-        <input type="file" accept="image/*" disabled={busy} onChange={(e) => void pick(e.target.files?.[0], e.target)} className="text-xs" />
+        <FileBtn accept="image/*" disabled={busy} onFiles={(f, i) => void pick(f?.[0], i)} />
         {busy && <Spinner />}
         {value && <Btn variant="ghost" onClick={() => onChange("")}>{t("admin.common.remove")}</Btn>}
       </div>
@@ -68,7 +68,7 @@ function Gallery({ value, onChange }: { value: string[]; onChange: (v: string[])
             <button type="button" aria-label={t("admin.lyceums.removeImage")} onClick={() => onChange(value.filter((_, j) => j !== i))} className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-red text-white"><Icon name="close" size={16} /></button>
           </div>
         ))}
-        <input type="file" accept="image/*" multiple disabled={busy} onChange={(e) => { void add(e.target.files); e.target.value = ""; }} className="text-xs" />
+        <FileBtn accept="image/*" multiple disabled={busy} onFiles={(f, i) => { void add(f); i.value = ""; }} />
         {busy && <Spinner />}
       </div>
     </Field>

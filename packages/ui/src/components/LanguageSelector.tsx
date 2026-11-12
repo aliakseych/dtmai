@@ -106,7 +106,7 @@ export function LanguageSelector({
             setOpen(true);
           }
         }}
-        className="inline-flex h-10 items-center gap-2 rounded-xl px-2 text-[13px] font-extrabold uppercase tracking-wide text-ink-soft transition hover:bg-snow hover:text-ink"
+        className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-[13px] font-extrabold uppercase tracking-wide text-ink-soft transition hover:bg-snow hover:text-ink"
       >
         <span className="shrink-0 overflow-hidden rounded-[3px] [&>svg]:block [&>svg]:h-4 [&>svg]:w-6">{current?.flag}</span>
         <span className="whitespace-nowrap sm:hidden">{current?.short ?? current?.label}</span>

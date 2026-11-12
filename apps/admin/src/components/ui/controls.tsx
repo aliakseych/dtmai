@@ -55,6 +55,19 @@ export function Check({ checked, onChange, label }: { checked: boolean; onChange
   );
 }
 
+/** Localized file picker (the native control renders "Choose File" in the browser language). */
+export function FileBtn({ accept, multiple, disabled, onFiles }: { accept?: string; multiple?: boolean; disabled?: boolean; onFiles: (files: FileList | null, input: HTMLInputElement) => void }) {
+  const t = useT();
+  const [name, setName] = useState("");
+  return (
+    <span className={cn("relative inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3 text-sm font-extrabold hover:bg-snow focus-within:ring-1 focus-within:ring-blue", disabled && "cursor-not-allowed opacity-50")}>
+      {t("admin.common.chooseFile")}
+      {name && <span className="max-w-40 truncate text-xs font-semibold text-ink-soft">{name}</span>}
+      <input type="file" accept={accept} multiple={multiple} disabled={disabled} className="absolute inset-0 size-full cursor-pointer opacity-0 disabled:cursor-not-allowed" onChange={(e) => { const i = e.target; setName(i.files?.length ? (i.files.length > 1 ? String(i.files.length) : i.files[0]!.name) : ""); onFiles(i.files, i); }} />
+    </span>
+  );
+}
+
 type Variant = "default" | "primary" | "danger" | "ghost";
 const V: Record<Variant, string> = {
   default: "border-line bg-white hover:bg-snow",
@@ -125,7 +138,7 @@ export function Tabs<T extends string>({ value, onChange, items }: { value: T; o
   return (
     <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-line bg-white px-3 sm:px-5">
       {items.map((i) => (
-        <button key={i.id} type="button" role="tab" aria-selected={value === i.id} onClick={() => onChange(i.id)} className={cn("-mb-px shrink-0 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-extrabold", value === i.id ? "border-blue text-blue-deep" : "border-transparent text-ink-soft hover:text-ink")}>
+        <button key={i.id} type="button" role="tab" aria-selected={value === i.id} onClick={() => onChange(i.id)} className={cn("-mb-px inline-flex min-h-11 shrink-0 items-center whitespace-nowrap border-b-2 px-3 py-2 text-sm font-extrabold", value === i.id ? "border-blue text-blue-deep" : "border-transparent text-ink-soft hover:text-ink")}>
           {i.label}
         </button>
       ))}

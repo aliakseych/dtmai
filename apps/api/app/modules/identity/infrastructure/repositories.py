@@ -100,6 +100,10 @@ class SqlUserRepository:
             ]
             if term.isdigit():
                 parts.append(UserRow.telegram_id == int(term))
+            try:
+                parts.append(UserRow.id == UUID(term))
+            except ValueError:
+                pass
             conds.append(or_(*parts))
         if role:
             conds.append(UserRow.roles.contains([role]))

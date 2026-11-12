@@ -1,6 +1,7 @@
 "use client";
 import { useEnum, useT } from "@/lib/i18n";
 import { useState } from "react";
+import { useToast } from "@dtmai/ui";
 import { useQuery } from "@tanstack/react-query";
 import { catalog, qk, useAct, type QBase, type QBaseIn } from "@/lib/catalog";
 import { SOURCE_KINDS, nm } from "@/lib/util";
@@ -15,10 +16,11 @@ const blank: QBaseIn = { code: "", names: {}, kind: "previous_year", year: null,
 export default function SourcesPage() {
   const t = useT();
   const en = useEnum();
+  const toast = useToast();
   const [ask, confirmNode] = useConfirm();
   const [showArchived, setShowArchived] = useState(false);
   const q = useQuery({ queryKey: [...qk.bases, "admin", showArchived], queryFn: () => catalog.bases.list(showArchived) });
-  const archive = useAct((a: { id: string; on: boolean }) => (a.on ? catalog.bases.archive(a.id) : catalog.bases.unarchive(a.id)), [qk.bases], t("admin.common.saved"));
+  const archive = useAct((a: { id: string; on: boolean }) => (a.on ? catalog.bases.archive(a.id) : catalog.bases.unarchive(a.id)), [qk.bases]);
   const [edit, setEdit] = useState<{ id?: string; form: QBaseIn } | null>(null);
   const save = useAct(
     (e: { id?: string; form: QBaseIn }) => {
@@ -45,7 +47,7 @@ export default function SourcesPage() {
             { key: "year", head: t("admin.common.year"), cell: (r) => r.year ?? "—" },
             { key: "prov", head: t("admin.sources.provenance"), cell: (r) => r.provenance ?? "—" },
             { key: "act", head: t("admin.common.state"), cell: (r) => r.archived ? <Badge tone="gray">{t("admin.common.archived")}</Badge> : <Badge tone={r.active ? "green" : "gray"}>{r.active ? t("admin.common.active") : t("admin.topics.inactive")}</Badge> },
-            { key: "arch", head: "", cell: (r) => <Btn onClick={(e) => { e.stopPropagation(); archive.mutate({ id: r.id, on: !r.archived }); }}>{r.archived ? t("admin.common.unarchive") : t("admin.common.archive")}</Btn> },
+            { key: "arch", head: "", cell: (r) => <Btn onClick={(e) => { e.stopPropagation(); archive.mutate({ id: r.id, on: !r.archived }, { onSuccess: () => toast(t(r.archived ? "admin.sources.unarchivedToast" : "admin.sources.archivedToast"), "success") }); }}>{r.archived ? t("admin.common.unarchive") : t("admin.common.archive")}</Btn> },
           ]} />
       </div>
       <Drawer open={!!edit} onClose={() => setEdit(null)} width="max-w-lg" title={edit?.id ? t("admin.sources.editBase") : t("admin.sources.newBase")}

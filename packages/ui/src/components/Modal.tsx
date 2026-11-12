@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { cn } from "../cn";
 import { buttonClass } from "./Button";
 
@@ -17,6 +17,7 @@ export function Modal({
   className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
@@ -27,12 +28,12 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      aria-label={title}
+      aria-labelledby={titleId}
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
       className={cn("m-auto w-[min(92vw,440px)] rounded-card border-2 border-line bg-white p-6 text-ink backdrop:bg-black/50", className)}
     >
-      <h2 className="mb-3 text-2xl font-extrabold">{title}</h2>
+      <h2 id={titleId} className="mb-3 text-2xl font-extrabold">{title}</h2>
       {children}
     </dialog>
   );

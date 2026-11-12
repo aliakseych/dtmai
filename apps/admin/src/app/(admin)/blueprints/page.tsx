@@ -5,6 +5,7 @@ import { useState } from "react";
 import { catalog, qk, useAct, useBases, useSubjects, useTopics, useTypes, type Blueprint, type BlueprintIn } from "@/lib/catalog";
 import { BLUEPRINT_KINDS, nm } from "@/lib/util";
 import { Badge, Btn, Field, Input, PageHeader, Select, StatusBadge } from "@/components/ui/controls";
+import { fieldErrors } from "@/lib/util";
 import { Drawer } from "@/components/ui/overlay";
 import { useConfirm } from "@/components/ui/confirm";
 import { DataTable } from "@/components/ui/table";
@@ -13,6 +14,7 @@ import { MultiPick } from "@/components/ui/multipick";
 
 interface Section { subject_id: string; topic_ids: string[]; type_ids: string[]; count: number; weight: number; question_ids?: string[] }
 const blankSection = (subject_id: string): Section => ({ subject_id, topic_ids: [], type_ids: [], count: 10, weight: 1 });
+const SLUG = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const blank: BlueprintIn = { code: "", names: {}, kind: "generated", sections: [], duration_min: 60, source_id: null };
 
 export default function BlueprintsPage() {
@@ -21,6 +23,7 @@ export default function BlueprintsPage() {
   const [ask, confirmNode] = useConfirm();
   const q = useQuery({ queryKey: qk.blueprints, queryFn: catalog.blueprints.list });
   const [edit, setEdit] = useState<{ id?: string; status?: string; version?: number; form: BlueprintIn; base?: string } | null>(null);
+  const [tried, setTried] = useState(false);
   const inv = [qk.blueprints];
   const save = useAct((e: NonNullable<typeof edit>) => {
     const body = { ...e.form, names: cleanNames(e.form.names) };
@@ -30,20 +33,26 @@ export default function BlueprintsPage() {
   const clone = useAct((id: string) => catalog.blueprints.clone(id), inv, t("admin.blueprints.clonedAsDraft"));
   const del = useAct((id: string) => catalog.blueprints.remove(id), inv, t("admin.common.deleted"));
   const locked = edit?.status === "published";
-  const dirty = !!edit?.id && JSON.stringify(edit.form) !== edit.base;
+  const changed = !!edit && JSON.stringify(edit.form) !== edit.base;
+  const dirty = !!edit?.id && changed;
+  const fe = fieldErrors(save.error);
+  const openNew = () => { setTried(false); save.reset(); setEdit({ form: blank, base: JSON.stringify(blank) }); };
   const f = edit?.form;
   const set = (p: Partial<BlueprintIn>) => setEdit((e) => e && { ...e, form: { ...e.form, ...p } });
   const sections = (f?.sections ?? []) as unknown as Section[];
   const setSections = (s: Section[]) => set({ sections: s as unknown as BlueprintIn["sections"] });
   const bases = useBases();
   const subjects = useSubjects();
-  const open = (b: Blueprint) => { const form: BlueprintIn = { code: b.code, names: b.names, kind: b.kind as BlueprintIn["kind"], sections: b.sections, duration_min: b.duration_min, source_id: b.source_id ?? null }; setEdit({ id: b.id, status: b.status, version: b.version, form, base: JSON.stringify(form) }); };
+  const codeErr = f && !SLUG.test(f.code) ? t("admin.blueprints.codeSlug") : fe.code;
+  const sectionsErr = sections.length === 0 ? t("admin.blueprints.sectionRequired") : undefined;
+  const valid = !!f && !codeErr && !sectionsErr && sections.every((s) => s.count > 0);
+  const open = (b: Blueprint) => { const form: BlueprintIn = { code: b.code, names: b.names, kind: b.kind as BlueprintIn["kind"], sections: b.sections, duration_min: b.duration_min, source_id: b.source_id ?? null }; setTried(false); save.reset(); setEdit({ id: b.id, status: b.status, version: b.version, form, base: JSON.stringify(form) }); };
 
   return (
     <>
-      <PageHeader title={t("admin.blueprints.mockBlueprints")} sub={t("admin.blueprints.draftPublishCreatesThe")} actions={<Btn variant="primary" onClick={() => setEdit({ form: blank })}>{t("admin.blueprints.newBlueprint")}</Btn>} />
+      <PageHeader title={t("admin.blueprints.mockBlueprints")} sub={t("admin.blueprints.draftPublishCreatesThe")} actions={<Btn variant="primary" onClick={openNew}>{t("admin.blueprints.newBlueprint")}</Btn>} />
       <div className="min-h-0 flex-1 overflow-auto">
-        <DataTable rows={q.data} loading={q.isLoading} error={q.error} rowKey={(r) => r.id} onRow={open} empty={<div className="space-y-2"><p>{t("admin.blueprints.emptyConsequence")}</p><Btn variant="primary" onClick={() => setEdit({ form: blank })}>{t("admin.blueprints.newBlueprint")}</Btn></div>}
+        <DataTable rows={q.data} loading={q.isLoading} error={q.error} rowKey={(r) => r.id} onRow={open} empty={<div className="space-y-2"><p>{t("admin.blueprints.emptyConsequence")}</p><Btn variant="primary" onClick={openNew}>{t("admin.blueprints.newBlueprint")}</Btn></div>}
           cols={[
             { key: "code", head: t("admin.common.code"), cell: (r) => <code>{r.code}</code> },
             { key: "name", head: t("admin.common.name"), cell: (r) => nm(r.names) },
@@ -54,18 +63,18 @@ export default function BlueprintsPage() {
             { key: "s", head: t("admin.common.sections"), cell: (r) => r.sections.length },
           ]} />
       </div>
-      <Drawer open={!!edit} onClose={() => setEdit(null)} title={`${edit?.id ? t("admin.blueprints.blueprint") : t("admin.blueprints.newBlueprint")}${edit?.status ? ` · ${t(`admin.status.${edit.status}`)}` : ""}`}
+      <Drawer open={!!edit} dirty={changed} onClose={() => setEdit(null)} title={`${edit?.id ? t("admin.blueprints.blueprint") : t("admin.blueprints.newBlueprint")}${edit?.status ? ` · ${t(`admin.status.${edit.status}`)}` : ""}`}
         footer={<>
           {edit?.id && !locked && <Btn variant="danger" className="mr-auto" onClick={() => ask({ title: t("admin.blueprints.deleteBlueprint"), name: nm(edit.form.names), danger: true, confirmLabel: t("admin.common.delete") }, () => del.mutate(edit.id!, { onSuccess: () => setEdit(null) }))}>{t("admin.common.delete")}</Btn>}
           <Btn onClick={() => setEdit(null)}>{t("admin.common.close")}</Btn>
           {edit?.id && locked && <Btn onClick={() => clone.mutate(edit.id!, { onSuccess: () => setEdit(null) })}>{t("admin.blueprints.cloneAsDraft")}</Btn>}
           {edit?.id && !locked && <Btn disabled={dirty || publish.isPending} title={dirty ? t("admin.blueprints.saveBeforePublish") : undefined} onClick={() => ask({ title: t("admin.blueprints.publishThisDraftAs"), name: nm(edit.form.names), body: <p className="text-sm text-ink-soft">{t("admin.blueprints.publishIrreversible")}</p>, confirmLabel: t("admin.common.publish"), danger: true }, () => publish.mutate(edit.id!, { onSuccess: () => setEdit(null) }))}>{t("admin.common.publish")}</Btn>}
-          {!locked && <Btn variant="primary" disabled={save.isPending} onClick={() => save.mutate(edit!, { onSuccess: () => setEdit(null) })}>{t("admin.common.save")}</Btn>}
+          {!locked && <Btn variant="primary" disabled={save.isPending} onClick={() => { setTried(true); if (valid) save.mutate(edit!, { onSuccess: () => setEdit(null) }); }}>{t("admin.common.save")}</Btn>}
         </>}>
         {f && (
           <fieldset disabled={locked} className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              <Field label={t("admin.common.code")}><Input value={f.code} onChange={(e) => set({ code: e.target.value })} /></Field>
+              <Field label={t("admin.common.code")} error={tried ? codeErr : fe.code}><Input value={f.code} onChange={(e) => set({ code: e.target.value })} /></Field>
               <Field label={t("admin.common.kind")}><Select value={f.kind} onChange={(e) => set({ kind: e.target.value as BlueprintIn["kind"] })}>{BLUEPRINT_KINDS.map((k) => <option key={k} value={k}>{en("blueprintKind", k)}</option>)}</Select></Field>
               <Field label={t("admin.blueprints.durationMin")}><Input type="number" min={1} value={f.duration_min} onChange={(e) => set({ duration_min: Number(e.target.value) })} /></Field>
               <Field label={t("admin.common.source")}><Select value={f.source_id ?? ""} onChange={(e) => set({ source_id: e.target.value || null })}><option value="">—</option>{bases.data?.map((b) => <option key={b.id} value={b.id}>{nm(b.names)}</option>)}</Select></Field>
@@ -73,10 +82,11 @@ export default function BlueprintsPage() {
             <NamesEditor value={f.names} onChange={(names) => set({ names })} />
             <div className="flex items-center justify-between"><h3 className="text-sm">{t("admin.blueprints.sectionsCount", { n: sections.length })}</h3>
               <Btn onClick={() => subjects.data?.[0] && setSections([...sections, blankSection(subjects.data[0].id)])}>{t("admin.blueprints.addSection")}</Btn></div>
+            {sections.length === 0 && <p role={tried ? "alert" : undefined} className={tried ? "text-xs font-bold text-red-deep" : "text-xs text-ink-soft"}>{t("admin.blueprints.sectionRequired")}</p>}
             {sections.map((s, i) => (
-              <SectionEditor key={i} s={s} onChange={(n) => setSections(sections.map((x, j) => (j === i ? n : x)))} onRemove={() => setSections(sections.filter((_, j) => j !== i))} />
+              <SectionEditor key={i} s={s} showErr={tried} onChange={(n) => setSections(sections.map((x, j) => (j === i ? n : x)))} onRemove={() => setSections(sections.filter((_, j) => j !== i))} />
             ))}
-            <p className="text-xs text-ink-soft">{t("admin.blueprints.totalHint", { n: sections.reduce((a, s) => a + (s.count || 0), 0) })} <code>{t("admin.blueprints.questionIds")}</code> {t("admin.blueprints.countMustMatch")}</p>
+            <p className="text-xs text-ink-soft">{t("admin.blueprints.totalHint2", { n: sections.reduce((a, s) => a + (s.count || 0), 0) })}</p>
             {dirty && !locked && <p className="text-xs font-bold text-orange">{t("admin.blueprints.saveBeforePublish")}</p>}
           </fieldset>
         )}
@@ -86,7 +96,7 @@ export default function BlueprintsPage() {
   );
 }
 
-function SectionEditor({ s, onChange, onRemove }: { s: Section; onChange: (s: Section) => void; onRemove: () => void }) {
+function SectionEditor({ s, showErr, onChange, onRemove }: { s: Section; showErr: boolean; onChange: (s: Section) => void; onRemove: () => void }) {
   const t = useT();
   const subjects = useSubjects();
   const topics = useTopics(s.subject_id);
@@ -95,7 +105,7 @@ function SectionEditor({ s, onChange, onRemove }: { s: Section; onChange: (s: Se
     <div className="space-y-2 rounded-xl border border-line p-2">
       <div className="grid grid-cols-2 sm:grid-cols-[1fr_6rem_6rem_auto] items-end gap-2">
         <Field label={t("admin.common.subject")}><Select value={s.subject_id} onChange={(e) => onChange({ ...s, subject_id: e.target.value, topic_ids: [] })}>{subjects.data?.map((x) => <option key={x.id} value={x.id}>{nm(x.names)}</option>)}</Select></Field>
-        <Field label={t("admin.common.count")}><Input type="number" min={1} value={s.count} onChange={(e) => onChange({ ...s, count: Number(e.target.value) })} /></Field>
+        <Field label={t("admin.common.count")} error={showErr && !(s.count > 0) ? t("admin.blueprints.countPositive") : undefined}><Input type="number" min={1} value={s.count} onChange={(e) => onChange({ ...s, count: Number(e.target.value) })} /></Field>
         <Field label={t("admin.common.weight")}><Input type="number" step="0.1" min={0} value={s.weight} onChange={(e) => onChange({ ...s, weight: Number(e.target.value) })} /></Field>
         <Btn variant="danger" onClick={onRemove}>{t("admin.common.remove")}</Btn>
       </div>
