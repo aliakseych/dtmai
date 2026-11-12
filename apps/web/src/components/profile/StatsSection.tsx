@@ -55,7 +55,7 @@ export function StatsSection() {
             </Reveal>
           ) : (
             <div className="flex min-w-0 flex-col gap-3">
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                 {[
                   <KpiCard key="xp" icon={<XpIcon width={28} height={28} />} value={s.xp_total} label={t("stat.xp")} />,
                   <KpiCard key="cur" icon={<FlameIcon width={28} height={28} />} value={s.streak_current} label={t("profile.stats.streakCurrent")} />,

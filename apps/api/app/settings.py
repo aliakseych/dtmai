@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     telegram_webhook_secret: str = ""
     telegram_init_data_max_age_seconds: int = 24 * 3600
 
+    # Google Identity Services OAuth client id; empty disables "Sign in with Google".
+    google_client_id: str = ""
+
     mail_backend: Literal["console", "smtp"] = "console"
     mail_from: str = "DTM AI <no-reply@dtm-ai.uz>"
     smtp_host: str = "localhost"

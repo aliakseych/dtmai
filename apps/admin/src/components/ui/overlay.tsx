@@ -40,7 +40,7 @@ export function useModalFocus(open: boolean, ref: React.RefObject<HTMLElement | 
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const el = ref.current;
-    if (el && !el.contains(document.activeElement)) (el.querySelector<HTMLElement>(FOCUSABLE) ?? el).focus();
+    if (el && !el.contains(document.activeElement)) (el.querySelector<HTMLElement>("[data-modal-body] :is(input,select,textarea):not([disabled]):not([type=hidden])") ?? el.querySelector<HTMLElement>(FOCUSABLE) ?? el).focus();
     const trap = (e: KeyboardEvent) => {
       if (e.key !== "Tab" || !el || document.querySelector("dialog[open]")) return;
       const f = Array.from(el.querySelectorAll<HTMLElement>(FOCUSABLE));
@@ -73,7 +73,7 @@ export function Drawer({ open, onClose, title, children, footer, width = "max-w-
           <h2 id={titleId} className="min-w-0 break-words text-base">{title}</h2>
           <button type="button" aria-label={t("admin.common.close")} onClick={request} className="grid size-9 shrink-0 place-items-center rounded-xl hover:bg-snow"><Icon name="close" size={20} /></button>
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
+        <div data-modal-body className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
         {footer && <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-4 py-2.5">{footer}</footer>}
       </aside>
       {confirmNode}
@@ -92,7 +92,7 @@ export function Dialog({ open, onClose, title, children, footer, dismissable = t
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4" onMouseDown={(e) => dismissable && e.target === e.currentTarget && request()}>
       <div ref={ref} role="dialog" aria-modal="true" aria-labelledby={titleId} onInput={touch} onChange={touch} className="max-h-full w-full max-w-lg overflow-y-auto rounded-card bg-white">
         <header className="border-b border-line px-4 py-2.5"><h2 id={titleId} className="text-base">{title}</h2></header>
-        <div className="p-4">{children}</div>
+        <div data-modal-body className="p-4">{children}</div>
         {footer && <footer className="flex flex-wrap justify-end gap-2 border-t border-line px-4 py-2.5">{footer}</footer>}
       </div>
       {confirmNode}

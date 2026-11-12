@@ -2,6 +2,7 @@
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -88,6 +89,15 @@ class PathDTO:
     units: list[UnitDTO]
 
 
+@dataclass(frozen=True, slots=True)
+class ReferenceSheetDTO:
+    subject_id: UUID
+    locale: str
+    content: str
+    source: str
+    updated_at: datetime
+
+
 def service(session: AsyncSession) -> CatalogService:
     return CatalogService(SqlCatalogRepository(session))
 
@@ -123,6 +133,20 @@ async def get_subject(session: AsyncSession, id: UUID) -> SubjectDTO:
 async def list_subjects(session: AsyncSession, *, active_only: bool = True) -> list[SubjectDTO]:
     rows = await SqlCatalogRepository(session).list("subject")
     return [_subject(r) for r in rows if r["active"] or not active_only]
+
+
+async def get_reference(
+    session: AsyncSession, subject_id: UUID, locale: str = "uz-Latn"
+) -> ReferenceSheetDTO | None:
+    """Active reference sheet of a subject in the best available locale, or None."""
+    row = await service(session).get_reference(subject_id)
+    if row is None or not row["active"]:
+        return None
+    contents: dict[str, str] = row["contents"]
+    loc = next((k for k in (locale, "uz-Latn", "ru", "en", "uz-Cyrl") if contents.get(k)), None)
+    if loc is None:
+        return None
+    return ReferenceSheetDTO(subject_id, loc, contents[loc], row["source"], row["updated_at"])
 
 
 async def get_topic(session: AsyncSession, id: UUID) -> TopicDTO:

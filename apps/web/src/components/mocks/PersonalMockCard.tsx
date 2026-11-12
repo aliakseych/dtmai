@@ -9,9 +9,10 @@ import { useLearnLanguage } from "@/lib/auth";
 import { useBilling } from "@/lib/billing";
 import { isCode } from "@/lib/errors";
 import { pick } from "@/lib/localized";
+import { isActiveConflict, StartFailure } from "./StartFailure";
 import { useSubjectNames } from "./useSubjectNames";
 
-type Status = "idle" | "busy" | "premium" | "error";
+type Status = "idle" | "busy" | "premium" | "error" | "conflict";
 
 /** Personal mock from weak areas; a 403 premium_required becomes a note (buy link only if canBuy). */
 export function PersonalMockCard() {
@@ -31,7 +32,7 @@ export function PersonalMockCard() {
       const a = await api.unwrap(api.client.POST("/v1/assessment/attempts/personal", { body: { subject_id: chosen, language, count: 30 } }));
       router.push(`/mocks/run/?attempt=${a.id}`);
     } catch (e) {
-      setStatus(isCode(e, "premium_required") ? "premium" : "error");
+      setStatus(isCode(e, "premium_required") ? "premium" : isActiveConflict(e) ? "conflict" : "error");
     }
   }
 
@@ -66,11 +67,7 @@ export function PersonalMockCard() {
           )}
         </p>
       )}
-      {status === "error" && (
-        <p role="alert" className="font-bold text-red-deep">
-          {t("mock.startError")}
-        </p>
-      )}
+      {(status === "error" || status === "conflict") && <StartFailure conflict={status === "conflict"} />}
     </Card>
   );
 }

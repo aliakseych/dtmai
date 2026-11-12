@@ -592,6 +592,43 @@ export interface paths {
         patch: operations["catalog_admin_update_question_base"];
         trace?: never;
     };
+    "/v1/admin/catalog/question-bases/{item_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admin Archive Base
+         * @description Hide a base from learners and default admin lists without deleting its questions.
+         */
+        post: operations["catalog_admin_archive_question_base"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog/question-bases/{item_id}/unarchive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin Unarchive Base */
+        post: operations["catalog_admin_unarchive_question_base"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/catalog/question-types": {
         parameters: {
             query?: never;
@@ -664,6 +701,28 @@ export interface paths {
         head?: never;
         /** Patch */
         patch: operations["catalog_admin_update_subject"];
+        trace?: never;
+    };
+    "/v1/admin/catalog/subjects/{subject_id}/reference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin Get Reference */
+        get: operations["catalog_admin_get_reference"];
+        /**
+         * Admin Put Reference
+         * @description Create or replace the subject's reference sheet (one per subject).
+         */
+        put: operations["catalog_admin_put_reference"];
+        post?: never;
+        /** Admin Delete Reference */
+        delete: operations["catalog_admin_delete_reference"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/admin/catalog/topics": {
@@ -1089,6 +1148,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/ingestion/batches/{batch_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Archive Batch
+         * @description Hide a finished batch from the default list; running batches cannot be archived.
+         */
+        post: operations["ingestion_archive_batch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/ingestion/batches/{batch_id}/rerun": {
         parameters: {
             query?: never;
@@ -1100,6 +1179,23 @@ export interface paths {
         put?: never;
         /** Rerun Batch */
         post: operations["ingestion_rerun_batch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/ingestion/batches/{batch_id}/unarchive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unarchive Batch */
+        post: operations["ingestion_unarchive_batch"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1821,6 +1917,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/bank/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Overview
+         * @description Learner question bank of one subject: verified questions per topic/question type with the
+         *     caller's solved counts, filterable by question base and difficulty level.
+         */
+        get: operations["bank_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/bank/passages/{passage_id}": {
         parameters: {
             query?: never;
@@ -2023,6 +2140,26 @@ export interface paths {
          * @description Published path; `progress` is per-user when a bearer token is sent, otherwise nothing is completed.
          */
         get: operations["catalog_get_path"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/catalog/subjects/{subject_id}/reference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Reference
+         * @description Formula/reference sheet of a subject (404 when the subject has none or it is switched off).
+         */
+        get: operations["catalog_get_reference"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2270,6 +2407,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/identity/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Auth Config */
+        get: operations["identity_get_config"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/identity/email/resend": {
         parameters: {
             query?: never;
@@ -2298,6 +2452,23 @@ export interface paths {
         put?: never;
         /** Verify */
         post: operations["identity_verify_email"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Google */
+        post: operations["identity_google"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3639,8 +3810,87 @@ export interface components {
             /** Sampled */
             sampled: number;
         };
+        /** AuthConfigOut */
+        AuthConfigOut: {
+            /** Google Client Id */
+            google_client_id: string | null;
+        };
+        /** BankBaseOut */
+        BankBaseOut: {
+            /** Code */
+            code: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Names */
+            names: {
+                [key: string]: string;
+            };
+            /** Solved */
+            solved: number;
+            /** Total */
+            total: number;
+            /** Year */
+            year: number | null;
+        };
+        /** BankOverviewOut */
+        BankOverviewOut: {
+            /** Bases */
+            bases: components["schemas"]["BankBaseOut"][];
+            /** Easy */
+            easy: number;
+            /** Hard */
+            hard: number;
+            /** Medium */
+            medium: number;
+            /** Solved */
+            solved: number;
+            /** Total */
+            total: number;
+            /** Types */
+            types: components["schemas"]["BankTypeOut"][];
+        };
+        /**
+         * BankTypeOut
+         * @description One (topic, question type) cell. total/solved honour the level filter; easy/medium/hard
+         *     are the cell's totals per level (source filter applied, level filter not).
+         */
+        BankTypeOut: {
+            /** Easy */
+            easy: number;
+            /** Hard */
+            hard: number;
+            /** Kind */
+            kind: string;
+            /** Medium */
+            medium: number;
+            /** Solved */
+            solved: number;
+            /**
+             * Topic Id
+             * Format: uuid
+             */
+            topic_id: string;
+            /** Total */
+            total: number;
+            /**
+             * Type Id
+             * Format: uuid
+             */
+            type_id: string;
+            /** Type Names */
+            type_names: {
+                [key: string]: string;
+            };
+        };
         /** BatchDetail */
         BatchDetail: {
+            /** Archived */
+            archived: boolean;
             /** Error */
             error: string | null;
             /** Files */
@@ -3707,6 +3957,8 @@ export interface components {
         };
         /** BatchOut */
         BatchOut: {
+            /** Archived */
+            archived: boolean;
             /** Error */
             error: string | null;
             /** Files Done */
@@ -3885,6 +4137,15 @@ export interface components {
             /** Recipients */
             recipients: number;
         };
+        /** BuildingModel */
+        BuildingModel: {
+            /** Floor Plans */
+            floor_plans?: components["schemas"]["FloorPlanModel"][];
+            /** Name */
+            name: {
+                [key: string]: string;
+            };
+        };
         /** BulkIn */
         BulkIn: {
             /**
@@ -3940,6 +4201,17 @@ export interface components {
         BulkStatusOut: {
             /** Updated */
             updated: number;
+        };
+        /** CampusMapModel */
+        CampusMapModel: {
+            /** Embed Url */
+            embed_url?: string | null;
+            /** Image Url */
+            image_url?: string | null;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
         };
         /** CertRuleCreate */
         CertRuleCreate: {
@@ -4392,6 +4664,10 @@ export interface components {
             count: number;
             /** Language */
             language: string;
+            /** Level */
+            level?: ("easy" | "medium" | "hard") | null;
+            /** Source Id */
+            source_id?: string | null;
             /**
              * Subject Id
              * Format: uuid
@@ -4401,6 +4677,11 @@ export interface components {
             topic_id?: string | null;
             /** Type Id */
             type_id?: string | null;
+            /**
+             * Unsolved Only
+             * @default false
+             */
+            unsolved_only: boolean;
         };
         /** EmailIn */
         EmailIn: {
@@ -4754,6 +5035,15 @@ export interface components {
             /** Xp Base */
             xp_base: number;
         };
+        /** FloorPlanModel */
+        FloorPlanModel: {
+            /** Image Url */
+            image_url: string;
+            /** Label */
+            label?: {
+                [key: string]: string;
+            };
+        };
         /** GenerationIn */
         GenerationIn: {
             /** Count */
@@ -4814,6 +5104,11 @@ export interface components {
              */
             type_id: string;
         };
+        /** GoogleIn */
+        GoogleIn: {
+            /** Id Token */
+            id_token: string;
+        };
         /** GrantIn */
         GrantIn: {
             /** Months */
@@ -4827,6 +5122,40 @@ export interface components {
              * Format: uuid
              */
             user_id: string;
+        };
+        /** GrantOut */
+        GrantOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Plan Code */
+            plan_code: string;
+            /** Source */
+            source: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Status */
+            status: string;
+            /**
+             * Until
+             * Format: date-time
+             */
+            until: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -4853,10 +5182,20 @@ export interface components {
             attempt_id: string;
             /** Blueprint Id */
             blueprint_id: string | null;
+            /**
+             * Correct
+             * @default 0
+             */
+            correct: number;
             /** Kind */
             kind: string;
             /** Max Total */
             max_total: number;
+            /**
+             * Questions
+             * @default 0
+             */
+            questions: number;
             /** Score */
             score: number;
             /**
@@ -5308,6 +5647,8 @@ export interface components {
         };
         /** LyceumPatch */
         LyceumPatch: {
+            /** Buildings */
+            buildings?: components["schemas"]["BuildingModel"][] | null;
             /** Campus Photo Url */
             campus_photo_url?: string | null;
             /** City */
@@ -5329,6 +5670,11 @@ export interface components {
             gallery_urls?: string[] | null;
             /** Logo Url */
             logo_url?: string | null;
+            map?: components["schemas"]["CampusMapModel"] | null;
+            /** Offerings */
+            offerings?: components["schemas"]["OfferingModel"][] | null;
+            /** Specializations */
+            specializations?: components["schemas"]["SpecializationModel"][] | null;
             /** University Name */
             university_name?: string | null;
             /** Verified Rep */
@@ -5530,6 +5876,21 @@ export interface components {
             ru: string;
             /** Uz */
             uz: string;
+        };
+        /** OfferingModel */
+        OfferingModel: {
+            /** Description */
+            description?: {
+                [key: string]: string;
+            };
+            /** Taught By */
+            taught_by?: {
+                [key: string]: string;
+            };
+            /** Title */
+            title: {
+                [key: string]: string;
+            };
         };
         /** OkOut */
         OkOut: {
@@ -5940,6 +6301,8 @@ export interface components {
         };
         /** ProfileOut */
         ProfileOut: {
+            /** Buildings */
+            buildings: components["schemas"]["BuildingModel"][];
             /** Campus Photo Url */
             campus_photo_url: string | null;
             /** City */
@@ -5964,6 +6327,11 @@ export interface components {
             gallery_urls: string[];
             /** Logo Url */
             logo_url: string | null;
+            map: components["schemas"]["CampusMapModel"] | null;
+            /** Offerings */
+            offerings: components["schemas"]["OfferingModel"][];
+            /** Specializations */
+            specializations: components["schemas"]["SpecializationModel"][];
             /** University Name */
             university_name: string | null;
             /** Verified Rep */
@@ -6217,6 +6585,8 @@ export interface components {
         QuestionBaseOut: {
             /** Active */
             active: boolean;
+            /** Archived */
+            archived: boolean;
             /** Code */
             code: string;
             /**
@@ -6515,6 +6885,74 @@ export interface components {
              * Format: date
              */
             plan_end: string;
+        };
+        /** ReferenceSheetAdminOut */
+        ReferenceSheetAdminOut: {
+            /** Active */
+            active: boolean;
+            /** Contents */
+            contents: {
+                [key: string]: string;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Source */
+            source: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ReferenceSheetIn */
+        ReferenceSheetIn: {
+            /**
+             * Active
+             * @default true
+             */
+            active: boolean;
+            /** Contents */
+            contents: {
+                [key: string]: string;
+            };
+            /**
+             * Source
+             * @default
+             */
+            source: string;
+        };
+        /**
+         * ReferenceSheetOut
+         * @description Learner view: one locale, already resolved with fallback.
+         */
+        ReferenceSheetOut: {
+            /**
+             * Content
+             * @description Markdown with $…$ / $$…$$ KaTeX
+             */
+            content: string;
+            /** Locale */
+            locale: string;
+            /** Source */
+            source: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** RefreshIn */
         RefreshIn: {
@@ -6885,6 +7323,23 @@ export interface components {
             /** Queued */
             queued: number;
         };
+        /** SpecializationModel */
+        SpecializationModel: {
+            /** Description */
+            description?: {
+                [key: string]: string;
+            };
+            /** Field Code */
+            field_code: string;
+            /** Name */
+            name: {
+                [key: string]: string;
+            };
+            /** Second Year Subjects */
+            second_year_subjects?: {
+                [key: string]: string;
+            }[];
+        };
         /** SpendReportOut */
         SpendReportOut: {
             /** By Day */
@@ -7016,6 +7471,12 @@ export interface components {
             };
             /** Position */
             position: number;
+            /**
+             * Question Count
+             * @description Verified, learner-servable questions; 0 = no content yet (learner list only)
+             * @default 0
+             */
+            question_count: number;
             /** Weight */
             weight: number;
         };
@@ -9217,7 +9678,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SubscriptionOut"];
+                    "application/json": components["schemas"]["GrantOut"];
                 };
             };
             /** @description Unauthorized */
@@ -11163,7 +11624,9 @@ export interface operations {
     };
     catalog_admin_list_question_bases: {
         parameters: {
-            query?: never;
+            query?: {
+                include_archived?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -11441,6 +11904,140 @@ export interface operations {
                 "application/json": components["schemas"]["QuestionBasePatch"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionBaseOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    catalog_admin_archive_question_base: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionBaseOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    catalog_admin_unarchive_question_base: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -12124,6 +12721,209 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SubjectOut"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    catalog_admin_get_reference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceSheetAdminOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    catalog_admin_put_reference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReferenceSheetIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceSheetAdminOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    catalog_admin_delete_reference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {
@@ -14553,6 +15353,7 @@ export interface operations {
         parameters: {
             query?: {
                 limit?: number;
+                include_archived?: boolean;
             };
             header?: never;
             path?: never;
@@ -14821,6 +15622,73 @@ export interface operations {
             };
         };
     };
+    ingestion_archive_batch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                batch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     ingestion_rerun_batch: {
         parameters: {
             query?: never;
@@ -14838,6 +15706,73 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ingestion_unarchive_batch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                batch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -17928,6 +18863,76 @@ export interface operations {
             };
         };
     };
+    bank_overview: {
+        parameters: {
+            query: {
+                subject_id: string;
+                language: string;
+                source_id?: string | null;
+                level?: ("easy" | "medium" | "hard") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BankOverviewOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     bank_get_passage: {
         parameters: {
             query?: never;
@@ -18600,6 +19605,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LearnerPathOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    catalog_get_reference: {
+        parameters: {
+            query?: {
+                locale?: string;
+            };
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceSheetOut"];
                 };
             };
             /** @description Unauthorized */
@@ -19638,6 +20712,26 @@ export interface operations {
             };
         };
     };
+    identity_get_config: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthConfigOut"];
+                };
+            };
+        };
+    };
     identity_resend_code: {
         parameters: {
             query?: never;
@@ -19681,6 +20775,66 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["VerifyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokensOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    identity_google: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoogleIn"];
             };
         };
         responses: {

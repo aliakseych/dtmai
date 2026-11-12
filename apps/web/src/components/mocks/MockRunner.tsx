@@ -9,6 +9,7 @@ import { api, type Attempt } from "@/lib/api";
 import { clock, useCountdown } from "@/lib/useCountdown";
 import { useTmaBackButton, withTmaReauth } from "@/lib/tma";
 import { useAsync } from "@/lib/useAsync";
+import { FormulaSheet } from "@/components/reference/FormulaSheet";
 import { QuestionNavigator } from "./QuestionNavigator";
 import { SaveIndicator } from "./SaveIndicator";
 import { useAutosave } from "./useAutosave";
@@ -27,7 +28,7 @@ export function MockRunner({ attemptId }: { attemptId: string }) {
     if (submitted) router.replace(`/mocks/result/?attempt=${attemptId}`);
   }, [submitted, router, attemptId]);
   return (
-    <AsyncView state={state} onRetry={reload}>
+    <AsyncView state={state} onRetry={reload} exitHref="/mocks/">
       {(attempt) => (attempt.status === "submitted" ? null : <Run key={attempt.id} attempt={attempt} />)}
     </AsyncView>
   );
@@ -38,6 +39,9 @@ function Run({ attempt }: { attempt: Attempt }) {
   const router = useRouter();
   const { name } = useSubjectNames();
   const items = useMemo(() => toItems(attempt.items), [attempt.items]);
+  useEffect(() => {
+    document.title = `${t("mocks.title")} · ${t("app.name")}`;
+  }, [t]);
   const resultHref = `/mocks/result/?attempt=${attempt.id}`;
 
   const [answers, setAnswers] = useState<Record<string, Response>>(() => ({ ...attempt.answers }));
@@ -149,6 +153,7 @@ function Run({ attempt }: { attempt: Attempt }) {
           {clock(left)}
         </div>
         <div className="flex-1" />
+        <FormulaSheet subjectId={item.subject_id} />
         <SaveIndicator state={save.state} onRetry={() => void save.flush()} />
         <Button onClick={() => setConfirm(true)} disabled={submitting} className="shrink-0">
           {t("mock.submit")}

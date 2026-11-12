@@ -1,5 +1,5 @@
 "use client";
-import { useT } from "@/lib/i18n";
+import { useEnum, useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { catalog } from "@/lib/catalog";
@@ -11,6 +11,7 @@ import type { Audit } from "@/lib/catalog";
 
 export default function AuditPage() {
   const t = useT();
+  const en = useEnum();
   const [entity, setEntity] = useState("");
   const [entityId, setEntityId] = useState("");
   const [sel, setSel] = useState<Audit | null>(null);
@@ -27,12 +28,12 @@ export default function AuditPage() {
           cols={[
             { key: "id", head: "#", cell: (r) => r.id },
             { key: "a", head: t("admin.audit.actor"), cell: (r) => r.actor ?? "system" },
-            { key: "ac", head: t("admin.common.action"), cell: (r) => <Badge tone="blue">{r.action}</Badge> },
+            { key: "ac", head: t("admin.common.action"), cell: (r) => <Badge tone="blue">{en("auditAction", r.action)}</Badge> },
             { key: "e", head: t("admin.audit.entity"), cell: (r) => r.entity },
             { key: "i", head: t("admin.audit.entityId"), cell: (r) => <code className="text-xs">{r.entity_id}</code> },
           ]} />
       </div>
-      <Drawer open={!!sel} onClose={() => setSel(null)} title={sel ? `${sel.action} ${sel.entity}` : ""}>
+      <Drawer open={!!sel} onClose={() => setSel(null)} title={sel ? `${en("auditAction", sel.action)} · ${sel.entity}` : ""}>
         {sel && <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div><h3 className="mb-1 text-sm">{t("admin.audit.before")}</h3><pre className="overflow-auto rounded bg-snow p-2">{JSON.stringify(sel.before, null, 2)}</pre></div>
           <div><h3 className="mb-1 text-sm">{t("admin.audit.after")}</h3><pre className="overflow-auto rounded bg-snow p-2">{JSON.stringify(sel.after, null, 2)}</pre></div>

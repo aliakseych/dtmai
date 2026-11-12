@@ -4,6 +4,7 @@ import { Button, Card, ConfirmModal, cn } from "@dtmai/ui";
 import { useLocale, useT } from "@dtmai/i18n";
 import type { MessageKey } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
+import { formatDateTime } from "@/lib/planDates";
 import { useAsync } from "@/lib/useAsync";
 import { PostForm } from "./PostForm";
 import { KIND_LABEL, rep, type PostKind, type RepPost } from "./repApi";
@@ -23,7 +24,7 @@ export function PostsManager({ lyceumId }: { lyceumId: string }) {
   const [editing, setEditing] = useState<RepPost | "new" | null>(null);
   const [removing, setRemoving] = useState<RepPost | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const when = (iso: string) => new Date(iso).toLocaleString(locale === "uz-Latn" ? "uz-Latn-UZ" : locale === "uz-Cyrl" ? "uz-Cyrl-UZ" : locale, { dateStyle: "medium", timeStyle: "short" });
+  const when = (iso: string) => formatDateTime(iso, locale);
 
   const confirmRemove = async () => {
     if (!removing) return;

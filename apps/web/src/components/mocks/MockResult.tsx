@@ -6,7 +6,7 @@ import { AsyncView } from "@/components/AsyncView";
 import { api, type Attempt, type AttemptResult } from "@/lib/api";
 import { fmt } from "@/lib/localized";
 import { useAsync } from "@/lib/useAsync";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { toItems } from "./items";
 import { ReviewList } from "./ReviewList";
 import { useSubjectNames } from "./useSubjectNames";
@@ -23,13 +23,16 @@ async function load(id: string): Promise<{ result: AttemptResult; attempt: Attem
 export function MockResult({ attemptId }: { attemptId: string }) {
   const t = useT();
   const { state, reload } = useAsync(() => load(attemptId), [attemptId]);
+  useEffect(() => {
+    document.title = `${t("mock.result")} · ${t("app.name")}`;
+  }, [t]);
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6 pb-[max(2rem,env(safe-area-inset-bottom))]">
+    <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6 pb-[max(2rem,env(safe-area-inset-bottom))]">
       <h1 className="text-3xl text-ink">{t("mock.result")}</h1>
-      <AsyncView state={state} onRetry={reload}>
+      <AsyncView state={state} onRetry={reload} exitHref="/mocks/">
         {({ result, attempt }) => <Body result={result} attempt={attempt} />}
       </AsyncView>
-    </div>
+    </main>
   );
 }
 
@@ -64,10 +67,11 @@ function Body({ result, attempt }: { result: AttemptResult; attempt: Attempt }) 
           {num.format(result.correct)}
           <span className="text-2xl text-ink-soft"> / {num.format(result.questions || items.length)}</span>
         </p>
-        <p className="text-ink-soft">{t("mock.correctOf", { n: result.correct, total: result.questions || items.length })}</p>
+        <p className="text-ink-soft">{t("mock.correctLabel")}</p>
         <p className="text-sm font-bold text-ink-soft">
           {t("mock.total")}: {num.format(result.total)} / {num.format(result.max_total)}
         </p>
+        <p className="text-xs text-ink-soft">{t("mock.totalHint")}</p>
       </Card>
 
       {Object.keys(result.subject_scores).length > 0 && (
@@ -111,7 +115,7 @@ function Body({ result, attempt }: { result: AttemptResult; attempt: Attempt }) 
               )}
             </>
           ) : (
-            <p className="font-semibold text-ink-soft">{t("mock.comparisonNone")}</p>
+            <p className="font-semibold text-ink-soft">{attempt.kind === "personal" ? t("mock.comparisonPersonal") : t("mock.comparisonNone")}</p>
           )}
         </Card>
       </section>

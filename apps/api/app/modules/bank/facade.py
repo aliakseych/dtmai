@@ -18,7 +18,9 @@ __all__ = [
     "QuestionDTO",
     "content_min_pool",
     "count_verified",
+    "FacetRow",
     "count_verified_by_source",
+    "facets",
     "create_passage",
     "create_question",
     "AnswerInfo",
@@ -127,6 +129,8 @@ async def pick_questions(
     exclude_ids: Sequence[UUID] = (),
     difficulty: float | None = None,
     statuses: Sequence[str] = ("verified",),
+    source_id: UUID | None = None,
+    level: str | None = None,
 ) -> list[QuestionDTO]:
     """Random pick (nearest to `difficulty` Elo first when given). Group children are served
     inside their passage_group question's `children`."""
@@ -140,8 +144,29 @@ async def pick_questions(
         exclude_ids=exclude_ids,
         difficulty=difficulty,
         statuses=statuses,
+        source_id=source_id,
+        level=level,
     )
     return await _with_children(svc, qs)
+
+
+@dataclass(frozen=True, slots=True)
+class FacetRow:
+    topic_id: UUID
+    type_id: UUID
+    source_id: UUID | None
+    level: str  # easy | medium | hard
+    total: int
+    solved: int
+
+
+async def facets(
+    session: AsyncSession, subject_id: UUID, language: str, solved_ids: Sequence[UUID]
+) -> list[FacetRow]:
+    """Learner-servable (verified) question counts of a subject/language by topic, type, source
+    and difficulty level, with how many of them are in `solved_ids`."""
+    rows = await service(session).repo.facets(subject_id, language, solved_ids)
+    return [FacetRow(*r) for r in rows]
 
 
 async def grade(session: AsyncSession, question_id: UUID, response: dict[str, Any]) -> GradeResult:
@@ -227,6 +252,16 @@ async def count_verified_by_source(session: AsyncSession, source_id: UUID) -> in
 
     _, total = await service(session).search(
         QuestionFilter(source_id=source_id, status="verified"), 1, 0
+    )
+    return total
+
+
+async def count_verified_for_subject(session: AsyncSession, subject_id: UUID) -> int:
+    """Verified, learner-servable questions of one subject (any language)."""
+    from app.modules.bank.domain.models import QuestionFilter
+
+    _, total = await service(session).search(
+        QuestionFilter(subject_id=subject_id, status="verified"), 1, 0
     )
     return total
 

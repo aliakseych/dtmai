@@ -124,6 +124,8 @@ class BankService:
         exclude_ids: Sequence[UUID],
         difficulty: float | None,
         statuses: Sequence[str],
+        source_id: UUID | None = None,
+        level: str | None = None,
     ) -> list[Question]:
         return await self.repo.pick(
             subject_id=subject_id,
@@ -134,6 +136,8 @@ class BankService:
             exclude_ids=exclude_ids,
             difficulty=difficulty,
             statuses=statuses,
+            source_id=source_id,
+            level=level,
         )
 
     async def count_verified(

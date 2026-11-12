@@ -20,7 +20,9 @@ const A = api.client;
 const u = api.unwrap;
 
 export const ingestion = {
-  list: (limit = 100) => u(A.GET("/v1/admin/ingestion/batches", { params: { query: { limit } } })),
+  list: (limit = 100, include_archived = false) => u(A.GET("/v1/admin/ingestion/batches", { params: { query: { limit, include_archived } } })),
+  archive: (batch_id: string) => u(A.POST("/v1/admin/ingestion/batches/{batch_id}/archive", { params: { path: { batch_id } } })),
+  unarchive: (batch_id: string) => u(A.POST("/v1/admin/ingestion/batches/{batch_id}/unarchive", { params: { path: { batch_id } } })),
   get: (batch_id: string) => u(A.GET("/v1/admin/ingestion/batches/{batch_id}", { params: { path: { batch_id } } })),
   start: (body: BatchIn) => u(A.POST("/v1/admin/ingestion/batches", { body })),
   upload: (body: UploadIn) =>

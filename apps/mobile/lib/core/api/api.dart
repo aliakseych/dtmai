@@ -43,11 +43,11 @@ class Api {
 
   Future<Me> patchMe({String? name, String? locale, List<String>? dreamLyceumIds, List<String>? subjectIds, String? educationLanguageId, String? city, bool clearCity = false}) async =>
       Me.fromJson((await _d.patch<Json>('/v1/identity/me', data: {
-        if (name != null) 'name': name,
-        if (locale != null) 'locale': locale,
-        if (dreamLyceumIds != null) 'dream_lyceum_ids': dreamLyceumIds,
-        if (subjectIds != null) 'subject_ids': subjectIds,
-        if (educationLanguageId != null) 'education_language_id': educationLanguageId,
+        'name': ?name,
+        'locale': ?locale,
+        'dream_lyceum_ids': ?dreamLyceumIds,
+        'subject_ids': ?subjectIds,
+        'education_language_id': ?educationLanguageId,
         if (city != null || clearCity) 'city': city,
       }))
           .data!);
@@ -91,8 +91,8 @@ class Api {
         'subject_id': subjectId,
         'language': language,
         'count': count,
-        if (topicId != null) 'topic_id': topicId,
-        if (typeId != null) 'type_id': typeId,
+        'topic_id': ?topicId,
+        'type_id': ?typeId,
       }));
 
   Future<SessionData> startReview(String subjectId, String language) async =>
@@ -188,7 +188,7 @@ class Api {
 
   // ---- lyceums (public) ----
   Future<List<Lyceum>> lyceums({String? q, String? city, String? sort}) async =>
-      (await _getList('/v1/lyceums', {'limit': 100, if (q != null && q.isNotEmpty) 'q': q, if (city != null) 'city': city, if (sort != null) 'sort': sort})).map(Lyceum.fromJson).toList();
+      (await _getList('/v1/lyceums', {'limit': 100, if (q != null && q.isNotEmpty) 'q': q, 'city': ?city, 'sort': ?sort})).map(Lyceum.fromJson).toList();
 
   Future<LyceumDetail> lyceum(String id) async => LyceumDetail.fromJson(await _get<Json>('/v1/lyceums/$id'));
 

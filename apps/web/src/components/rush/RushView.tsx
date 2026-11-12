@@ -12,6 +12,7 @@ import { useAuth, useLearnLanguage } from "@/lib/auth";
 import { pick } from "@/lib/localized";
 import { refreshStats } from "@/lib/stats";
 import { useAsync } from "@/lib/useAsync";
+import { hasContent } from "@/components/practice/SubjectEmpty";
 import { RushRunner } from "./RushRunner";
 
 /** Decorative only: tiles cycle through these; subjects themselves come from the API. */
@@ -123,6 +124,7 @@ export function RushView() {
                         <Icon name={SUBJECT_ICONS[i % SUBJECT_ICONS.length]} size={28} className={on ? "text-ink" : "text-brand"} />
                       </span>
                       <span className="w-full min-w-0 break-words">{pick(s.names, locale)}</span>
+                      {!hasContent(s) && <span className="text-xs font-bold text-ink-soft">{t("common.soon")}</span>}
                     </motion.button>
                   );
                 })}

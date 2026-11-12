@@ -11,6 +11,7 @@ from app.modules.identity.application.service import UNSET, TokenPair
 from app.modules.identity.domain.models import User
 from app.modules.identity.wiring import IdentityServiceDep
 from app.modules.learning import facade as learning_facade
+from app.settings import get_settings
 from app.shared.audit import audit_admin
 from app.shared.db import get_session
 from app.shared.deps import CurrentUser, require_role
@@ -80,6 +81,14 @@ class TelegramWidgetIn(BaseModel):
     photo_url: str | None = None
 
 
+class GoogleIn(BaseModel):
+    id_token: str = Field(min_length=10)
+
+
+class AuthConfigOut(BaseModel):
+    google_client_id: str | None
+
+
 class TokensOut(BaseModel):
     access_token: str
     refresh_token: str
@@ -104,7 +113,7 @@ class MeOut(BaseModel):
 
 
 class MePatch(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=200)
+    name: str | None = Field(default=None, min_length=1, max_length=80)
     locale: str | None = None
     dream_lyceum_ids: list[UUID] | None = Field(default=None, max_length=10)
     education_language_id: UUID | None = None
@@ -180,6 +189,16 @@ async def password_change(
 @router.post("/login", operation_id="identity_login", responses=ERR)
 async def login(body: LoginIn, svc: IdentityServiceDep) -> TokensOut:
     return _tokens(await svc.login(body.email, body.password))
+
+
+@router.get("/config", operation_id="identity_get_config")
+async def auth_config() -> AuthConfigOut:
+    return AuthConfigOut(google_client_id=get_settings().google_client_id or None)
+
+
+@router.post("/google", operation_id="identity_google", responses=ERR)
+async def google(body: GoogleIn, svc: IdentityServiceDep) -> TokensOut:
+    return _tokens(await svc.login_google(body.id_token))
 
 
 @router.post("/refresh", operation_id="identity_refresh", responses=ERR)

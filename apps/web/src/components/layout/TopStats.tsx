@@ -44,7 +44,7 @@ export function TopStats() {
       <Modal open={open === "streak"} onClose={() => setOpen(null)} title={t("stat.streak")}>
         <p className="mb-2 text-xl font-extrabold">{t("stat.days", { n: stats.streak })}</p>
         <p className="mb-2 text-ink-soft">{t("streak.longest", { n: stats.streak_longest })}</p>
-        <p className="mb-4 text-ink-soft">{stats.streak_active_today ? t("streak.doneToday") : stats.streak_at_risk ? t("streak.atRisk") : t("streak.practice")}</p>
+        <p className="mb-4 text-ink-soft">{stats.streak_active_today && stats.today_xp >= stats.daily_goal_xp ? t("streak.doneToday") : stats.streak_at_risk ? t("streak.atRisk") : stats.streak_active_today ? t("streak.longest", { n: stats.streak_longest }) : t("streak.practice")}</p>
         <button type="button" className={buttonClass("secondary", true)} onClick={() => setOpen(null)}>
           {t("common.close")}
         </button>

@@ -8,12 +8,13 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.labeling.domain.stale import ACTIVE_STATUSES
 from app.modules.labeling.infrastructure.files import store_for, upload_root
 from app.modules.labeling.infrastructure.orm import ImportBatchRow, ImportFileRow
 from app.modules.labeling.wiring import IngestDep
 from app.shared.db import get_session
 from app.shared.deps import require_role
-from app.shared.errors import NotFound, ProblemDetails, ValidationFailed
+from app.shared.errors import Conflict, NotFound, ProblemDetails, ValidationFailed
 from app.shared.security import Principal
 
 admin_router = APIRouter(tags=["ingestion-admin"])
@@ -60,6 +61,7 @@ class BatchOut(BaseModel):
     files_done: int
     questions_created: int
     error: str | None
+    archived: bool
 
 
 class BatchDetail(BatchOut):
@@ -83,6 +85,7 @@ def _batch(b: ImportBatchRow) -> BatchOut:
         files_done=b.files_done,
         questions_created=b.questions_created,
         error=b.error,
+        archived=b.archived,
     )
 
 
@@ -197,13 +200,18 @@ async def upload_batch(
     "/batches", operation_id="ingestion_list_batches", response_model=list[BatchOut], responses=ERR
 )
 async def list_batches(
-    session: SessionDep, _: Admin, limit: int = Query(50, ge=1, le=200)
+    svc: IngestDep,
+    session: SessionDep,
+    _: Admin,
+    limit: int = Query(50, ge=1, le=200),
+    include_archived: bool = False,
 ) -> list[BatchOut]:
-    rows = (
-        await session.execute(
-            select(ImportBatchRow).order_by(ImportBatchRow.created_at.desc()).limit(limit)
-        )
-    ).scalars()
+    await svc.fail_abandoned()
+    await session.commit()
+    q = select(ImportBatchRow).order_by(ImportBatchRow.created_at.desc()).limit(limit)
+    if not include_archived:
+        q = q.where(ImportBatchRow.archived.is_(False))
+    rows = (await session.execute(q)).scalars()
     return [_batch(b) for b in rows]
 
 
@@ -237,6 +245,39 @@ async def get_batch(batch_id: UUID, session: SessionDep, _: Admin) -> BatchDetai
             for f in files
         ],
     )
+
+
+@admin_router.post(
+    "/batches/{batch_id}/archive",
+    operation_id="ingestion_archive_batch",
+    response_model=BatchOut,
+    responses=ERR,
+)
+async def archive_batch(batch_id: UUID, session: SessionDep, _: Admin) -> BatchOut:
+    """Hide a finished batch from the default list; running batches cannot be archived."""
+    b = await session.get(ImportBatchRow, batch_id)
+    if b is None:
+        raise NotFound("Import batch not found")
+    if b.status in ACTIVE_STATUSES:
+        raise Conflict("Batch is still running", code="batch_active")
+    b.archived = True
+    await session.commit()
+    return _batch(b)
+
+
+@admin_router.post(
+    "/batches/{batch_id}/unarchive",
+    operation_id="ingestion_unarchive_batch",
+    response_model=BatchOut,
+    responses=ERR,
+)
+async def unarchive_batch(batch_id: UUID, session: SessionDep, _: Admin) -> BatchOut:
+    b = await session.get(ImportBatchRow, batch_id)
+    if b is None:
+        raise NotFound("Import batch not found")
+    b.archived = False
+    await session.commit()
+    return _batch(b)
 
 
 @admin_router.post(

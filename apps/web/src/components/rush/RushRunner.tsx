@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ApiError } from "@dtmai/api-client";
-import { Button, ProgressBar } from "@dtmai/ui";
+import Link from "next/link";
+import { Button, Icon, ProgressBar } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
 import { isAnswered, QuestionBody, type Response } from "@/components/lesson/QuestionBody";
 import { api, type FinishOut, type SessionOut } from "@/lib/api";
@@ -90,6 +91,9 @@ export function RushRunner({ session, onDone }: { session: SessionOut; onDone: (
   return (
     <main className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-4 p-4">
       <header className="flex items-center gap-3">
+        <Link href="/practice/" aria-label={t("lesson.exit")} className="grid size-11 shrink-0 place-items-center rounded-xl text-ink-soft hover:bg-snow">
+          <Icon name="close" />
+        </Link>
         <div className="flex-1">
           <ProgressBar value={left} max={TOTAL_S} />
         </div>

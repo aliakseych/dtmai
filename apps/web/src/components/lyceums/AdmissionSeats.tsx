@@ -67,7 +67,7 @@ export function AdmissionSeats({ admission: a }: { admission: Admission }) {
           <ul className="flex flex-wrap gap-2">
             {contact.phones.map((p) => (
               <li key={p}>
-                <a href={`tel:${p}`} className="inline-block rounded-xl border-2 border-line px-3 py-1 font-bold text-brand">
+                <a href={`tel:${p}`} className="inline-flex min-h-11 items-center rounded-xl border-2 border-line px-3 font-bold text-brand">
                   {p}
                 </a>
               </li>
@@ -78,7 +78,7 @@ export function AdmissionSeats({ admission: a }: { admission: Admission }) {
                   href={contact.telegram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block rounded-xl border-2 border-line px-3 py-1 font-bold text-brand"
+                  className="inline-flex min-h-11 items-center rounded-xl border-2 border-line px-3 font-bold text-brand"
                 >
                   {t("lyceums.admission.telegram")}
                 </a>

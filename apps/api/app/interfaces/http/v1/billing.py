@@ -8,7 +8,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Request, Response
 from pydantic import AwareDatetime, BaseModel, Field
 
-from app.modules.billing.domain.plans import GrantSource, Plan, Subscription
+from app.modules.billing.domain.plans import Plan, Subscription
 from app.modules.billing.settings import get_billing_settings
 from app.modules.billing.wiring import BillingServiceDep
 from app.shared.deps import CurrentUser, require_role
@@ -69,6 +69,10 @@ class SubscriptionOut(BaseModel):
     source: str
     started_at: datetime
     until: datetime
+
+
+class GrantOut(SubscriptionOut):
+    warnings: list[str] = []  # e.g. "guest_account": the user has no email/Telegram yet
 
 
 class EntitlementsOut(BaseModel):
@@ -254,11 +258,11 @@ async def admin_delete_plan(code: str, svc: BillingServiceDep) -> Response:
 
 
 @admin_router.post("/grants", status_code=201, operation_id="billing_admin_grant", responses=ERR)
-async def admin_grant(body: GrantIn, svc: BillingServiceDep) -> SubscriptionOut:
-    sub = await svc.grant(
-        body.user_id, body.plan_code, months=body.months, until=body.until, source=GrantSource.ADMIN
+async def admin_grant(body: GrantIn, svc: BillingServiceDep) -> GrantOut:
+    sub, warnings = await svc.admin_grant(
+        body.user_id, body.plan_code, months=body.months, until=body.until
     )
-    return _sub(sub)
+    return GrantOut(**_sub(sub).model_dump(), warnings=warnings)
 
 
 @admin_router.post(

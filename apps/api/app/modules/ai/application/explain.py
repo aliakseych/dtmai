@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import json
 from datetime import date
@@ -102,13 +103,17 @@ class ExplainService:
             f"Choices/payload:\n{json.dumps(q.payload, ensure_ascii=False)}\n\n"
             f"Correct answer:\n{json.dumps(graded.correct_response, ensure_ascii=False)}"
         )
-        data, _ = await self._gw.complete_json(
-            route,
-            [LLMMessage("system", SYSTEM), LLMMessage("user", user_msg)],
-            purpose="explain",
-            user_id=user_id,
-            ref=str(question_id),
-        )
+        try:
+            async with asyncio.timeout(get_ai_settings().ai_explain_timeout_seconds):
+                data, _ = await self._gw.complete_json(
+                    route,
+                    [LLMMessage("system", SYSTEM), LLMMessage("user", user_msg)],
+                    purpose="explain",
+                    user_id=user_id,
+                    ref=str(question_id),
+                )
+        except TimeoutError as e:
+            raise AIUpstreamFailed("AI explanation timed out") from e
         explanation = str(data.get("explanation", "")).strip()
         if not explanation:
             raise AIUpstreamFailed("model returned an empty explanation")

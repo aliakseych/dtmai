@@ -20,7 +20,12 @@ class QuestionRepository(Protocol):
         exclude_ids: Sequence[UUID],
         difficulty: float | None,
         statuses: Sequence[str],
+        source_id: UUID | None = None,
+        level: str | None = None,
     ) -> list[Question]: ...
+    async def facets(
+        self, subject_id: UUID, language: str, solved_ids: Sequence[UUID]
+    ) -> list[tuple[UUID, UUID, UUID | None, str, int, int]]: ...
     async def count(
         self,
         *,

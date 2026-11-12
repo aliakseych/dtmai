@@ -55,6 +55,12 @@ export const formatDay = (iso: string, l: Locale, opts: Intl.DateTimeFormatOptio
   return new Intl.DateTimeFormat(intlTag(l), opts).format(fromISO(iso));
 };
 
+/** Localized date + time (HH:mm, Tashkent-agnostic: browser time zone) for an ISO timestamp. */
+export const formatDateTime = (iso: string, l: Locale) => {
+  const d = new Date(iso);
+  return `${formatDay(toISO(d), l, { day: "numeric", month: "short", year: "numeric" })}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 export const MIN_LEAD_DAYS = 14;
 export const MAX_DAY_MINUTES = 150;
 export const MIN_DAY_MINUTES = 10;

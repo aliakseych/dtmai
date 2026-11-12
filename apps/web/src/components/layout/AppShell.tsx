@@ -18,7 +18,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [more, setMore] = useState(false);
   const active = (href: string) => path.startsWith(href.slice(0, -1));
   // Premium is a buy entry: hidden wherever the buy CTA is not allowed.
-  const visible = (href: string) => href !== "/premium/" || canBuy;
+  // The representative portal is shown only to users holding the lyceum_rep role.
+  const isRep = !!me?.roles.includes("lyceum_rep");
+  const visible = (href: string) => (href !== "/premium/" || canBuy) && (href !== "/rep/" || isRep);
   const moreItems = MORE_NAV.filter((n) => visible(n.href));
   const moreActive = moreItems.some((n) => active(n.href));
 
@@ -68,7 +70,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {isGuest && (
           <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-accent bg-accent-soft px-4 py-2 text-sm font-bold text-ink">
             <span>{t("guest.banner")}</span>
-            <Link href="/register/" className={buttonClass("primary", false, "px-3 py-1.5 text-xs")}>
+            <Link href="/register/" className={buttonClass("primary", false, "min-h-11 px-3 py-1.5 text-xs")}>
               {t("guest.save")}
             </Link>
           </div>

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -120,7 +120,7 @@ class _RefillTimer extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<int>(
       stream: Stream.periodic(const Duration(seconds: 1), (i) => i),
-      builder: (_, __) {
+      builder: (_, _) {
         final left = until.difference(DateTime.now());
         final d = left.isNegative ? Duration.zero : left;
         final h = d.inHours;

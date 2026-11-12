@@ -57,7 +57,7 @@ export function PriorityList({
       />
       {showRules && (
         <details className="rounded-2xl border-2 border-line bg-snow px-4 py-3 text-sm text-ink">
-          <summary className="cursor-pointer font-extrabold text-brand">{t("dream.rules.title")}</summary>
+          <summary className="flex min-h-11 cursor-pointer list-none items-center font-extrabold [&::-webkit-details-marker]:hidden text-brand">{t("dream.rules.title")}</summary>
           <p className="mt-2 break-words text-ink-soft">{t("dream.rules.body")}</p>
         </details>
       )}

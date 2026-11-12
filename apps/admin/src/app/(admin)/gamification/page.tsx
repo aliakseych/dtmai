@@ -1,5 +1,5 @@
 "use client";
-import { useT } from "@/lib/i18n";
+import { useEnum, useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { gamification, type GameConfig, type QuestTemplateIn, type Tier } from "@/lib/gamification";
@@ -15,6 +15,7 @@ const blank: QuestTemplateIn = { code: "", metric: "xp", target: 50, reward_gems
 
 function Quests() {
   const t = useT();
+  const en = useEnum();
   const q = useQuery({ queryKey: ["quest-templates"], queryFn: gamification.quests });
   const [edit, setEdit] = useState<{ id?: string; form: QuestTemplateIn } | null>(null);
   const save = useAct((e: { id?: string; form: QuestTemplateIn }) => {
@@ -31,10 +32,10 @@ function Quests() {
         cols={[
           { key: "c", head: t("admin.common.code"), cell: (r) => <code>{r.code}</code> },
           { key: "t", head: t("admin.common.title"), cell: (r) => nm(r.title) },
-          { key: "m", head: t("admin.gamification.metric"), cell: (r) => r.metric },
+          { key: "m", head: t("admin.gamification.metric"), cell: (r) => en("metric", r.metric) },
           { key: "g", head: t("admin.gamification.target"), cell: (r) => r.target },
-          { key: "r", head: t("admin.gamification.reward"), cell: (r) => `${r.reward_gems ?? 0} gems · ${r.reward_xp ?? 0} XP` },
-          { key: "a", head: t("admin.common.state"), cell: (r) => <Badge tone={r.active ? "green" : "gray"}>{r.active ? "active" : "off"}</Badge> },
+          { key: "r", head: t("admin.gamification.reward"), cell: (r) => `${r.reward_gems ?? 0} ${t("admin.gamification.gems")} · ${r.reward_xp ?? 0} ${t("admin.common.xp")}` },
+          { key: "a", head: t("admin.common.state"), cell: (r) => <Badge tone={r.active ? "green" : "gray"}>{r.active ? t("admin.common.active") : t("admin.topics.inactive")}</Badge> },
         ]} />
       <Drawer open={!!edit} onClose={() => setEdit(null)} width="max-w-md" title={edit?.id ? t("admin.gamification.editQuest") : t("admin.gamification.newQuest")}
         footer={<><Btn onClick={() => setEdit(null)}>{t("admin.common.cancel")}</Btn><Btn variant="primary" disabled={save.isPending || !f?.code} onClick={() => save.mutate(edit!, { onSuccess: () => setEdit(null) })}>{t("admin.common.save")}</Btn></>}>

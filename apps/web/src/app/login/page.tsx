@@ -5,6 +5,7 @@ import { Button } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
 import { AuthFrame, Field } from "@/components/auth/AuthFrame";
 import { OrDivider } from "@/components/auth/OrDivider";
+import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
 import { TelegramLogin } from "@/components/auth/TelegramLogin";
 import { useSignedIn } from "@/components/auth/useSignedIn";
 import { api } from "@/lib/api";
@@ -79,6 +80,7 @@ export default function LoginPage() {
         </Button>
       </form>
       <OrDivider />
+      <GoogleSignIn />
       <TelegramLogin />
     </AuthFrame>
   );

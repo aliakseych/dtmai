@@ -174,3 +174,30 @@ def test_finalize_skips_unanswered_graded_and_reports_counts(
     assert len(graded) == 1
     assert done["answered"] == 1 and done["questions"] == 3 and done["rewardable"] is True
     assert done["kind"] == "official" and done["blueprint_id"] == str(a.blueprint_id)
+
+
+def test_unanswered_review_still_carries_correct_response(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def pub(_s, _ev):
+        return None
+
+    monkeypatch.setattr("app.modules.assessment.application.service.publish", pub)
+    from app.modules.assessment.domain.attempt import MockAttempt, deadline_for
+
+    q = {"id": str(uuid4()), "subject_id": "A", "topic_id": None, "type_id": "t", "section": 0}
+    a = MockAttempt(
+        uuid4(), uuid4(), "official", uuid4(), 1, "uz", NOW, deadline_for(NOW, 60), [q],
+        [{"subject_id": "A", "weight": 1.0, "count": 1}],
+    )  # fmt: skip
+
+    class Content(FakeContent):
+        async def grade(self, *_):
+            return SimpleNamespace(correct=True, correct_response={"choice": "b"})
+
+    class Repo(FakeRepo):
+        async def save(self, _a):
+            pass
+
+    run(svc(Content(), Repo())._finalize(a, reason="manual"))
+    row = a.result["review"][0]
+    assert row["answered"] is False and row["correct"] is False
+    assert row["correct_response"] == {"choice": "b"}

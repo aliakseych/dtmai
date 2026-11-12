@@ -1,5 +1,5 @@
 "use client";
-import { useT } from "@/lib/i18n";
+import { useEnum, useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAct, useSubjects } from "@/lib/catalog";
@@ -22,6 +22,7 @@ const Panel = ({ children }: { children: React.ReactNode }) => (
 
 export default function ExamInfoPage() {
   const t = useT();
+  const en = useEnum();
   const [tab, setTab] = useState<Tab>("faq");
   return (
     <>
@@ -41,6 +42,7 @@ const emptyFaq = (): FaqIn => ({ key: "", category: "general", question: {}, ans
 
 function FaqTab() {
   const t = useT();
+  const en = useEnum();
   const [ask, confirmNode] = useConfirm();
   const q = useQuery({ queryKey: FAQ_KEY, queryFn: () => examInfo.faq.list() });
   const [draft, setDraft] = useState<{ id: string | null; body: FaqIn } | null>(null);
@@ -75,7 +77,7 @@ function FaqTab() {
       <DataTable rows={q.data} loading={q.isLoading} error={q.error} rowKey={(f) => f.id} empty={t("admin.examInfo.noFaqYetRun")}
         cols={[
           { key: "k", head: t("admin.examInfo.key"), cell: (f) => f.key },
-          { key: "c", head: t("admin.examInfo.category"), cell: (f) => f.category },
+          { key: "c", head: t("admin.examInfo.category"), cell: (f) => en("examCategory", f.category) },
           { key: "q", head: t("admin.common.question"), cell: (f) => nm(f.question) },
           { key: "s", head: t("admin.common.status"), cell: (f) => <div className="flex gap-1">{!f.published && <Badge tone="gray">{t("admin.examInfo.hidden")}</Badge>}{f.verified ? <Badge tone="green">{t("admin.common.verified")}</Badge> : <Badge tone="gold">{t("admin.examInfo.unverified")}</Badge>}</div> },
           { key: "a", head: "", cell: (f) => <div className="flex gap-2"><Btn onClick={() => open(f)}>{t("admin.common.edit")}</Btn><Btn disabled={del.isPending} onClick={() => ask({ title: t("admin.examInfo.deleteThisQuestion"), name: nm(f.question) || f.key, danger: true, confirmLabel: t("admin.common.delete") }, () => del.mutate(f.id))}>{t("admin.common.delete")}</Btn></div> },
@@ -90,6 +92,7 @@ const emptyEvent = (): EventIn => ({ exam_year: new Date().getFullYear() + 1, ki
 
 function EventsTab() {
   const t = useT();
+  const en = useEnum();
   const [ask, confirmNode] = useConfirm();
   const q = useQuery({ queryKey: EVT_KEY, queryFn: () => examInfo.events.list() });
   const [draft, setDraft] = useState<{ id: string | null; body: EventIn } | null>(null);
@@ -105,7 +108,7 @@ function EventsTab() {
         <Panel>
           <div className="grid gap-3 sm:grid-cols-4">
             <Field label={t("admin.examInfo.examYear")} error={fe.exam_year}><Input type="number" value={draft.body.exam_year} onChange={(e) => set({ exam_year: Number(e.target.value) })} /></Field>
-            <Field label={t("admin.common.kind")} error={fe.kind}><Select value={draft.body.kind} onChange={(e) => set({ kind: e.target.value })}>{EVENT_KINDS.map((k) => <option key={k} value={k}>{k}</option>)}</Select></Field>
+            <Field label={t("admin.common.kind")} error={fe.kind}><Select value={draft.body.kind} onChange={(e) => set({ kind: e.target.value })}>{EVENT_KINDS.map((k) => <option key={k} value={k}>{en("eventKind", k)}</option>)}</Select></Field>
             <Field label={t("admin.examInfo.starts")} error={fe.starts_on}><Input type="date" value={draft.body.starts_on} onChange={(e) => set({ starts_on: e.target.value })} /></Field>
             <Field label={t("admin.examInfo.ends")} error={fe.ends_on}><Input type="date" value={draft.body.ends_on ?? ""} onChange={(e) => set({ ends_on: e.target.value || null })} /></Field>
           </div>
@@ -121,7 +124,7 @@ function EventsTab() {
       <DataTable rows={q.data} loading={q.isLoading} error={q.error} rowKey={(e) => e.id} empty={t("admin.examInfo.noDatesYetRun")}
         cols={[
           { key: "y", head: t("admin.common.year"), cell: (e) => e.exam_year },
-          { key: "k", head: t("admin.common.kind"), cell: (e) => e.kind },
+          { key: "k", head: t("admin.common.kind"), cell: (e) => en("eventKind", e.kind) },
           { key: "l", head: t("admin.examInfo.label"), cell: (e) => nm(e.label) },
           { key: "d", head: t("admin.examInfo.dates"), cell: (e) => `${e.starts_on}${e.ends_on ? ` → ${e.ends_on}` : ""}` },
           { key: "v", head: "", cell: (e) => (e.verified ? <Badge tone="green">{t("admin.common.verified")}</Badge> : <Badge tone="gold">{t("admin.examInfo.unverified")}</Badge>) },
@@ -135,6 +138,7 @@ function EventsTab() {
 // --- Profiles & certificate rules --------------------------------------------------
 function ProfilesTab() {
   const t = useT();
+  const en = useEnum();
   const q = useQuery({ queryKey: PRO_KEY, queryFn: () => examInfo.profiles.list() });
   const [openId, setOpenId] = useState<string | null>(null);
   const profile = q.data?.find((p) => p.id === openId) ?? null;
@@ -155,6 +159,7 @@ function ProfilesTab() {
 
 function ProfileEditor({ profile }: { profile: ExamProfile }) {
   const t = useT();
+  const en = useEnum();
   const subjects = useSubjects();
   const [f, setF] = useState({
     exam_date: profile.exam_date ?? "",
@@ -206,6 +211,7 @@ function ProfileEditor({ profile }: { profile: ExamProfile }) {
 
 function RuleList({ section, rules }: { section: string; rules: CertRule[] }) {
   const t = useT();
+  const en = useEnum();
   const [adding, setAdding] = useState(false);
   const add = useAct((cert_type: string) => examInfo.rules.create({ section_id: section, cert_type, active: false, awarded_fraction: 1, verified: false }), [PRO_KEY], t("admin.examInfo.ruleAdded"));
   const [type, setType] = useState("ielts");
@@ -225,6 +231,7 @@ function RuleList({ section, rules }: { section: string; rules: CertRule[] }) {
 
 function RuleRow({ rule }: { rule: CertRule }) {
   const t = useT();
+  const en = useEnum();
   const [r, setR] = useState({ level_label: rule.level_label ?? "", min_value: rule.min_value == null ? "" : String(rule.min_value), awarded_fraction: String(rule.awarded_fraction), verified: rule.verified, active: rule.active });
   const save = useAct(() => examInfo.rules.update(rule.id, {
     cert_type: rule.cert_type, language_subject_id: rule.language_subject_id, note: rule.note, source_url: rule.source_url,

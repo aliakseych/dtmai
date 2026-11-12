@@ -17,7 +17,8 @@ export default function IngestionPage() {
   const t = useT();
   const en = useEnum();
   const subjects = useSubjects();
-  const list = useQuery({ queryKey: ["ingest-batches"], queryFn: () => ingestion.list(), refetchInterval: 5000 });
+  const [showArchived, setShowArchived] = useState(false);
+  const list = useQuery({ queryKey: ["ingest-batches", showArchived], queryFn: () => ingestion.list(100, showArchived), refetchInterval: 5000 });
   const [open, setOpen] = useState(false);
   const [f, setF] = useState<BatchIn>(blank);
   const [sel, setSel] = useState<string | null>(null);
@@ -35,10 +36,11 @@ export default function IngestionPage() {
     } else start.mutate(f, { onSuccess: done });
   };
   const rerun = useAct((a: { id: string; unfinished: boolean }) => ingestion.rerun(a.id, a.unfinished), [["ingest-batches"], ["ingest-batch"]], t("admin.ingestion.reRunQueued"));
+  const archive = useAct((a: { id: string; on: boolean }) => (a.on ? ingestion.archive(a.id) : ingestion.unarchive(a.id)), [["ingest-batches"]], t("admin.common.saved"));
   const set = (p: Partial<BatchIn>) => setF((x) => ({ ...x, ...p }));
   return (
     <>
-      <PageHeader title={t("admin.ingestion.ingestion")} sub={t("admin.ingestion.uploadExamPdfsOr")} actions={<Btn variant="primary" onClick={() => setOpen(true)}>{t("admin.ingestion.newBatch")}</Btn>} />
+      <PageHeader title={t("admin.ingestion.ingestion")} sub={t("admin.ingestion.uploadExamPdfsOr")} actions={<div className="flex items-center gap-3"><Check checked={showArchived} onChange={setShowArchived} label={t("admin.common.showArchived")} /><Btn variant="primary" onClick={() => setOpen(true)}>{t("admin.ingestion.newBatch")}</Btn></div>} />
       <div className="min-h-0 flex-1 overflow-auto">
         <DataTable<Batch> rows={list.data} loading={list.isLoading} error={list.error} rowKey={(r) => r.id} onRow={(r) => setSel(r.id)} selected={sel}
           cols={[
@@ -49,6 +51,7 @@ export default function IngestionPage() {
             { key: "f", head: t("admin.ingestion.files"), cell: (r) => `${r.files_done} / ${r.files_total}` },
             { key: "q", head: t("admin.ingestion.questions"), cell: (r) => r.questions_created },
             { key: "e", head: t("admin.common.error"), cell: (r) => <span className="text-red-deep">{r.error ?? ""}</span> },
+            { key: "arch", head: "", cell: (r) => (r.status === "pending" || r.status === "running") ? null : <Btn onClick={(e) => { e.stopPropagation(); archive.mutate({ id: r.id, on: !r.archived }); }}>{r.archived ? t("admin.common.unarchive") : t("admin.common.archive")}</Btn> },
           ]} />
       </div>
       <Drawer open={open} onClose={() => setOpen(false)} width="max-w-lg" title={t("admin.ingestion.newIngestionBatch")}

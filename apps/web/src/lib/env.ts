@@ -4,10 +4,11 @@ declare global {
   }
 }
 
-/** API origin: runtime `window.__ENV__.API_URL`, else build-time NEXT_PUBLIC_API_URL. */
+/** API origin: runtime `window.__ENV__.API_URL`, else build-time NEXT_PUBLIC_API_URL; dev never falls back to production. */
 export function apiUrl(): string {
   const rt = typeof window !== "undefined" ? window.__ENV__?.API_URL : "";
-  return rt || process.env.NEXT_PUBLIC_API_URL || "https://api.dtm-ai.uz";
+  const fallback = process.env.NODE_ENV === "development" ? "http://localhost:8000" : "https://api.dtm-ai.uz";
+  return rt || process.env.NEXT_PUBLIC_API_URL || fallback;
 }
 
 /** Public base for media keys (`{type:"image", key}`). */

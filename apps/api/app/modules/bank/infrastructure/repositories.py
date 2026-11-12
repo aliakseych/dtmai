@@ -2,11 +2,11 @@ from collections.abc import Sequence
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, String, and_, cast, func, or_, select, update
+from sqlalchemy import ColumnElement, String, and_, case, cast, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.bank.domain.models import Passage, Question, QuestionFilter
+from app.modules.bank.domain.models import LEVEL_BOUNDS, Passage, Question, QuestionFilter
 from app.modules.bank.infrastructure.orm import (
     AuditRow,
     ExplanationRow,
@@ -44,6 +44,8 @@ def _scope(
     type_ids: Sequence[UUID] | None,
     language: str,
     statuses: Sequence[str],
+    source_id: UUID | None = None,
+    level: str | None = None,
 ) -> list[ColumnElement[bool]]:
     c: list[ColumnElement[bool]] = [
         QuestionRow.subject_id == subject_id,
@@ -55,6 +57,14 @@ def _scope(
         c.append(QuestionRow.topic_id.in_(list(topic_ids)))
     if type_ids:
         c.append(QuestionRow.type_id.in_(list(type_ids)))
+    if source_id is not None:
+        c.append(QuestionRow.source_id == source_id)
+    if level is not None:
+        lo, hi = LEVEL_BOUNDS[level]
+        if lo is not None:
+            c.append(QuestionRow.difficulty >= lo)
+        if hi is not None:
+            c.append(QuestionRow.difficulty < hi)
     return c
 
 
@@ -95,9 +105,11 @@ class SqlQuestionRepository:
         exclude_ids: Sequence[UUID],
         difficulty: float | None,
         statuses: Sequence[str],
+        source_id: UUID | None = None,
+        level: str | None = None,
     ) -> list[Question]:
         stmt = select(QuestionRow).where(
-            *_scope(subject_id, topic_ids, type_ids, language, statuses)
+            *_scope(subject_id, topic_ids, type_ids, language, statuses, source_id, level)
         )
         if exclude_ids:
             stmt = stmt.where(QuestionRow.id.not_in(list(exclude_ids)))
@@ -126,6 +138,28 @@ class SqlQuestionRepository:
             .where(*_scope(subject_id, topic_ids, type_ids, language, statuses))
         )
         return int(await self.s.scalar(stmt) or 0)
+
+    async def facets(
+        self, subject_id: UUID, language: str, solved_ids: Sequence[UUID]
+    ) -> list[tuple[UUID, UUID, UUID | None, str, int, int]]:
+        """Verified top-level questions grouped by (topic, type, source, level) with the total
+        and how many of them are in `solved_ids`."""
+        d = QuestionRow.difficulty
+        level = case((d < 1100, "easy"), (d < 1350, "medium"), else_="hard")
+        solved = func.count().filter(QuestionRow.id.in_(list(solved_ids)))
+        rows = await self.s.execute(
+            select(
+                QuestionRow.topic_id,
+                QuestionRow.type_id,
+                QuestionRow.source_id,
+                level,
+                func.count(),
+                solved,
+            )
+            .where(*_scope(subject_id, None, None, language, ("verified",)))
+            .group_by(QuestionRow.topic_id, QuestionRow.type_id, QuestionRow.source_id, level)
+        )
+        return [(t, ty, s, lv, int(n), int(sv)) for t, ty, s, lv, n, sv in rows.all()]
 
     async def search(
         self, f: QuestionFilter, limit: int, offset: int

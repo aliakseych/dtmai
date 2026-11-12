@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,6 +9,7 @@ import '../../core/api/token_storage.dart';
 import '../../core/l10n_ext.dart';
 import '../../theme/tokens.dart';
 import '../../widgets/chunky_button.dart';
+import '../../widgets/logo.dart';
 import '../../widgets/mascot.dart';
 import '../../router.dart';
 import '../learn/learn_providers.dart';
@@ -154,6 +155,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           padding: const EdgeInsets.all(24),
           children: [
             const Align(alignment: Alignment.centerRight, child: LanguagePicker()),
+            const Center(child: Logo(height: 44)),
+            const SizedBox(height: 8),
             const Center(child: Mascot(pose: MascotPose.wave, size: 140)),
             const SizedBox(height: 8),
             Text(

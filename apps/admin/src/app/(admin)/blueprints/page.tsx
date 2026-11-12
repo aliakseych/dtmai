@@ -1,5 +1,5 @@
 "use client";
-import { useT } from "@/lib/i18n";
+import { useEnum, useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { catalog, qk, useAct, useBases, useSubjects, useTopics, useTypes, type Blueprint, type BlueprintIn } from "@/lib/catalog";
@@ -17,6 +17,7 @@ const blank: BlueprintIn = { code: "", names: {}, kind: "generated", sections: [
 
 export default function BlueprintsPage() {
   const t = useT();
+  const en = useEnum();
   const [ask, confirmNode] = useConfirm();
   const q = useQuery({ queryKey: qk.blueprints, queryFn: catalog.blueprints.list });
   const [edit, setEdit] = useState<{ id?: string; status?: string; version?: number; form: BlueprintIn } | null>(null);
@@ -41,11 +42,11 @@ export default function BlueprintsPage() {
     <>
       <PageHeader title={t("admin.blueprints.mockBlueprints")} sub={t("admin.blueprints.draftPublishCreatesThe")} actions={<Btn variant="primary" onClick={() => setEdit({ form: blank })}>{t("admin.blueprints.newBlueprint")}</Btn>} />
       <div className="min-h-0 flex-1 overflow-auto">
-        <DataTable rows={q.data} loading={q.isLoading} error={q.error} rowKey={(r) => r.id} onRow={open}
+        <DataTable rows={q.data} loading={q.isLoading} error={q.error} rowKey={(r) => r.id} onRow={open} empty={<div className="space-y-2"><p>{t("admin.blueprints.emptyConsequence")}</p><Btn variant="primary" onClick={() => setEdit({ form: blank })}>{t("admin.blueprints.newBlueprint")}</Btn></div>}
           cols={[
             { key: "code", head: t("admin.common.code"), cell: (r) => <code>{r.code}</code> },
             { key: "name", head: t("admin.common.name"), cell: (r) => nm(r.names) },
-            { key: "kind", head: t("admin.common.kind"), cell: (r) => <Badge tone="blue">{r.kind}</Badge> },
+            { key: "kind", head: t("admin.common.kind"), cell: (r) => <Badge tone="blue">{en("blueprintKind", r.kind)}</Badge> },
             { key: "v", head: t("admin.blueprints.version"), cell: (r) => (r.status === "published" ? `v${r.version}` : "—") },
             { key: "st", head: t("admin.common.status"), cell: (r) => <StatusBadge status={r.status} /> },
             { key: "d", head: t("admin.common.min"), cell: (r) => r.duration_min },
@@ -64,7 +65,7 @@ export default function BlueprintsPage() {
           <fieldset disabled={locked} className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <Field label={t("admin.common.code")}><Input value={f.code} onChange={(e) => set({ code: e.target.value })} /></Field>
-              <Field label={t("admin.common.kind")}><Select value={f.kind} onChange={(e) => set({ kind: e.target.value as BlueprintIn["kind"] })}>{BLUEPRINT_KINDS.map((k) => <option key={k}>{k}</option>)}</Select></Field>
+              <Field label={t("admin.common.kind")}><Select value={f.kind} onChange={(e) => set({ kind: e.target.value as BlueprintIn["kind"] })}>{BLUEPRINT_KINDS.map((k) => <option key={k} value={k}>{en("blueprintKind", k)}</option>)}</Select></Field>
               <Field label={t("admin.blueprints.durationMin")}><Input type="number" min={1} value={f.duration_min} onChange={(e) => set({ duration_min: Number(e.target.value) })} /></Field>
               <Field label={t("admin.common.source")}><Select value={f.source_id ?? ""} onChange={(e) => set({ source_id: e.target.value || null })}><option value="">—</option>{bases.data?.map((b) => <option key={b.id} value={b.id}>{nm(b.names)}</option>)}</Select></Field>
             </div>

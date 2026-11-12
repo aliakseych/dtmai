@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.ai.application.gateway import AIGateway
@@ -22,6 +22,7 @@ from app.modules.labeling.domain.extraction import (
     placeholder_answer,
     resolve_keys,
 )
+from app.modules.labeling.domain.stale import ACTIVE_STATUSES, STALE_AFTER, is_abandoned
 from app.modules.labeling.infrastructure import catalog_adapter
 from app.modules.labeling.infrastructure.files import DefaultRenderer, crop_png, store_for
 from app.modules.labeling.infrastructure.orm import ImportBatchRow, ImportFileRow
@@ -104,8 +105,24 @@ class IngestService:
         await self._s.flush()
         return batch
 
+    async def fail_abandoned(self) -> None:
+        """Fail pending/running batches whose worker was lost so they never look live."""
+        await self._s.execute(
+            update(ImportBatchRow)
+            .where(
+                ImportBatchRow.status.in_(ACTIVE_STATUSES),
+                ImportBatchRow.created_at < datetime.now(UTC) - STALE_AFTER,
+            )
+            .values(status="failed", error="abandoned (worker lost)", finished_at=datetime.now(UTC))
+        )
+        await self._s.flush()
+
     async def reset_for_rerun(self, batch_id: UUID, *, all_files: bool) -> ImportBatchRow:
         batch = await self._require(batch_id)
+        if batch.status == "running" and is_abandoned(
+            batch.status, batch.created_at, datetime.now(UTC)
+        ):
+            batch.status = "failed"
         if batch.status == "running":
             raise Conflict("Batch is already running", code="batch_running")
         files = (
@@ -117,6 +134,7 @@ class IngestService:
                 f.error = None
         batch.status = "pending"
         batch.error = None
+        batch.created_at = datetime.now(UTC)  # restart the abandonment clock
         await self._s.flush()
         return batch
 

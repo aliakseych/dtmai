@@ -2,6 +2,12 @@ from collections.abc import Mapping
 from typing import Any
 from uuid import UUID
 
+from app.modules.lyceums.domain.campus import (
+    clean_buildings,
+    clean_map,
+    clean_offerings,
+    clean_specializations,
+)
 from app.modules.lyceums.domain.profile import (
     CityView,
     normalize_city_code,
@@ -60,6 +66,14 @@ class ProfileService:
                 fields[key] = parse_dormitory_status(value or "").value
             elif key == "dormitory_description":
                 fields[key] = validate_dormitory_description(value or {})
+            elif key == "map":
+                fields["campus_map"] = clean_map(value)
+            elif key == "buildings":
+                fields[key] = clean_buildings(value or [])
+            elif key == "specializations":
+                fields[key] = clean_specializations(value or [])
+            elif key == "offerings":
+                fields[key] = clean_offerings(value or [])
             elif key == "verified_rep":
                 if value is not None:
                     fields[key] = bool(value)

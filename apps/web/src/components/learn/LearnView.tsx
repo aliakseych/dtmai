@@ -10,6 +10,7 @@ import { pick } from "@/lib/localized";
 import { useStats } from "@/lib/stats";
 import { useAsync } from "@/lib/useAsync";
 import { useAuth } from "@/lib/auth";
+import { hasContent, SubjectEmpty } from "@/components/practice/SubjectEmpty";
 import { SubjectPath } from "./SubjectPath";
 import { DreamPin } from "./DreamPin";
 
@@ -49,7 +50,7 @@ export function LearnView() {
         return (
           <div className="flex flex-col gap-6">
             <DreamPin />
-            <Tabs items={list.map((s) => ({ id: s.id, label: pick(s.names, locale) }))} value={current} onChange={choose} />
+            <Tabs items={list.map((s) => ({ id: s.id, label: pick(s.names, locale) + (hasContent(s) ? "" : ` · ${t("common.soon")}`) }))} value={current} onChange={choose} />
             {stats.state.status === "ready" && (
               <div className="flex items-center gap-4 rounded-card border-2 border-line p-3">
                 <GoalRing done={stats.state.data.today_xp} goal={stats.state.data.daily_goal_xp} />
@@ -59,7 +60,7 @@ export function LearnView() {
                 </div>
               </div>
             )}
-            <SubjectPath subjectId={current} />
+            {hasContent(list.find((s) => s.id === current)) ? <SubjectPath subjectId={current} /> : <SubjectEmpty subjects={list} currentId={current} onPick={choose} />}
           </div>
         );
       }}

@@ -23,7 +23,7 @@ function LeagueTab() {
         const name = pick(l.tier.name, locale);
         return (
           <>
-            <div className="mb-6 flex flex-col items-center gap-2 text-center">
+            <div className="mb-6 flex flex-col items-center gap-4 text-center">
               <LeagueBadge tier={l.tier.idx} name={name} size={88} />
               <h2 className="text-3xl">{name}</h2>
               <p className="text-ink-soft">
@@ -146,7 +146,7 @@ export function LeaguesView() {
   const t = useT();
   const [tab, setTab] = useState<Tab>("league");
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageTitle>{t("nav.leagues")}</PageTitle>
       <Tabs
         items={[
@@ -156,6 +156,7 @@ export function LeaguesView() {
         ]}
         value={tab}
         onChange={setTab}
+        className="max-w-full"
       />
       {tab === "league" ? <LeagueTab /> : <Board key={tab} kind={tab} />}
     </div>

@@ -57,13 +57,13 @@ export function TopicBrowser({ subjectId }: { subjectId: string }) {
               return (
                 <li key={topic.id} style={{ marginInlineStart: depth * 16 }} className="flex items-center gap-3 rounded-2xl border-2 border-line px-3 py-2">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-bold text-ink">{pick(topic.names, locale)}</p>
+                    <p className="break-words font-bold text-ink">{pick(topic.names, locale)}</p>
                     <div className="mt-1 h-2 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct ?? 0}>
                       <div className="h-full rounded-full bg-brand" style={{ width: `${pct ?? 0}%` }} />
                     </div>
                     <p className="mt-1 text-xs text-ink-soft">{pct === null ? t("practice.topic.new") : t("practice.topic.mastery", { n: pct })}</p>
                   </div>
-                  <Link href={`/practice/run/?kind=drill&subject=${subjectId}&topic=${topic.id}`} className={buttonClass("secondary", false, "px-3 py-1.5 text-xs")}>
+                  <Link href={`/practice/run/?kind=drill&subject=${subjectId}&topic=${topic.id}`} className={buttonClass("secondary", false, "min-h-11 shrink-0 px-3 py-1.5 text-xs")}>
                     {t("practice.drill")}
                   </Link>
                 </li>

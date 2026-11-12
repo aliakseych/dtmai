@@ -31,7 +31,7 @@ export function PrioritySlots({ items, max = 3, emptyText, labels, onMove, onRem
         return (
           <li
             key={item?.id ?? `empty-${i}`}
-            className={`flex items-center gap-3 rounded-2xl border-2 px-3 py-2 ${
+            className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border-2 px-3 py-2 ${
               item ? "border-brand bg-brand-soft" : "border-dashed border-line bg-snow"
             }`}
           >
@@ -45,7 +45,7 @@ export function PrioritySlots({ items, max = 3, emptyText, labels, onMove, onRem
             </span>
             {item ? (
               <>
-                <div className="min-w-0 flex-1 break-words font-bold text-ink">{item.label}</div>
+                <div className="min-w-[10rem] flex-1 break-words font-bold text-ink">{item.label}</div>
                 <button type="button" className={iconBtn} disabled={disabled || i === 0} onClick={() => onMove(i, i - 1)} aria-label={labels.up}>
                   <Icon name="arrow-up" size={20} />
                 </button>

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -60,8 +60,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ref.read(guestBootstrapProvider.notifier).run();
     }
   });
-  ref.listen(meProvider, (_, __) => refresh.value++);
-  ref.listen(onboardingSkippedProvider, (_, __) => refresh.value++);
+  ref.listen(meProvider, (_, _) => refresh.value++);
+  ref.listen(onboardingSkippedProvider, (_, _) => refresh.value++);
   ref.onDispose(refresh.dispose);
 
   String? redirect(BuildContext context, GoRouterState state) {
@@ -95,9 +95,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: refresh,
     redirect: redirect,
     routes: [
-      GoRoute(path: '/splash', builder: (_, __) => const _Splash()),
-      GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-      GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
+      GoRoute(path: '/splash', builder: (_, _) => const _Splash()),
+      GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
+      GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingScreen()),
       GoRoute(
         path: '/session/:mode/:id',
         builder: (_, s) => LessonScreen(
@@ -117,18 +117,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/mocks/result/:id',
         builder: (_, s) => MockResultScreen(attemptId: s.pathParameters['id']!, result: s.extra as AttemptResult?),
       ),
-      GoRoute(path: '/settings/notifications', builder: (_, __) => const NotificationSettingsScreen()),
-      GoRoute(path: '/premium', builder: (_, __) => const PremiumScreen()),
-      GoRoute(path: '/quests', builder: (_, __) => const QuestsScreen()),
-      GoRoute(path: '/lyceums', builder: (_, __) => const LyceumsScreen()),
+      GoRoute(path: '/settings/notifications', builder: (_, _) => const NotificationSettingsScreen()),
+      GoRoute(path: '/premium', builder: (_, _) => const PremiumScreen()),
+      GoRoute(path: '/quests', builder: (_, _) => const QuestsScreen()),
+      GoRoute(path: '/lyceums', builder: (_, _) => const LyceumsScreen()),
       StatefulShellRoute.indexedStack(
-        builder: (_, __, shell) => _Shell(shell: shell),
+        builder: (_, _, shell) => _Shell(shell: shell),
         branches: [
-          StatefulShellBranch(routes: [GoRoute(path: '/learn', builder: (_, __) => const LearnScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: '/practice', builder: (_, __) => const PracticeScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: '/mocks', builder: (_, __) => const MocksScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: '/leagues', builder: (_, __) => const LeaguesScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen())]),
+          StatefulShellBranch(routes: [GoRoute(path: '/learn', builder: (_, _) => const LearnScreen())]),
+          StatefulShellBranch(routes: [GoRoute(path: '/practice', builder: (_, _) => const PracticeScreen())]),
+          StatefulShellBranch(routes: [GoRoute(path: '/mocks', builder: (_, _) => const MocksScreen())]),
+          StatefulShellBranch(routes: [GoRoute(path: '/leagues', builder: (_, _) => const LeaguesScreen())]),
+          StatefulShellBranch(routes: [GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen())]),
         ],
       ),
     ],

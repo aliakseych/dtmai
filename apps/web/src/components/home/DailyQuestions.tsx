@@ -24,18 +24,32 @@ export function DailyQuestions() {
     <section className="flex flex-col gap-2" aria-label={t("plan.home.dailyQuestions")}>
       <h2 className="text-lg">{t("plan.home.dailyQuestions")}</h2>
       <AsyncView state={state} onRetry={reload}>
-        {(d) => <Deck questions={d.questions} />}
+        {(d) => <Deck day={d.day} questions={d.questions} />}
       </AsyncView>
     </section>
   );
 }
 
-function Deck({ questions }: { questions: DailyQuestionOut[] }) {
+const storeKey = (day: string, id: string) => `dtm.daily.${day}.${id}`;
+function loadResult(day: string, id: string): DailyAnswerOut | undefined {
+  try {
+    const raw = localStorage.getItem(storeKey(day, id));
+    return raw ? (JSON.parse(raw) as DailyAnswerOut) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function Deck({ day, questions }: { day: string; questions: DailyQuestionOut[] }) {
   const t = useT();
   const reduce = useReducedMotion();
-  const [idx, setIdx] = useState(0);
+  // The API does not report which daily questions were answered, so the answers are kept per day in localStorage.
+  const [results, setResults] = useState<(DailyAnswerOut | undefined)[]>(() => questions.map((x) => loadResult(day, x.id)));
+  const [idx, setIdx] = useState(() => {
+    const i = results.findIndex((r) => !r);
+    return i < 0 ? questions.length : i;
+  });
   const [value, setValue] = useState<Response | null>(null);
-  const [results, setResults] = useState<(DailyAnswerOut | undefined)[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
 
@@ -52,6 +66,11 @@ function Deck({ questions }: { questions: DailyQuestionOut[] }) {
     try {
       const r = await answerDailyQuestion(q.id, value);
       setResults((prev) => Object.assign([...prev], { [idx]: r }));
+      try {
+        localStorage.setItem(storeKey(day, q.id), JSON.stringify(r));
+      } catch {
+        /* storage unavailable: answer stays for this visit only */
+      }
     } catch {
       setError(true);
     } finally {
@@ -89,7 +108,7 @@ function Deck({ questions }: { questions: DailyQuestionOut[] }) {
           </motion.div>
         ) : (
           <motion.div key={q.id} initial={reduce ? false : { opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={reduce ? undefined : { opacity: 0, x: -24 }} transition={{ duration: 0.2 }} className="flex flex-col gap-4">
-            <QuestionBody item={item} value={value} onChange={setValue} disabled={!!result || busy} correct={result?.correct_response ?? null} wasCorrect={result?.correct} />
+            <QuestionBody stemAs="p" item={item} value={value} onChange={setValue} disabled={!!result || busy} correct={result?.correct_response ?? null} wasCorrect={result?.correct} />
             <AnimatePresence>
               {result && (
                 <motion.div

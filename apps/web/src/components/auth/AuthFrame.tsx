@@ -2,15 +2,17 @@
 import Link from "next/link";
 import { useId, useState, type ReactNode } from "react";
 import { LocaleSwitcher, useT } from "@dtmai/i18n";
-import { Mascot } from "@dtmai/ui";
+import { Logo, Mascot } from "@dtmai/ui";
+import { useDocumentTitle } from "@/components/PageTitle";
 
 export function AuthFrame({ title, children, footer }: { title: string; children: ReactNode; footer: ReactNode }) {
   const t = useT();
+  useDocumentTitle(title);
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-4 py-8">
       <div className="flex items-center justify-between">
-        <Link href="/" className="text-3xl font-extrabold text-brand">
-          {t("app.name")}
+        <Link href="/" aria-label={t("app.name")}>
+          <Logo name={t("app.name")} size={40} />
         </Link>
         <LocaleSwitcher />
       </div>

@@ -9,6 +9,7 @@ import { uploadMedia } from "@/lib/media";
 import { mediaUrl } from "@/lib/env";
 import { errMsg, LOCALE_LIST, nm } from "@/lib/util";
 import { Btn, Check, ErrorBox, Field, Input, Select, Spinner, Textarea } from "@/components/ui/controls";
+import { CampusEditor, campusForm, campusPatch, type CampusForm } from "./CampusEditor";
 import { Drawer } from "@/components/ui/overlay";
 
 interface Form {
@@ -17,13 +18,14 @@ interface Form {
   university: string; city: string; website: string;
   phone: string; telegram: string; email: string; verified: boolean;
   dormStatus: DormitoryStatus; dormDesc: Record<string, string>;
+  extra: CampusForm;
 }
 
 const DORM: DormitoryStatus[] = ["unknown", "available", "limited", "none"];
 
 const orNull = (s: string) => (s.trim() ? s.trim() : null);
 
-function ImageSlot({ label, value, onChange }: { label: string; value: string; onChange: (key: string) => void }) {
+export function ImageSlot({ label, value, onChange }: { label: string; value: string; onChange: (key: string) => void }) {
   const t = useT();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
@@ -110,7 +112,7 @@ export function ProfileEditor({ lyceum, onClose }: { lyceum: LyceumRow | null; o
       logo: p.logo_url ?? "", campus: p.campus_photo_url ?? "", gallery: p.gallery_urls, desc: { ...p.description },
       courses: p.courses, university: p.university_name ?? "", city: p.city ?? "", website: p.website ?? "",
       phone: p.contacts.phone ?? "", telegram: p.contacts.telegram ?? "", email: p.contacts.email ?? "", verified: p.verified_rep,
-      dormStatus: p.dormitory_status, dormDesc: { ...p.dormitory_description },
+      dormStatus: p.dormitory_status, dormDesc: { ...p.dormitory_description }, extra: campusForm(p),
     });
   }, [detail.data]);
   const save = useAct((a: { id: string; body: LyceumPatch }) => lyceums.patch(a.id, a.body), [["lyceum-detail"]], t("admin.common.profileSaved"));
@@ -125,6 +127,7 @@ export function ProfileEditor({ lyceum, onClose }: { lyceum: LyceumRow | null; o
         university_name: orNull(f.university), city: orNull(f.city), website: orNull(f.website),
         contacts: { phone: orNull(f.phone), telegram: orNull(f.telegram), email: orNull(f.email) },
         verified_rep: f.verified,
+        ...campusPatch(f.extra),
         dormitory_status: f.dormStatus,
         dormitory_description: Object.fromEntries(Object.entries(f.dormDesc).filter(([, v]) => v.trim())),
       },
@@ -171,6 +174,7 @@ export function ProfileEditor({ lyceum, onClose }: { lyceum: LyceumRow | null; o
               <Field key={l} label={l}><Textarea className="font-sans" value={f.dormDesc[l] ?? ""} onChange={(e) => set({ dormDesc: { ...f.dormDesc, [l]: e.target.value } })} /></Field>
             ))}
           </fieldset>
+          <CampusEditor value={f.extra} onChange={(extra) => set({ extra })} />
           <Check checked={f.verified} onChange={(verified) => set({ verified })} label={t("admin.lyceums.verifiedRepresentativeBadge")} />
         </div>
       )}

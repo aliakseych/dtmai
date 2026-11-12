@@ -1,10 +1,12 @@
 "use client";
-import { useT } from "@/lib/i18n";
+import { useEnum, useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { users, type AdminUser } from "@/lib/users";
+import { EmptyState } from "@dtmai/ui";
 import { billing, type Plan, type PlanCreate } from "@/lib/billing";
 import { useAct } from "@/lib/catalog";
-import { fieldErrors, fmtDate, nm } from "@/lib/util";
+import { fieldErrors, fmtDate, fmtNum, nm } from "@/lib/util";
 import { Badge, Btn, Check, Field, Input, PageHeader, Select, Tabs } from "@/components/ui/controls";
 import { DataTable } from "@/components/ui/table";
 import { Drawer } from "@/components/ui/overlay";
@@ -13,10 +15,10 @@ import { NamesEditor, cleanNames } from "@/components/ui/names";
 import { JsonEditor } from "@/components/ui/json";
 
 const blank: PlanCreate = { code: "", names: {}, price_uzs: 49000, period_months: 1, features: [], limits: {}, active: true, sort_order: 0 };
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function BillingPage() {
   const t = useT();
+  const en = useEnum();
   const [ask, confirmNode] = useConfirm();
   const [tab, setTab] = useState<"plans" | "grants">("plans");
   const plans = useQuery({ queryKey: ["billing-plans"], queryFn: billing.plans });
@@ -32,8 +34,12 @@ export default function BillingPage() {
   const fe = fieldErrors(save.error);
   const set = (p: Partial<PlanCreate>) => setEdit((e) => e && { ...e, form: { ...e.form, ...p } });
 
-  const [userId, setUserId] = useState("");
-  const [lookup, setLookup] = useState("");
+  const [q, setQ] = useState("");
+  const [term, setTerm] = useState("");
+  const found = useQuery({ queryKey: ["billing-user-search", term], queryFn: () => users.list({ q: term, size: 8 }), enabled: !!term });
+  const [picked, setPicked] = useState<AdminUser | null>(null);
+  const lookup = picked?.id ?? "";
+  const warnings = (u: AdminUser) => [u.status === "disabled" ? t("admin.billing.warnDisabled") : "", !u.email || u.roles.includes("guest" as never) ? t("admin.billing.warnGuest") : ""].filter(Boolean);
   const subs = useQuery({ queryKey: ["billing-subs", lookup], queryFn: () => billing.subscriptions(lookup), enabled: !!lookup });
   const [grant, setGrant] = useState({ plan: "", months: 1 });
   const give = useAct(() => billing.grant({ user_id: lookup, plan_code: grant.plan, months: grant.months }), [["billing-subs"]], t("admin.billing.granted"));
@@ -50,32 +56,51 @@ export default function BillingPage() {
             cols={[
               { key: "c", head: t("admin.common.code"), cell: (r) => <code>{r.code}</code> },
               { key: "n", head: t("admin.common.name"), cell: (r) => nm(r.names) },
-              { key: "p", head: t("admin.billing.priceUzs"), cell: (r) => r.price_uzs.toLocaleString() },
+              { key: "p", head: t("admin.billing.priceUzs"), cell: (r) => fmtNum(r.price_uzs) },
               { key: "m", head: t("admin.billing.months"), cell: (r) => r.period_months },
-              { key: "f", head: t("admin.billing.features"), cell: (r) => r.features.join(", ") },
+              { key: "f", head: t("admin.billing.features"), cell: (r) => r.features.map((x) => en("planFeature", x)).join(", ") },
               { key: "a", head: t("admin.common.state"), cell: (r) => <Badge tone={r.active ? "green" : "gray"}>{r.active ? t("admin.common.active") : t("admin.topics.inactive")}</Badge> },
             ]} />
         ) : (
           <div className="space-y-4 p-4">
-            <div className="flex items-end gap-3 rounded-xl border border-line bg-white p-4">
-              <Field label={t("admin.billing.userId")} hint={t("admin.billing.uuidFromTheUsers")} error={userId && !UUID_RE.test(userId) ? t("admin.error.field.uuid_parsing") : undefined}><Input className="w-full sm:w-80" value={userId} onChange={(e) => setUserId(e.target.value.trim())} /></Field>
-              <Btn variant="primary" disabled={!UUID_RE.test(userId)} onClick={() => setLookup(userId)}>{t("admin.billing.loadSubscriptions")}</Btn>
+            <div className="space-y-3 rounded-xl border border-line bg-white p-4">
+              <form className="flex items-end gap-3" onSubmit={(e) => { e.preventDefault(); setTerm(q.trim()); }}>
+                <Field label={t("admin.billing.findUser")} hint={t("admin.billing.findUserHint")}><Input className="w-full sm:w-80" value={q} onChange={(e) => setQ(e.target.value)} /></Field>
+                <Btn variant="primary" type="submit" disabled={!q.trim()}>{t("admin.billing.searchUser")}</Btn>
+              </form>
+              {term && !picked && (found.data?.items.length ? (
+                <ul className="divide-y divide-line rounded-xl border border-line">
+                  {found.data.items.map((u) => (
+                    <li key={u.id}><button type="button" onClick={() => setPicked(u)} className="flex w-full flex-wrap items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-snow">
+                      <span><b>{u.display_name}</b> · {u.email ?? "—"}</span>
+                      <span className="flex gap-1"><Badge tone={u.status === "active" ? "green" : "gray"}>{en("userStatus", u.status)}</Badge>{u.roles.map((r) => <Badge key={r} tone="gray">{en("role", r)}</Badge>)}</span>
+                    </button></li>
+                  ))}
+                </ul>
+              ) : found.isLoading ? null : <EmptyState compact title={t("admin.billing.noUserFound")} />)}
+              {picked && (
+                <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-snow p-3 text-sm">
+                  <span><b>{picked.display_name}</b> · {picked.email ?? "—"} <Badge tone={picked.status === "active" ? "green" : "gray"}>{en("userStatus", picked.status)}</Badge></span>
+                  <Btn onClick={() => setPicked(null)}>{t("admin.billing.changeUser")}</Btn>
+                </div>
+              )}
+              {picked && warnings(picked).map((w) => <p key={w} role="alert" className="text-sm font-bold text-red-deep">{w}</p>)}
             </div>
             {lookup && (
               <>
                 <div className="flex items-end gap-3 rounded-xl border border-line bg-white p-4">
-                  <Field label={t("admin.billing.grantPlan")} error={ge.plan_code}><Select value={grant.plan} onChange={(e) => setGrant({ ...grant, plan: e.target.value })}><option value="">—</option>{plans.data?.map((p) => <option key={p.code} value={p.code}>{p.code}</option>)}</Select></Field>
+                  <Field label={t("admin.billing.grantPlan")} error={ge.plan_code}><Select value={grant.plan} onChange={(e) => setGrant({ ...grant, plan: e.target.value })}><option value="">—</option>{plans.data?.map((p) => <option key={p.code} value={p.code}>{nm(p.names)} · {p.code}</option>)}</Select></Field>
                   <Field label={t("admin.billing.months")} error={ge.months}><Input type="number" min={1} max={36} value={grant.months} onChange={(e) => setGrant({ ...grant, months: Number(e.target.value) })} /></Field>
-                  <Btn variant="primary" disabled={!grant.plan || grant.months < 1 || give.isPending} onClick={() => give.mutate(undefined)}>{t("admin.billing.grant")}</Btn>
+                  <Btn variant="primary" disabled={!grant.plan || picked?.status === "disabled" || grant.months < 1 || give.isPending} onClick={() => { const w = picked ? warnings(picked) : []; ask({ title: t("admin.billing.confirmGrant"), name: `${picked?.display_name} · ${picked?.email ?? "—"}`, body: w.join(" ") || `${grant.plan} · ${grant.months}`, danger: w.length > 0, confirmLabel: t("admin.billing.grant") }, () => give.mutate(undefined)); }}>{t("admin.billing.grant")}</Btn>
                 </div>
                 <DataTable rows={subs.data} loading={subs.isLoading} error={subs.error} rowKey={(r) => r.id} empty={t("admin.billing.noSubscriptions")}
                   cols={[
                     { key: "p", head: t("admin.billing.plan"), cell: (r) => r.plan_code },
                     { key: "s", head: t("admin.common.status"), cell: (r) => <Badge tone={r.status === "active" ? "green" : "gray"}>{t(`admin.billing.status.${r.status}`)}</Badge> },
-                    { key: "src", head: t("admin.common.source"), cell: (r) => r.source },
+                    { key: "src", head: t("admin.common.source"), cell: (r) => en("subSource", r.source) },
                     { key: "a", head: t("admin.common.started"), cell: (r) => fmtDate(r.started_at) },
                     { key: "u", head: t("admin.billing.until"), cell: (r) => fmtDate(r.until) },
-                    { key: "x", head: "", cell: (r) => r.status === "active" && <Btn variant="danger" onClick={() => ask({ title: t("admin.billing.revokeThisSubscription"), name: r.plan_code, danger: true, confirmLabel: t("admin.billing.revoke") }, () => revoke.mutate(r.id))}>{t("admin.billing.revoke")}</Btn> },
+                    { key: "x", head: "", cell: (r) => r.status === "active" && <Btn variant="danger" onClick={() => ask({ title: t("admin.billing.revokeThisSubscription"), name: r.plan_code, danger: true, confirmLabel: t("admin.billing.revokeSubscription"), cancelLabel: t("admin.billing.keepSubscription") }, () => revoke.mutate(r.id))}>{t("admin.billing.revoke")}</Btn> },
                   ]} />
               </>
             )}

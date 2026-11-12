@@ -4,6 +4,7 @@ import { AsyncView } from "@/components/AsyncView";
 import type { Subject } from "@/lib/api";
 import { pick } from "@/lib/localized";
 import type { AsyncState } from "@/lib/useAsync";
+import { hasContent } from "@/components/practice/SubjectEmpty";
 import { Choice } from "./Choice";
 
 export function SubjectsStep({ state, onRetry, value, onToggle, readOnly }: { state: AsyncState<Subject[]>; onRetry: () => void; value: string[]; onToggle: (id: string) => void; readOnly?: boolean }) {
@@ -23,6 +24,7 @@ export function SubjectsStep({ state, onRetry, value, onToggle, readOnly }: { st
               ) : (
               <Choice key={s.id} multi on={value.includes(s.id)} onClick={() => onToggle(s.id)}>
                 {pick(s.names, locale)}
+                {!hasContent(s) && <span className="ms-auto text-xs font-bold text-ink-soft">{t("common.soon")}</span>}
               </Choice>
               ),
             )}

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
@@ -13,6 +13,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     Uuid,
+    false,
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -35,6 +36,20 @@ class SubjectRow(_Common, Base):
     weight: Mapped[float] = mapped_column(Float, default=1.0)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     position: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class ReferenceSheetRow(_Common, Base):
+    """Per-subject formula/reference sheet shown in the exam and practice players."""
+
+    __tablename__ = "reference_sheets"
+    __table_args__ = (UniqueConstraint("subject_id"), {"schema": S})
+    subject_id: Mapped[UUID] = mapped_column(ForeignKey(f"{S}.subjects.id", ondelete="CASCADE"))
+    contents: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    source: Mapped[str] = mapped_column(String(500), default="")
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), default=lambda: datetime.now(UTC)
+    )
 
 
 class TopicRow(_Common, Base):
@@ -126,6 +141,7 @@ class QuestionBaseRow(_Common, Base):
     provenance: Mapped[str] = mapped_column(Text, default="")
     license_note: Mapped[str] = mapped_column(Text, default="")
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     position: Mapped[int] = mapped_column(Integer, default=0)
 
 
@@ -144,6 +160,7 @@ class AuditRow(Base):
 
 ENTITIES: dict[str, type[Base]] = {
     "subject": SubjectRow,
+    "reference_sheet": ReferenceSheetRow,
     "topic": TopicRow,
     "question_type": QuestionTypeRow,
     "path": PathRow,

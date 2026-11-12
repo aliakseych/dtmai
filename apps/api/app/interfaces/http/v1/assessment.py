@@ -216,6 +216,8 @@ class HistoryItemOut(BaseModel):
     submitted_at: datetime | None
     score: float
     max_total: float
+    correct: int = 0
+    questions: int = 0
 
     @classmethod
     def of(cls, a: MockAttempt) -> "HistoryItemOut":
@@ -227,6 +229,8 @@ class HistoryItemOut(BaseModel):
             submitted_at=a.submitted_at,
             score=a.score or 0.0,
             max_total=float((a.result or {}).get("max_total", 0.0)),
+            correct=int((a.result or {}).get("correct", 0)),
+            questions=int((a.result or {}).get("questions", 0)),
         )
 
 

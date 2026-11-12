@@ -21,8 +21,24 @@ type Block =
   | { k: "h"; level: number; text: string }
   | { k: "hr" }
   | { k: "code"; text: string }
+  | { k: "table"; head: string[]; rows: string[][] }
   | { k: "ul" | "ol"; items: string[] }
   | { k: "p"; text: string };
+
+/** Splits a table row on `|`, ignoring pipes inside `$...$` math. */
+function cells(line: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  let math = false;
+  const t = line.trim().replace(/^\|/, "").replace(/\|$/, "");
+  for (const ch of t) {
+    if (ch === "$") math = !math;
+    if (ch === "|" && !math) { out.push(cur.trim()); cur = ""; } else cur += ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
+const TABLE_SEP = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?\s*$/;
 
 function parse(src: string): Block[] {
   const lines = src.replace(/\r\n?/g, "\n").split("\n");
@@ -40,6 +56,16 @@ function parse(src: string): Block[] {
       i++;
       while (i < lines.length && !/^\s*```/.test(lines[i])) code.push(lines[i++]);
       out.push({ k: "code", text: code.join("\n") });
+      continue;
+    }
+    if (line.includes("|") && i + 1 < lines.length && TABLE_SEP.test(lines[i + 1])) {
+      flush();
+      const head = cells(line);
+      const rows: string[][] = [];
+      i += 2;
+      while (i < lines.length && lines[i].includes("|") && lines[i].trim()) rows.push(cells(lines[i++]));
+      i--;
+      out.push({ k: "table", head, rows });
       continue;
     }
     const h = /^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line);
@@ -86,6 +112,23 @@ export function Markdown({ text }: { text: string }) {
             return <hr key={i} className="border-line" />;
           case "code":
             return <pre key={i} className="overflow-x-auto rounded-xl bg-snow p-3 font-mono text-sm">{b.text}</pre>;
+          case "table":
+            return (
+              <div key={i} className="max-w-full overflow-x-auto rounded-xl border-2 border-line" tabIndex={0}>
+                <table className="w-max min-w-full border-collapse text-sm">
+                  <thead className="bg-snow">
+                    <tr>{b.head.map((c, j) => <th key={j} className="whitespace-nowrap border-b-2 border-line px-2 py-1.5 text-left font-extrabold">{inline(c)}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {b.rows.map((r, j) => (
+                      <tr key={j} className="border-t border-line">
+                        {b.head.map((_, k) => <td key={k} className="whitespace-nowrap px-2 py-1.5">{inline(r[k] ?? "")}</td>)}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
           case "ul":
           case "ol": {
             const L = b.k;

@@ -31,6 +31,7 @@ from app.modules.identity.ports import (
     Clock,
     EmailCodeRepository,
     FieldCatalog,
+    GoogleTokenVerifier,
     Mailer,
     PasswordHasher,
     RefreshTokenRepository,
@@ -85,10 +86,11 @@ class IdentityService:
         config: IdentityConfig,
         cities: CityCatalog,
         fields: FieldCatalog,
+        google: GoogleTokenVerifier | None = None,
     ) -> None:
         self._users, self._codes, self._refresh = users, codes, refresh
         self._hasher, self._mailer, self._clock, self._cfg = hasher, mailer, clock, config
-        self._cities, self._fields = cities, fields
+        self._cities, self._fields, self._google = cities, fields, google
 
     async def register_email(self, email: str, password: str, name: str, locale: str) -> None:
         email = normalize_email(email)
@@ -206,6 +208,30 @@ class IdentityService:
             data, self._cfg.bot_token, max_age=self._cfg.init_data_max_age
         )
         return await self._login_profile(profile)
+
+    async def login_google(self, id_token: str) -> TokenPair:
+        """Sign in (or sign up) with a Google ID token; an existing account with the same verified email is linked."""
+        if self._google is None:
+            raise ValidationFailed("google sign-in is not configured", code="google_disabled")
+        profile = await self._google.verify(id_token)
+        if not profile.email_verified:
+            raise Unauthorized("google email is not verified", code="google_email_unverified")
+        email = normalize_email(profile.email)
+        user = await self._users.by_email(email)
+        if user is None:
+            user = User(
+                id=new_id(),
+                name=profile.name.strip() or email,
+                email=email,
+                email_verified=True,
+            )
+            user.rename(user.name)
+            await self._users.add(user)
+        elif not user.email_verified:
+            # An unverified email/password signup is claimed by the real owner: drop its password.
+            user.email_verified, user.password_hash = True, None
+            await self._users.save(user)
+        return await self._issue(user)
 
     async def create_guest(self) -> TokenPair:
         user = User(id=new_id(), name="Guest", roles={Role.GUEST})

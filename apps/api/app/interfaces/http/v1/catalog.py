@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
@@ -46,6 +47,35 @@ class SubjectOut(_Out):
     weight: float
     active: bool
     position: int
+    question_count: int = Field(
+        default=0,
+        description="Verified, learner-servable questions; 0 = no content yet (learner list only)",
+    )
+
+
+class ReferenceSheetOut(_Out):
+    """Learner view: one locale, already resolved with fallback."""
+
+    subject_id: UUID
+    locale: str
+    content: str = Field(description="Markdown with $…$ / $$…$$ KaTeX")
+    source: str
+    updated_at: datetime
+
+
+class ReferenceSheetAdminOut(_Out):
+    id: UUID
+    subject_id: UUID
+    contents: Names
+    source: str
+    active: bool
+    updated_at: datetime
+
+
+class ReferenceSheetIn(BaseModel):
+    contents: Names
+    source: str = ""
+    active: bool = True
 
 
 class TopicOut(_Out):
@@ -125,6 +155,7 @@ class QuestionBaseOut(_Out):
     provenance: str
     license_note: str
     active: bool
+    archived: bool
     position: int
 
 
@@ -389,6 +420,42 @@ def _crud(
     _ = (create, get, patch, delete)
 
 
+@admin_router.get(
+    "/subjects/{subject_id}/reference",
+    response_model=ReferenceSheetAdminOut,
+    operation_id="catalog_admin_get_reference",
+)
+async def admin_get_reference(subject_id: UUID, svc: CatalogServiceDep) -> Any:
+    row = await svc.get_reference(subject_id)
+    if row is None:
+        raise NotFound(f"no reference sheet for subject {subject_id}")
+    return row
+
+
+@admin_router.put(
+    "/subjects/{subject_id}/reference",
+    response_model=ReferenceSheetAdminOut,
+    operation_id="catalog_admin_put_reference",
+)
+async def admin_put_reference(
+    subject_id: UUID, body: ReferenceSheetIn, svc: CatalogServiceDep, actor: AdminUser
+) -> Any:
+    """Create or replace the subject's reference sheet (one per subject)."""
+    return await svc.upsert_reference(subject_id, _dump(body), str(actor.user_id))
+
+
+@admin_router.delete(
+    "/subjects/{subject_id}/reference",
+    status_code=204,
+    operation_id="catalog_admin_delete_reference",
+)
+async def admin_delete_reference(
+    subject_id: UUID, svc: CatalogServiceDep, actor: AdminUser
+) -> Response:
+    await svc.delete_reference(subject_id, str(actor.user_id))
+    return Response(status_code=204)
+
+
 _crud("subject", "/subjects", SubjectIn, SubjectPatch, SubjectOut)
 _crud("topic", "/topics", TopicIn, TopicPatch, TopicOut)
 _crud("question_type", "/question-types", QuestionTypeIn, QuestionTypePatch, QuestionTypeOut)
@@ -452,8 +519,28 @@ async def admin_list_blueprints(svc: CatalogServiceDep) -> Any:
     response_model=list[QuestionBaseOut],
     operation_id="catalog_admin_list_question_bases",
 )
-async def admin_list_bases(svc: CatalogServiceDep) -> Any:
-    return await svc.repo.list("question_base")
+async def admin_list_bases(svc: CatalogServiceDep, include_archived: bool = False) -> Any:
+    rows = await svc.repo.list("question_base")
+    return rows if include_archived else [r for r in rows if not r["archived"]]
+
+
+@admin_router.post(
+    "/question-bases/{item_id}/archive",
+    response_model=QuestionBaseOut,
+    operation_id="catalog_admin_archive_question_base",
+)
+async def admin_archive_base(item_id: UUID, svc: CatalogServiceDep, actor: AdminUser) -> Any:
+    """Hide a base from learners and default admin lists without deleting its questions."""
+    return await svc.update("question_base", item_id, {"archived": True}, str(actor.user_id))
+
+
+@admin_router.post(
+    "/question-bases/{item_id}/unarchive",
+    response_model=QuestionBaseOut,
+    operation_id="catalog_admin_unarchive_question_base",
+)
+async def admin_unarchive_base(item_id: UUID, svc: CatalogServiceDep, actor: AdminUser) -> Any:
+    return await svc.update("question_base", item_id, {"archived": False}, str(actor.user_id))
 
 
 @admin_router.post(
@@ -573,7 +660,32 @@ async def launch_gate(session: Session, svc: CatalogServiceDep, subject_id: UUID
     responses=ERR,
 )
 async def list_subjects(session: Session) -> Any:
-    return await facade.list_subjects(session)
+    return await subjects_with_counts(session, await facade.list_subjects(session))
+
+
+async def subjects_with_counts(session: AsyncSession, subjects: list[Any]) -> list[SubjectOut]:
+    """Subjects annotated with their verified question count so clients can flag empty ones."""
+    out: list[SubjectOut] = []
+    for s in subjects:
+        total = await bank.count_verified_for_subject(session, s.id)
+        out.append(SubjectOut.model_validate(s).model_copy(update={"question_count": total}))
+    return out
+
+
+@router.get(
+    "/subjects/{subject_id}/reference",
+    response_model=ReferenceSheetOut,
+    operation_id="catalog_get_reference",
+    responses=ERR,
+)
+async def get_reference(
+    subject_id: UUID, session: Session, locale: str = "uz-Latn"
+) -> facade.ReferenceSheetDTO:
+    """Formula/reference sheet of a subject (404 when the subject has none or it is switched off)."""
+    sheet = await facade.get_reference(session, subject_id, locale)
+    if sheet is None:
+        raise NotFound(f"no reference sheet for subject {subject_id}")
+    return sheet
 
 
 @router.get(
@@ -663,9 +775,11 @@ async def list_bases(svc: CatalogServiceDep, session: Session) -> Any:
 async def servable_bases(
     session: AsyncSession, bases: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
-    """Active bases that hold at least one verified question; empty ones are not learner-facing."""
+    """Active, non-archived bases that hold at least one verified question; empty ones are not learner-facing."""
     return [
         b
         for b in bases
-        if b["active"] and await bank.count_verified_by_source(session, b["id"]) > 0
+        if b["active"]
+        and not b.get("archived", False)
+        and await bank.count_verified_by_source(session, b["id"]) > 0
     ]

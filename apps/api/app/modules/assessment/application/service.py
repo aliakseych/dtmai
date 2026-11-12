@@ -273,10 +273,10 @@ class AssessmentService:
         review: list[dict[str, Any]] = []
         for q in a.questions:
             resp = a.answers.get(q["id"])
-            correct, correct_resp = False, {}
-            if resp is not None:
-                g = await self._c.grade(UUID(q["id"]), resp)
-                correct, correct_resp = g.correct, g.correct_response
+            # Grade an empty response for unanswered questions so the review still shows the key.
+            g = await self._c.grade(UUID(q["id"]), resp if resp is not None else {})
+            correct = g.correct if resp is not None else False
+            correct_resp = g.correct_response
             scored.append(
                 Scored(q["section"], q["subject_id"], q["topic_id"], q["type_id"], correct)
             )

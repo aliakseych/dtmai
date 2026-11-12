@@ -11,6 +11,7 @@ from app.modules.billing.infrastructure.repositories import (
     SqlPlanRepository,
     SqlSubscriptionRepository,
 )
+from app.modules.billing.infrastructure.targets import IdentityGrantTargets
 from app.modules.billing.settings import get_billing_settings
 from app.shared.db import get_session, get_sessionmaker
 from app.shared.entitlements import Entitlements, set_entitlements
@@ -25,6 +26,7 @@ def build_billing_service(session: AsyncSession) -> BillingService:
         SqlInvoiceRepository(session),
         ClickShopProvider(s),
         s,
+        IdentityGrantTargets(session),
     )
 
 

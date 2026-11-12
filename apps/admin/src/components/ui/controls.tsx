@@ -1,10 +1,11 @@
 "use client";
 import { cn } from "@dtmai/ui";
+import { useEffect, useRef, useState } from "react";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { useT } from "@/lib/i18n";
 import { errMsg } from "@/lib/util";
 
-const field = "w-full rounded-xl border border-line bg-white px-2 py-1.5 text-sm outline-none focus:border-blue focus:ring-1 focus:ring-blue disabled:bg-snow";
+const field = "w-full rounded-xl border border-line bg-white px-2 py-1.5 text-sm outline-none focus:border-blue focus:ring-1 focus:ring-blue aria-[invalid=true]:border-red-deep disabled:bg-snow";
 
 export function Input({ className, ...p }: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...p} className={cn(field, className)} />;
@@ -21,12 +22,26 @@ export function Select({ className, children, ...p }: SelectHTMLAttributes<HTMLS
 }
 
 export function Field({ label, hint, error, children, className }: { label: string; hint?: string; error?: string; children: ReactNode; className?: string }) {
+  const ref = useRef<HTMLLabelElement>(null);
+  const [dismissed, setDismissed] = useState<string | undefined>();
+  const shown = error && error !== dismissed ? error : undefined;
+  useEffect(() => {
+    const ctl = ref.current?.querySelector<HTMLElement>("input,select,textarea");
+    if (!ctl) return;
+    if (!shown) { ctl.removeAttribute("aria-invalid"); return; }
+    ctl.setAttribute("aria-invalid", "true");
+    const root = ref.current?.closest("[role=dialog],dialog,form") ?? document;
+    if (root.querySelector("[aria-invalid=true]") === ctl) ctl.focus();
+    const clear = () => setDismissed(error);
+    ctl.addEventListener("input", clear, { once: true });
+    return () => ctl.removeEventListener("input", clear);
+  }, [shown, error]);
   return (
-    <label className={cn("block", className)}>
+    <label ref={ref} className={cn("block", className)}>
       <span className="mb-0.5 block text-xs font-extrabold uppercase tracking-wide text-ink-soft">{label}</span>
       {children}
       {hint && <span className="mt-0.5 block text-xs font-semibold text-ink-soft">{hint}</span>}
-      {error && <span role="alert" className="mt-0.5 block text-xs font-bold text-red-deep">{error}</span>}
+      {shown && <span role="alert" className="mt-0.5 block text-xs font-bold text-red-deep">{shown}</span>}
     </label>
   );
 }

@@ -7,6 +7,7 @@ import { useLocale, useT } from "@dtmai/i18n";
 import { AuthFrame, Field } from "@/components/auth/AuthFrame";
 import { RegisterBenefits } from "@/components/auth/RegisterBenefits";
 import { OrDivider } from "@/components/auth/OrDivider";
+import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
 import { TelegramLogin } from "@/components/auth/TelegramLogin";
 import { useSignedIn } from "@/components/auth/useSignedIn";
 import { api } from "@/lib/api";
@@ -128,6 +129,7 @@ function RegisterForm() {
       {step === "details" && (
         <>
           <OrDivider />
+          <GoogleSignIn />
           <TelegramLogin />
         </>
       )}

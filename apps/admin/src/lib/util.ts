@@ -30,9 +30,14 @@ export function errMsg(e: unknown): string {
 
 /** Per-field messages from a 422 problem (`errors[]`, or legacy pydantic `detail[]`, → `{field: msg}`); empty otherwise. */
 export function fieldErrors(e: unknown): Record<string, string> {
+  if (e instanceof ApiError && e.status === 409) return { code: translate(currentLocale() as never, "admin.error.field.duplicate_code" as never) };
   if (!(e instanceof ApiError) || e.status !== 422) return {};
   const p = e.problem as { errors?: unknown; detail?: unknown } | undefined;
   const d = Array.isArray(p?.errors) ? p.errors : p?.detail;
+  if (typeof d === "string") {
+    const m = /^(\w+) /.exec(d);
+    return m ? { [m[1]!]: translate(currentLocale() as never, "admin.error.field.invalid" as never) } : {};
+  }
   if (!Array.isArray(d)) return {};
   const out: Record<string, string> = {};
   for (const x of d as { loc?: unknown[]; type?: string }[]) {
@@ -44,6 +49,7 @@ export function fieldErrors(e: unknown): Record<string, string> {
   }
   return out;
 }
+export const fmtNum = (n: number) => new Intl.NumberFormat(currentLocale().startsWith("uz") ? "uz" : currentLocale()).format(n);
 export const uuid = () => crypto.randomUUID();
 export function fmtDate(s?: string | null) {
   return s ? new Intl.DateTimeFormat(currentLocale() === "uz-Cyrl" ? "uz-Cyrl-UZ" : currentLocale(), { dateStyle: "short", timeStyle: "short" }).format(new Date(s)) : "—";

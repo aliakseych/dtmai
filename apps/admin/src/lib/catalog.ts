@@ -1,6 +1,6 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { components } from "@dtmai/api-client";
+import { ApiError, type components } from "@dtmai/api-client";
 import { api } from "./api";
 import { useToast } from "@dtmai/ui";
 import { errMsg } from "./util";
@@ -24,6 +24,8 @@ export type Coverage = S["CoverageRow"];
 export type Audit = S["AuditOut"];
 export type Question = S["QuestionAdminOut"];
 export type QuestionBody = S["QuestionBody"];
+export type ReferenceSheet = S["ReferenceSheetAdminOut"];
+export type ReferenceSheetIn = S["ReferenceSheetIn"];
 export type LaunchGateRow = S["LaunchGateRow"];
 
 const A = api.client;
@@ -35,6 +37,15 @@ export const catalog = {
     create: (body: SubjectIn) => u(A.POST("/v1/admin/catalog/subjects", { body })),
     update: (id: string, body: Partial<SubjectIn>) => u(A.PATCH("/v1/admin/catalog/subjects/{item_id}", { params: { path: { item_id: id } }, body })),
     remove: (id: string) => u(A.DELETE("/v1/admin/catalog/subjects/{item_id}", { params: { path: { item_id: id } } })),
+  },
+  reference: {
+    /** 404 means "no sheet yet" -> null. */
+    get: async (subject_id: string): Promise<ReferenceSheet | null> => {
+      try { return await u(A.GET("/v1/admin/catalog/subjects/{subject_id}/reference", { params: { path: { subject_id } } })); }
+      catch (e) { if (e instanceof ApiError && e.status === 404) return null; throw e; }
+    },
+    put: (subject_id: string, body: ReferenceSheetIn) => u(A.PUT("/v1/admin/catalog/subjects/{subject_id}/reference", { params: { path: { subject_id } }, body })),
+    remove: (subject_id: string) => u(A.DELETE("/v1/admin/catalog/subjects/{subject_id}/reference", { params: { path: { subject_id } } })),
   },
   topics: {
     list: (subject_id: string) => u(A.GET("/v1/admin/catalog/topics", { params: { query: { subject_id } } })),
@@ -50,7 +61,9 @@ export const catalog = {
     remove: (id: string) => u(A.DELETE("/v1/admin/catalog/question-types/{item_id}", { params: { path: { item_id: id } } })),
   },
   bases: {
-    list: () => u(A.GET("/v1/admin/catalog/question-bases")),
+    list: (include_archived = false) => u(A.GET("/v1/admin/catalog/question-bases", { params: { query: { include_archived } } })),
+    archive: (item_id: string) => u(A.POST("/v1/admin/catalog/question-bases/{item_id}/archive", { params: { path: { item_id } } })),
+    unarchive: (item_id: string) => u(A.POST("/v1/admin/catalog/question-bases/{item_id}/unarchive", { params: { path: { item_id } } })),
     create: (body: QBaseIn) => u(A.POST("/v1/admin/catalog/question-bases", { body })),
     update: (id: string, body: Partial<QBaseIn>) => u(A.PATCH("/v1/admin/catalog/question-bases/{item_id}", { params: { path: { item_id: id } }, body })),
     remove: (id: string) => u(A.DELETE("/v1/admin/catalog/question-bases/{item_id}", { params: { path: { item_id: id } } })),
@@ -91,12 +104,12 @@ export const catalog = {
 
 export const qk = {
   subjects: ["subjects"], types: ["types"], bases: ["bases"], blueprints: ["blueprints"],
-  topics: (s: string) => ["topics", s], paths: (s: string) => ["paths", s], units: (p: string) => ["units", p], lessons: (u: string) => ["lessons", u],
+  reference: (s: string) => ["reference", s], topics: (s: string) => ["topics", s], paths: (s: string) => ["paths", s], units: (p: string) => ["units", p], lessons: (u: string) => ["lessons", u],
 } as const;
 
 export const useSubjects = () => useQuery({ queryKey: qk.subjects, queryFn: catalog.subjects.list, staleTime: 60_000 });
 export const useTypes = () => useQuery({ queryKey: qk.types, queryFn: catalog.types.list, staleTime: 60_000 });
-export const useBases = () => useQuery({ queryKey: qk.bases, queryFn: catalog.bases.list, staleTime: 60_000 });
+export const useBases = () => useQuery({ queryKey: qk.bases, queryFn: () => catalog.bases.list(), staleTime: 60_000 });
 export const useTopics = (subjectId: string | undefined) =>
   useQuery({ queryKey: qk.topics(subjectId ?? ""), queryFn: () => catalog.topics.list(subjectId!), enabled: !!subjectId, staleTime: 60_000 });
 

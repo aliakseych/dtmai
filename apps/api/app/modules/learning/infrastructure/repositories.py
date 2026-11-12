@@ -125,6 +125,15 @@ class SqlLearningRepository:
         )
         return set(res.scalars())
 
+    async def solved_ids(self, user_id: UUID) -> list[UUID]:
+        """Questions the user has answered correctly at least once."""
+        res = await self._s.execute(
+            select(AttemptRow.question_id)
+            .where(AttemptRow.user_id == user_id, AttemptRow.correct.is_(True))
+            .distinct()
+        )
+        return list(res.scalars())
+
     async def seen_ids(self, user_id: UUID, limit: int = 200) -> list[UUID]:
         res = await self._s.execute(
             select(AttemptRow.question_id)

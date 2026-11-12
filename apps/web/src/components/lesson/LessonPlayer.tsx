@@ -16,6 +16,7 @@ import { useAsync } from "@/lib/useAsync";
 import { TheoryCards, type TheoryCard } from "./TheoryCards";
 import { isTheorySeen, markTheorySeen } from "./theorySeen";
 import { useLessonTheory } from "./useLessonTheory";
+import { FormulaSheet } from "@/components/reference/FormulaSheet";
 import { HeartsGate } from "./HeartsGate";
 import { correctText, isAnswered, QuestionBody, type Response } from "./QuestionBody";
 
@@ -281,6 +282,7 @@ function Runner({ session, exitHref, doneHref, theory, onRestart }: { onRestart:
           <Icon name="close" />
         </button>
         <ProgressBar value={Math.min(session.answered + index + (phase === "feedback" ? 1 : 0), result?.total ?? session.total)} max={result?.total ?? session.total} label={t("lesson.progress")} />
+        <FormulaSheet subjectId={session.subject_id} />
         {costs && <HeartsStat value={unlimited ? "∞" : (hearts ?? 0)} label={t("stat.hearts")} />}
       </header>
 

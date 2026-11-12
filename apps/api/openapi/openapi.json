@@ -912,8 +912,194 @@
         "title": "AuditSampleOut",
         "type": "object"
       },
+      "AuthConfigOut": {
+        "properties": {
+          "google_client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Google Client Id"
+          }
+        },
+        "required": [
+          "google_client_id"
+        ],
+        "title": "AuthConfigOut",
+        "type": "object"
+      },
+      "BankBaseOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "names": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Names",
+            "type": "object"
+          },
+          "solved": {
+            "title": "Solved",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "names",
+          "kind",
+          "year",
+          "total",
+          "solved"
+        ],
+        "title": "BankBaseOut",
+        "type": "object"
+      },
+      "BankOverviewOut": {
+        "properties": {
+          "bases": {
+            "items": {
+              "$ref": "#/components/schemas/BankBaseOut"
+            },
+            "title": "Bases",
+            "type": "array"
+          },
+          "easy": {
+            "title": "Easy",
+            "type": "integer"
+          },
+          "hard": {
+            "title": "Hard",
+            "type": "integer"
+          },
+          "medium": {
+            "title": "Medium",
+            "type": "integer"
+          },
+          "solved": {
+            "title": "Solved",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "types": {
+            "items": {
+              "$ref": "#/components/schemas/BankTypeOut"
+            },
+            "title": "Types",
+            "type": "array"
+          }
+        },
+        "required": [
+          "total",
+          "solved",
+          "easy",
+          "medium",
+          "hard",
+          "bases",
+          "types"
+        ],
+        "title": "BankOverviewOut",
+        "type": "object"
+      },
+      "BankTypeOut": {
+        "description": "One (topic, question type) cell. total/solved honour the level filter; easy/medium/hard\nare the cell's totals per level (source filter applied, level filter not).",
+        "properties": {
+          "easy": {
+            "title": "Easy",
+            "type": "integer"
+          },
+          "hard": {
+            "title": "Hard",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "medium": {
+            "title": "Medium",
+            "type": "integer"
+          },
+          "solved": {
+            "title": "Solved",
+            "type": "integer"
+          },
+          "topic_id": {
+            "format": "uuid",
+            "title": "Topic Id",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "type_id": {
+            "format": "uuid",
+            "title": "Type Id",
+            "type": "string"
+          },
+          "type_names": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Type Names",
+            "type": "object"
+          }
+        },
+        "required": [
+          "topic_id",
+          "type_id",
+          "type_names",
+          "kind",
+          "total",
+          "solved",
+          "easy",
+          "medium",
+          "hard"
+        ],
+        "title": "BankTypeOut",
+        "type": "object"
+      },
       "BatchDetail": {
         "properties": {
+          "archived": {
+            "title": "Archived",
+            "type": "boolean"
+          },
           "error": {
             "anyOf": [
               {
@@ -977,6 +1163,7 @@
           "files_done",
           "questions_created",
           "error",
+          "archived",
           "files"
         ],
         "title": "BatchDetail",
@@ -1083,6 +1270,10 @@
       },
       "BatchOut": {
         "properties": {
+          "archived": {
+            "title": "Archived",
+            "type": "boolean"
+          },
           "error": {
             "anyOf": [
               {
@@ -1138,7 +1329,8 @@
           "files_total",
           "files_done",
           "questions_created",
-          "error"
+          "error",
+          "archived"
         ],
         "title": "BatchOut",
         "type": "object"
@@ -1584,6 +1776,29 @@
         "title": "BroadcastOut",
         "type": "object"
       },
+      "BuildingModel": {
+        "properties": {
+          "floor_plans": {
+            "items": {
+              "$ref": "#/components/schemas/FloorPlanModel"
+            },
+            "title": "Floor Plans",
+            "type": "array"
+          },
+          "name": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Name",
+            "type": "object"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "BuildingModel",
+        "type": "object"
+      },
       "BulkIn": {
         "properties": {
           "dry_run": {
@@ -1744,6 +1959,56 @@
           "updated"
         ],
         "title": "BulkStatusOut",
+        "type": "object"
+      },
+      "CampusMapModel": {
+        "properties": {
+          "embed_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embed Url"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng"
+          }
+        },
+        "title": "CampusMapModel",
         "type": "object"
       },
       "CertRuleCreate": {
@@ -3012,6 +3277,34 @@
             "title": "Language",
             "type": "string"
           },
+          "level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "easy",
+                  "medium",
+                  "hard"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
           "subject_id": {
             "format": "uuid",
             "title": "Subject Id",
@@ -3040,6 +3333,11 @@
               }
             ],
             "title": "Type Id"
+          },
+          "unsolved_only": {
+            "default": false,
+            "title": "Unsolved Only",
+            "type": "boolean"
           }
         },
         "required": [
@@ -3980,6 +4278,27 @@
         "title": "FinishOut",
         "type": "object"
       },
+      "FloorPlanModel": {
+        "properties": {
+          "image_url": {
+            "maxLength": 500,
+            "title": "Image Url",
+            "type": "string"
+          },
+          "label": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Label",
+            "type": "object"
+          }
+        },
+        "required": [
+          "image_url"
+        ],
+        "title": "FloorPlanModel",
+        "type": "object"
+      },
       "GenerationIn": {
         "properties": {
           "count": {
@@ -4122,6 +4441,20 @@
         "title": "GenerationOut",
         "type": "object"
       },
+      "GoogleIn": {
+        "properties": {
+          "id_token": {
+            "minLength": 10,
+            "title": "Id Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id_token"
+        ],
+        "title": "GoogleIn",
+        "type": "object"
+      },
       "GrantIn": {
         "properties": {
           "months": {
@@ -4164,6 +4497,61 @@
           "plan_code"
         ],
         "title": "GrantIn",
+        "type": "object"
+      },
+      "GrantOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "plan_code": {
+            "title": "Plan Code",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "until": {
+            "format": "date-time",
+            "title": "Until",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "user_id",
+          "plan_code",
+          "status",
+          "source",
+          "started_at",
+          "until"
+        ],
+        "title": "GrantOut",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -4234,6 +4622,11 @@
             ],
             "title": "Blueprint Id"
           },
+          "correct": {
+            "default": 0,
+            "title": "Correct",
+            "type": "integer"
+          },
           "kind": {
             "title": "Kind",
             "type": "string"
@@ -4241,6 +4634,11 @@
           "max_total": {
             "title": "Max Total",
             "type": "number"
+          },
+          "questions": {
+            "default": 0,
+            "title": "Questions",
+            "type": "integer"
           },
           "score": {
             "title": "Score",
@@ -5397,6 +5795,20 @@
       },
       "LyceumPatch": {
         "properties": {
+          "buildings": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/BuildingModel"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buildings"
+          },
           "campus_photo_url": {
             "anyOf": [
               {
@@ -5515,6 +5927,44 @@
               }
             ],
             "title": "Logo Url"
+          },
+          "map": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CampusMapModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "offerings": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/OfferingModel"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Offerings"
+          },
+          "specializations": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/SpecializationModel"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specializations"
           },
           "university_name": {
             "anyOf": [
@@ -5933,7 +6383,7 @@
           "name": {
             "anyOf": [
               {
-                "maxLength": 200,
+                "maxLength": 80,
                 "minLength": 1,
                 "type": "string"
               },
@@ -6230,6 +6680,36 @@
           "en"
         ],
         "title": "NamesOut",
+        "type": "object"
+      },
+      "OfferingModel": {
+        "properties": {
+          "description": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Description",
+            "type": "object"
+          },
+          "taught_by": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Taught By",
+            "type": "object"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Title",
+            "type": "object"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "OfferingModel",
         "type": "object"
       },
       "OkOut": {
@@ -7376,6 +7856,13 @@
       },
       "ProfileOut": {
         "properties": {
+          "buildings": {
+            "items": {
+              "$ref": "#/components/schemas/BuildingModel"
+            },
+            "title": "Buildings",
+            "type": "array"
+          },
           "campus_photo_url": {
             "anyOf": [
               {
@@ -7450,6 +7937,30 @@
             ],
             "title": "Logo Url"
           },
+          "map": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CampusMapModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "offerings": {
+            "items": {
+              "$ref": "#/components/schemas/OfferingModel"
+            },
+            "title": "Offerings",
+            "type": "array"
+          },
+          "specializations": {
+            "items": {
+              "$ref": "#/components/schemas/SpecializationModel"
+            },
+            "title": "Specializations",
+            "type": "array"
+          },
           "university_name": {
             "anyOf": [
               {
@@ -7478,6 +7989,10 @@
           }
         },
         "required": [
+          "map",
+          "buildings",
+          "specializations",
+          "offerings",
           "logo_url",
           "campus_photo_url",
           "gallery_urls",
@@ -8087,6 +8602,10 @@
             "title": "Active",
             "type": "boolean"
           },
+          "archived": {
+            "title": "Archived",
+            "type": "boolean"
+          },
           "code": {
             "title": "Code",
             "type": "string"
@@ -8140,6 +8659,7 @@
           "provenance",
           "license_note",
           "active",
+          "archived",
           "position"
         ],
         "title": "QuestionBaseOut",
@@ -8900,6 +9420,113 @@
           "plan_end"
         ],
         "title": "RangeOut",
+        "type": "object"
+      },
+      "ReferenceSheetAdminOut": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "contents": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Contents",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "subject_id",
+          "contents",
+          "source",
+          "active",
+          "updated_at"
+        ],
+        "title": "ReferenceSheetAdminOut",
+        "type": "object"
+      },
+      "ReferenceSheetIn": {
+        "properties": {
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "contents": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Contents",
+            "type": "object"
+          },
+          "source": {
+            "default": "",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "contents"
+        ],
+        "title": "ReferenceSheetIn",
+        "type": "object"
+      },
+      "ReferenceSheetOut": {
+        "description": "Learner view: one locale, already resolved with fallback.",
+        "properties": {
+          "content": {
+            "description": "Markdown with $…$ / $$…$$ KaTeX",
+            "title": "Content",
+            "type": "string"
+          },
+          "locale": {
+            "title": "Locale",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_id",
+          "locale",
+          "content",
+          "source",
+          "updated_at"
+        ],
+        "title": "ReferenceSheetOut",
         "type": "object"
       },
       "RefreshIn": {
@@ -9864,6 +10491,45 @@
         "title": "SolveQueuedOut",
         "type": "object"
       },
+      "SpecializationModel": {
+        "properties": {
+          "description": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Description",
+            "type": "object"
+          },
+          "field_code": {
+            "maxLength": 50,
+            "title": "Field Code",
+            "type": "string"
+          },
+          "name": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Name",
+            "type": "object"
+          },
+          "second_year_subjects": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Second Year Subjects",
+            "type": "array"
+          }
+        },
+        "required": [
+          "field_code",
+          "name"
+        ],
+        "title": "SpecializationModel",
+        "type": "object"
+      },
       "SpendReportOut": {
         "properties": {
           "by_day": {
@@ -10170,6 +10836,12 @@
           },
           "position": {
             "title": "Position",
+            "type": "integer"
+          },
+          "question_count": {
+            "default": 0,
+            "description": "Verified, learner-servable questions; 0 = no content yet (learner list only)",
+            "title": "Question Count",
             "type": "integer"
           },
           "weight": {
@@ -14081,7 +14753,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SubscriptionOut"
+                  "$ref": "#/components/schemas/GrantOut"
                 }
               }
             },
@@ -16650,6 +17322,18 @@
     "/v1/admin/catalog/question-bases": {
       "get": {
         "operationId": "catalog_admin_list_question_bases",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "include_archived",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Archived",
+              "type": "boolean"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -17069,6 +17753,183 @@
           }
         ],
         "summary": "Patch",
+        "tags": [
+          "catalog-admin"
+        ]
+      }
+    },
+    "/v1/admin/catalog/question-bases/{item_id}/archive": {
+      "post": {
+        "description": "Hide a base from learners and default admin lists without deleting its questions.",
+        "operationId": "catalog_admin_archive_question_base",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionBaseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Admin Archive Base",
+        "tags": [
+          "catalog-admin"
+        ]
+      }
+    },
+    "/v1/admin/catalog/question-bases/{item_id}/unarchive": {
+      "post": {
+        "operationId": "catalog_admin_unarchive_question_base",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionBaseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Admin Unarchive Base",
         "tags": [
           "catalog-admin"
         ]
@@ -17923,6 +18784,270 @@
           }
         ],
         "summary": "Patch",
+        "tags": [
+          "catalog-admin"
+        ]
+      }
+    },
+    "/v1/admin/catalog/subjects/{subject_id}/reference": {
+      "delete": {
+        "operationId": "catalog_admin_delete_reference",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subject_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Subject Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Admin Delete Reference",
+        "tags": [
+          "catalog-admin"
+        ]
+      },
+      "get": {
+        "operationId": "catalog_admin_get_reference",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subject_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Subject Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceSheetAdminOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Admin Get Reference",
+        "tags": [
+          "catalog-admin"
+        ]
+      },
+      "put": {
+        "description": "Create or replace the subject's reference sheet (one per subject).",
+        "operationId": "catalog_admin_put_reference",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subject_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Subject Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReferenceSheetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceSheetAdminOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Admin Put Reference",
         "tags": [
           "catalog-admin"
         ]
@@ -20995,6 +22120,16 @@
               "title": "Limit",
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "include_archived",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Archived",
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -21332,6 +22467,95 @@
         ]
       }
     },
+    "/v1/admin/ingestion/batches/{batch_id}/archive": {
+      "post": {
+        "description": "Hide a finished batch from the default list; running batches cannot be archived.",
+        "operationId": "ingestion_archive_batch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Batch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Archive Batch",
+        "tags": [
+          "ingestion-admin"
+        ]
+      }
+    },
     "/v1/admin/ingestion/batches/{batch_id}/rerun": {
       "post": {
         "operationId": "ingestion_rerun_batch",
@@ -21425,6 +22649,94 @@
           }
         ],
         "summary": "Rerun Batch",
+        "tags": [
+          "ingestion-admin"
+        ]
+      }
+    },
+    "/v1/admin/ingestion/batches/{batch_id}/unarchive": {
+      "post": {
+        "operationId": "ingestion_unarchive_batch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Batch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Unarchive Batch",
         "tags": [
           "ingestion-admin"
         ]
@@ -25812,6 +27124,142 @@
         ]
       }
     },
+    "/v1/bank/overview": {
+      "get": {
+        "description": "Learner question bank of one subject: verified questions per topic/question type with the\ncaller's solved counts, filterable by question base and difficulty level.",
+        "operationId": "bank_overview",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Subject Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "required": true,
+            "schema": {
+              "title": "Language",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "level",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "easy",
+                    "medium",
+                    "hard"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Level"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankOverviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Overview",
+        "tags": [
+          "bank"
+        ]
+      }
+    },
     "/v1/bank/passages/{passage_id}": {
       "get": {
         "description": "Reading passage shared by items of a session (public: ids are unguessable UUIDs).",
@@ -26719,6 +28167,100 @@
           }
         ],
         "summary": "Get Path",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/v1/catalog/subjects/{subject_id}/reference": {
+      "get": {
+        "description": "Formula/reference sheet of a subject (404 when the subject has none or it is switched off).",
+        "operationId": "catalog_get_reference",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subject_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Subject Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "locale",
+            "required": false,
+            "schema": {
+              "default": "uz-Latn",
+              "title": "Locale",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceSheetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Get Reference",
         "tags": [
           "catalog"
         ]
@@ -27992,6 +29534,27 @@
         ]
       }
     },
+    "/v1/identity/config": {
+      "get": {
+        "operationId": "identity_get_config",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthConfigOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Auth Config",
+        "tags": [
+          "identity"
+        ]
+      }
+    },
     "/v1/identity/email/resend": {
       "post": {
         "operationId": "identity_resend_code",
@@ -28097,6 +29660,77 @@
           }
         },
         "summary": "Verify",
+        "tags": [
+          "identity"
+        ]
+      }
+    },
+    "/v1/identity/google": {
+      "post": {
+        "operationId": "identity_google",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "summary": "Google",
         "tags": [
           "identity"
         ]

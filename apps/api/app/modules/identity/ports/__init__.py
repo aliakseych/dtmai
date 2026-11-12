@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 from uuid import UUID
@@ -73,4 +74,18 @@ class FieldCatalog(Protocol):
 
     async def offered_fields(self, lyceum_ids: list[UUID]) -> dict[UUID, set[str]]:
         """lyceum_id -> field codes offered in its newest imported year."""
+        ...
+
+
+@dataclass(frozen=True, slots=True)
+class GoogleProfile:
+    sub: str
+    email: str
+    email_verified: bool
+    name: str
+
+
+class GoogleTokenVerifier(Protocol):
+    async def verify(self, id_token: str) -> GoogleProfile:
+        """Validate a Google ID token; raises `Unauthorized` when it is invalid."""
         ...

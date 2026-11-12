@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -79,7 +79,7 @@ class _Body extends ConsumerWidget {
           Text(l.friends, style: Theme.of(context).textTheme.titleMedium),
           friends.when(
             loading: () => const Padding(padding: EdgeInsets.all(16), child: LinearProgressIndicator()),
-            error: (_, __) => TextButton(onPressed: () => ref.invalidate(friendsProvider), child: Text(l.retry)),
+            error: (_, _) => TextButton(onPressed: () => ref.invalidate(friendsProvider), child: Text(l.retry)),
             data: (list) => list.isEmpty
                 ? Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(l.noFriends))
                 : Column(

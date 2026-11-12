@@ -76,3 +76,17 @@ class QuestionFilter:
     kind: str | None = None
     q: str | None = None
     reported: bool = False
+
+
+# Difficulty levels by Elo (same cut-offs as learning's `level_for`); None = unbounded side.
+LEVEL_BOUNDS: dict[str, tuple[float | None, float | None]] = {
+    "easy": (None, 1100.0),
+    "medium": (1100.0, 1350.0),
+    "hard": (1350.0, None),
+}
+
+
+def level_of(difficulty: float) -> str:
+    if difficulty < 1100:
+        return "easy"
+    return "medium" if difficulty < 1350 else "hard"

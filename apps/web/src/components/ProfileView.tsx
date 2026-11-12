@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/auth";
 import { sharedBillingMe, useBilling } from "@/lib/billing";
 import { useStats } from "@/lib/stats";
 import { useAsync } from "@/lib/useAsync";
+import { ApiError } from "@dtmai/api-client";
 
 const GOALS = [10, 20, 30, 50] as const;
 
@@ -87,7 +88,7 @@ export function ProfileView() {
                 <StreakFlame days={s.streak} />
               </div>
               <p className={s.streak_at_risk ? "font-bold text-red" : "text-ink-soft"}>
-                {s.streak_at_risk ? t("streak.atRisk") : s.streak_active_today ? t("streak.doneToday") : s.streak > 0 ? t("streak.longest", { n: s.streak_longest }) : t("streak.practice")}
+                {s.streak_at_risk ? t("streak.atRisk") : s.streak_active_today && s.today_xp >= s.daily_goal_xp ? t("streak.doneToday") : s.streak > 0 ? t("streak.longest", { n: s.streak_longest }) : t("streak.practice")}
               </p>
               <div className="flex items-center justify-between gap-3">
                 <span className="flex items-center gap-2 font-bold text-ink">
@@ -171,15 +172,17 @@ function NameEditor() {
   const { me, reloadMe } = useAuth();
   const [name, setName] = useState(me?.name ?? "");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const dirty = name.trim().length > 0 && name.trim() !== me?.name;
   async function save() {
     setBusy(true);
+    setError(null);
     try {
       await api.unwrap(api.client.PATCH("/v1/identity/me", { body: { name: name.trim() } }));
       await reloadMe();
       toast(t("profile.saved"), "success");
-    } catch {
-      toast(t("common.error"), "error");
+    } catch (e) {
+      setError(e instanceof ApiError && e.status === 422 ? t("auth.err.required") : t("common.error"));
     } finally {
       setBusy(false);
     }
@@ -194,7 +197,22 @@ function NameEditor() {
     >
       <label className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="text-sm font-bold uppercase text-ink-soft">{t("profile.name")}</span>
-        <input value={name} maxLength={80} onChange={(e) => setName(e.target.value)} className="rounded-2xl border-2 border-line bg-white px-4 py-3 font-extrabold" />
+        <input
+          value={name}
+          maxLength={80}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? "profile-name-error" : undefined}
+          onChange={(e) => {
+            setName(e.target.value);
+            setError(null);
+          }}
+          className={`rounded-2xl border-2 bg-white px-4 py-3 font-extrabold ${error ? "border-red" : "border-line"}`}
+        />
+        {error && (
+          <span id="profile-name-error" role="alert" className="text-sm font-bold text-red">
+            {error}
+          </span>
+        )}
       </label>
       <Button type="submit" disabled={!dirty || busy}>
         {t("profile.save")}

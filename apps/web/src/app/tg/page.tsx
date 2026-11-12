@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Mascot } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
+import { useDocumentTitle } from "@/components/PageTitle";
 import { api } from "@/lib/api";
 import { homeFor, useAuth } from "@/lib/auth";
 import { routeForStartParam, setupTma, tmaStartParam } from "@/lib/tma";
@@ -11,6 +12,7 @@ type Phase = "opening" | "outside" | "failed";
 
 export default function TelegramEntryPage() {
   const t = useT();
+  useDocumentTitle(t("tg.title"));
   const router = useRouter();
   const { acceptTokens } = useAuth();
   const [phase, setPhase] = useState<Phase>("opening");

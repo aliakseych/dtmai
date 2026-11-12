@@ -1,7 +1,8 @@
 "use client";
-import { useT } from "@/lib/i18n";
+import { useEnum, useT } from "@/lib/i18n";
 import { useState } from "react";
-import { catalog, qk, useAct, useBases, type QBase, type QBaseIn } from "@/lib/catalog";
+import { useQuery } from "@tanstack/react-query";
+import { catalog, qk, useAct, type QBase, type QBaseIn } from "@/lib/catalog";
 import { SOURCE_KINDS, nm } from "@/lib/util";
 import { Badge, Btn, Check, Field, Input, PageHeader, Select } from "@/components/ui/controls";
 import { Drawer } from "@/components/ui/overlay";
@@ -13,8 +14,11 @@ const blank: QBaseIn = { code: "", names: {}, kind: "previous_year", year: null,
 
 export default function SourcesPage() {
   const t = useT();
+  const en = useEnum();
   const [ask, confirmNode] = useConfirm();
-  const q = useBases();
+  const [showArchived, setShowArchived] = useState(false);
+  const q = useQuery({ queryKey: [...qk.bases, "admin", showArchived], queryFn: () => catalog.bases.list(showArchived) });
+  const archive = useAct((a: { id: string; on: boolean }) => (a.on ? catalog.bases.archive(a.id) : catalog.bases.unarchive(a.id)), [qk.bases], t("admin.common.saved"));
   const [edit, setEdit] = useState<{ id?: string; form: QBaseIn } | null>(null);
   const save = useAct(
     (e: { id?: string; form: QBaseIn }) => {
@@ -31,16 +35,17 @@ export default function SourcesPage() {
 
   return (
     <>
-      <PageHeader title={t("admin.sources.questionBases")} sub={t("admin.sources.whereQuestionsComeFrom")} actions={<Btn variant="primary" onClick={() => setEdit({ form: blank })}>{t("admin.sources.newBase")}</Btn>} />
+      <PageHeader title={t("admin.sources.questionBases")} sub={t("admin.sources.whereQuestionsComeFrom")} actions={<div className="flex items-center gap-3"><Check checked={showArchived} onChange={setShowArchived} label={t("admin.common.showArchived")} /><Btn variant="primary" onClick={() => setEdit({ form: blank })}>{t("admin.sources.newBase")}</Btn></div>} />
       <div className="min-h-0 flex-1 overflow-auto">
         <DataTable rows={q.data} loading={q.isLoading} error={q.error} rowKey={(r) => r.id} onRow={open}
           cols={[
             { key: "code", head: t("admin.common.code"), cell: (r) => <code>{r.code}</code> },
             { key: "name", head: t("admin.common.name"), cell: (r) => nm(r.names) },
-            { key: "kind", head: t("admin.common.kind"), cell: (r) => <Badge tone="blue">{r.kind}</Badge> },
+            { key: "kind", head: t("admin.common.kind"), cell: (r) => <Badge tone="blue">{en("sourceKind", r.kind)}</Badge> },
             { key: "year", head: t("admin.common.year"), cell: (r) => r.year ?? "—" },
             { key: "prov", head: t("admin.sources.provenance"), cell: (r) => r.provenance ?? "—" },
-            { key: "act", head: t("admin.common.state"), cell: (r) => <Badge tone={r.active ? "green" : "gray"}>{r.active ? "active" : "inactive"}</Badge> },
+            { key: "act", head: t("admin.common.state"), cell: (r) => r.archived ? <Badge tone="gray">{t("admin.common.archived")}</Badge> : <Badge tone={r.active ? "green" : "gray"}>{r.active ? t("admin.common.active") : t("admin.topics.inactive")}</Badge> },
+            { key: "arch", head: "", cell: (r) => <Btn onClick={() => archive.mutate({ id: r.id, on: !r.archived })}>{r.archived ? t("admin.common.unarchive") : t("admin.common.archive")}</Btn> },
           ]} />
       </div>
       <Drawer open={!!edit} onClose={() => setEdit(null)} width="max-w-lg" title={edit?.id ? t("admin.sources.editBase") : t("admin.sources.newBase")}
@@ -54,7 +59,7 @@ export default function SourcesPage() {
             <Field label={t("admin.common.code")}><Input value={f.code} onChange={(e) => set({ code: e.target.value })} /></Field>
             <NamesEditor value={f.names} onChange={(names) => set({ names })} />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Field label={t("admin.common.kind")}><Select value={f.kind} onChange={(e) => set({ kind: e.target.value as QBaseIn["kind"] })}>{SOURCE_KINDS.map((k) => <option key={k}>{k}</option>)}</Select></Field>
+              <Field label={t("admin.common.kind")}><Select value={f.kind} onChange={(e) => set({ kind: e.target.value as QBaseIn["kind"] })}>{SOURCE_KINDS.map((k) => <option key={k} value={k}>{en("sourceKind", k)}</option>)}</Select></Field>
               <Field label={t("admin.common.year")}><Input type="number" value={f.year ?? ""} onChange={(e) => set({ year: e.target.value ? Number(e.target.value) : null })} /></Field>
               <Field label={t("admin.common.position")}><Input type="number" value={f.position ?? 0} onChange={(e) => set({ position: Number(e.target.value) })} /></Field>
             </div>

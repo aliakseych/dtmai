@@ -27,6 +27,7 @@ def jsonable(v: Any) -> Any:
 _FROZEN = {
     "subject": (),
     "topic": ("subject_id",),
+    "reference_sheet": ("subject_id",),
     "path": ("subject_id",),
     "unit": ("path_id",),
     "lesson": ("unit_id",),
@@ -53,7 +54,7 @@ class CatalogService:
         return row
 
     async def _check_refs(self, entity: str, d: dict[str, Any]) -> None:
-        if entity in ("topic", "path"):
+        if entity in ("topic", "path", "reference_sheet"):
             await self.require("subject", d["subject_id"])
         if entity == "topic" and d.get("parent_id"):
             parent = await self.require("topic", d["parent_id"])
@@ -152,6 +153,31 @@ class CatalogService:
             )
         await self.repo.delete(entity, id)
         await self._audit(actor, "delete", entity, id, before, None)
+
+    # ---- reference sheets (one per subject) ----------------------------------------------
+    async def get_reference(self, subject_id: UUID) -> dict[str, Any] | None:
+        rows = await self.repo.list("reference_sheet", subject_id=subject_id)
+        return rows[0] if rows else None
+
+    async def upsert_reference(
+        self, subject_id: UUID, data: dict[str, Any], actor: str | None
+    ) -> dict[str, Any]:
+        await self.require("subject", subject_id)
+        now = datetime.now(UTC)
+        existing = await self.get_reference(subject_id)
+        if existing is None:
+            return await self.create(
+                "reference_sheet", {**data, "subject_id": subject_id, "updated_at": now}, actor
+            )
+        return await self.update(
+            "reference_sheet", existing["id"], {**data, "updated_at": now}, actor
+        )
+
+    async def delete_reference(self, subject_id: UUID, actor: str | None) -> None:
+        existing = await self.get_reference(subject_id)
+        if existing is None:
+            raise NotFound(f"no reference sheet for subject {subject_id}")
+        await self.delete("reference_sheet", existing["id"], actor)
 
     async def reorder(
         self, entity: str, ids: list[UUID], actor: str | None, **scope: Any

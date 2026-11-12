@@ -1,3 +1,11 @@
 @import "tailwindcss";
 @import "@dtmai/ui/tokens.css";
 @source "../../../../packages/ui/src";
+
+/* Display math wider than the viewport scrolls inside its own box instead of being clipped. */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  padding-block: 0.25rem;
+}

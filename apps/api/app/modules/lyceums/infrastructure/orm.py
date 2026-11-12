@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import (
     ARRAY,
@@ -48,6 +49,12 @@ class LyceumRow(Base):
     campus_photo_url: Mapped[str | None] = mapped_column(Text)
     gallery_urls: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list, server_default="{}")
     description: Mapped[dict[str, str]] = mapped_column(JSON, default=dict, server_default="{}")
+    campus_map: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, server_default="{}")
+    buildings: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list, server_default="[]")
+    specializations: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSON, default=list, server_default="[]"
+    )
+    offerings: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list, server_default="[]")
     courses: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list, server_default="{}")
     university_name: Mapped[str | None] = mapped_column(Text)
     city: Mapped[str | None] = mapped_column(

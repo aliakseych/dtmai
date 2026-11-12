@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.identity.application.service import IdentityConfig, IdentityService
 from app.modules.identity.infrastructure.clock import SystemClock
+from app.modules.identity.infrastructure.google import build_google_verifier
 from app.modules.identity.infrastructure.mail import build_mailer
 from app.modules.identity.infrastructure.passwords import Argon2Hasher
 from app.modules.identity.infrastructure.repositories import (
@@ -38,6 +39,7 @@ def build_identity_service(session: AsyncSession) -> IdentityService:
         ),
         build_city_catalog(session),
         build_field_catalog(session),
+        build_google_verifier(s.google_client_id),
     )
 
 

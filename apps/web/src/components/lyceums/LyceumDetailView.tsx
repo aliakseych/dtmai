@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useLocale, useT } from "@dtmai/i18n";
 import { mediaUrl } from "@/lib/env";
 import { pick } from "@/lib/localized";
+import { CampusSections } from "./CampusSections";
 import { AdmissionSeats } from "./AdmissionSeats";
 import { DreamButton } from "./DreamButton";
 import { LyceumCover } from "./LyceumMedia";
@@ -64,6 +65,8 @@ export function LyceumDetailView({ detail: d, onDreamChanged }: { detail: Lyceum
         </section>
       )}
 
+      <CampusSections profile={p} />
+
       {p.courses.length > 0 && (
         <section>
           <h3 className="mb-2 text-lg font-extrabold text-ink">{t("lyceums.courses")}</h3>
@@ -83,28 +86,28 @@ export function LyceumDetailView({ detail: d, onDreamChanged }: { detail: Lyceum
           <ul className="flex flex-col gap-1 break-all text-ink">
             {p.website && (
               <li>
-                <a href={safeHttp(p.website)} target="_blank" rel="noopener noreferrer" className="font-bold text-brand underline">
+                <a href={safeHttp(p.website)} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center font-bold text-brand underline">
                   {p.website}
                 </a>
               </li>
             )}
             {c.phone && (
               <li>
-                <a href={`tel:${c.phone.replace(/\s/g, "")}`} className="font-bold text-brand underline">
+                <a href={`tel:${c.phone.replace(/\s/g, "")}`} className="inline-flex min-h-11 items-center font-bold text-brand underline">
                   {c.phone}
                 </a>
               </li>
             )}
             {tg && (
               <li>
-                <a href={tg} target="_blank" rel="noopener noreferrer" className="font-bold text-brand underline">
+                <a href={tg} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center font-bold text-brand underline">
                   {c.telegram}
                 </a>
               </li>
             )}
             {c.email && (
               <li>
-                <a href={`mailto:${c.email}`} className="font-bold text-brand underline">
+                <a href={`mailto:${c.email}`} className="inline-flex min-h-11 items-center font-bold text-brand underline">
                   {c.email}
                 </a>
               </li>

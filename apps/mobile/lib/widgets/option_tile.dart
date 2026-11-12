@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../theme/tokens.dart';
 import 'chunky.dart';
@@ -32,7 +32,7 @@ class OptionTile extends StatelessWidget {
       button: true,
       enabled: onTap != null,
       selected: status == OptionStatus.selected,
-      label: [if (hotkey != null) hotkey!, text].join('. '),
+      label: [?hotkey, text].join('. '),
       excludeSemantics: true,
       onTap: onTap,
       child: PressableChunky(

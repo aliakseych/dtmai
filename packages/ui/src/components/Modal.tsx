@@ -58,6 +58,10 @@ export function ConfirmModal({
   onConfirm: () => void;
   onClose: () => void;
 }) {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (open) cancelRef.current?.focus();
+  }, [open]);
   return (
     <Modal open={open} onClose={onClose} title={title}>
       {message && <div className="mb-5 text-ink-soft">{message}</div>}
@@ -65,7 +69,7 @@ export function ConfirmModal({
         <button type="button" onClick={onConfirm} className={buttonClass(danger ? "danger" : "primary", true)}>
           {confirmLabel}
         </button>
-        <button type="button" autoFocus onClick={onClose} className={buttonClass("secondary", true)}>
+        <button type="button" ref={cancelRef} onClick={onClose} className={buttonClass("secondary", true)}>
           {cancelLabel}
         </button>
       </div>

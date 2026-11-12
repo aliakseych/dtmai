@@ -3,12 +3,18 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Response
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.interfaces.http.v1._media import MediaOut, to_media
+from app.modules.bank import facade as bank_facade
 from app.modules.bank.application.service import BankService, CreateQuestionCmd, _cmd_from_dict
 from app.modules.bank.domain.models import Passage, Question, QuestionFilter
 from app.modules.bank.settings import get_bank_settings
 from app.modules.bank.wiring import BankServiceDep
+from app.modules.catalog import facade as catalog
+from app.modules.catalog.wiring import CatalogServiceDep
+from app.modules.learning import facade as learning
+from app.shared.db import get_session
 from app.shared.deps import CurrentUser, require_role
 from app.shared.errors import NotFound, ProblemDetails
 from app.shared.security import Principal
@@ -221,6 +227,131 @@ def _cmd(body: QuestionBody, actor: str) -> CreateQuestionCmd:
 
 
 # ---- learner -----------------------------------------------------------------------------
+Level = Literal["easy", "medium", "hard"]
+
+
+class BankBaseOut(BaseModel):
+    id: UUID
+    code: str
+    names: dict[str, str]
+    kind: str
+    year: int | None
+    total: int
+    solved: int
+
+
+class BankTypeOut(BaseModel):
+    """One (topic, question type) cell. total/solved honour the level filter; easy/medium/hard
+    are the cell's totals per level (source filter applied, level filter not)."""
+
+    topic_id: UUID
+    type_id: UUID
+    type_names: dict[str, str]
+    kind: str
+    total: int
+    solved: int
+    easy: int
+    medium: int
+    hard: int
+
+
+class BankOverviewOut(BaseModel):
+    total: int
+    solved: int
+    easy: int
+    medium: int
+    hard: int
+    bases: list[BankBaseOut]
+    types: list[BankTypeOut]
+
+
+def build_overview(
+    rows: list[bank_facade.FacetRow],
+    *,
+    bases: list[dict[str, Any]],
+    types: dict[UUID, Any],
+    source_id: UUID | None,
+    level: str | None,
+) -> BankOverviewOut:
+    """Aggregate facet rows. Bases list ignores both filters (it is the filter itself); only
+    active bases that actually hold verified questions are offered."""
+    per_base: dict[UUID, list[int]] = {}
+    for r in rows:
+        if r.source_id is not None:
+            t = per_base.setdefault(r.source_id, [0, 0])
+            t[0] += r.total
+            t[1] += r.solved
+    base_out = [
+        BankBaseOut(
+            id=b["id"],
+            code=b["code"],
+            names=b["names"],
+            kind=b["kind"],
+            year=b.get("year"),
+            total=per_base[b["id"]][0],
+            solved=per_base[b["id"]][1],
+        )
+        for b in sorted(bases, key=lambda x: (x.get("position", 0), x["code"]))
+        if b["active"] and per_base.get(b["id"], [0])[0] > 0
+    ]
+    cells: dict[tuple[UUID, UUID], dict[str, int]] = {}
+    for r in rows:
+        if source_id is not None and r.source_id != source_id:
+            continue
+        c = cells.setdefault(
+            (r.topic_id, r.type_id),
+            {"total": 0, "solved": 0, "easy": 0, "medium": 0, "hard": 0},
+        )
+        c[r.level] += r.total
+        if level is None or level == r.level:
+            c["total"] += r.total
+            c["solved"] += r.solved
+    out = [
+        BankTypeOut(
+            topic_id=tid,
+            type_id=ty,
+            type_names=types[ty].names,
+            kind=types[ty].kind,
+            **c,
+        )
+        for (tid, ty), c in cells.items()
+        if ty in types and c["total"] > 0
+    ]
+    return BankOverviewOut(
+        total=sum(c.total for c in out),
+        solved=sum(c.solved for c in out),
+        easy=sum(c.easy for c in out),
+        medium=sum(c.medium for c in out),
+        hard=sum(c.hard for c in out),
+        bases=base_out,
+        types=out,
+    )
+
+
+@router.get("/overview", operation_id="bank_overview", responses=ERR)
+async def overview(
+    subject_id: UUID,
+    language: str,
+    user: CurrentUser,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    cat: CatalogServiceDep,
+    source_id: UUID | None = None,
+    level: Level | None = None,
+) -> BankOverviewOut:
+    """Learner question bank of one subject: verified questions per topic/question type with the
+    caller's solved counts, filterable by question base and difficulty level."""
+    solved = await learning.solved_question_ids(session, user.user_id)
+    rows = await bank_facade.facets(session, subject_id, language, solved)
+    types = {t.id: t for t in await catalog.list_question_types(session)}
+    return build_overview(
+        rows,
+        bases=[b for b in await cat.repo.list("question_base") if not b["archived"]],
+        types=types,
+        source_id=source_id,
+        level=level,
+    )
+
+
 class PublicPassageOut(BaseModel):
     id: UUID
     text: str

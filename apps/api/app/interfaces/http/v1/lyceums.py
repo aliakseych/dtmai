@@ -197,7 +197,41 @@ class ContactsOut(BaseModel):
     email: str | None = None
 
 
+class CampusMapModel(BaseModel):
+    lat: float | None = None
+    lng: float | None = None
+    embed_url: str | None = None
+    image_url: str | None = None
+
+
+class FloorPlanModel(BaseModel):
+    label: dict[str, str] = Field(default_factory=dict)
+    image_url: str = Field(max_length=500)
+
+
+class BuildingModel(BaseModel):
+    name: dict[str, str]
+    floor_plans: list[FloorPlanModel] = Field(default_factory=list)
+
+
+class SpecializationModel(BaseModel):
+    field_code: str = Field(max_length=50)
+    name: dict[str, str]
+    description: dict[str, str] = Field(default_factory=dict)
+    second_year_subjects: list[dict[str, str]] = Field(default_factory=list)
+
+
+class OfferingModel(BaseModel):
+    title: dict[str, str]
+    description: dict[str, str] = Field(default_factory=dict)
+    taught_by: dict[str, str] = Field(default_factory=dict)
+
+
 class ProfileOut(BaseModel):
+    map: CampusMapModel | None
+    buildings: list[BuildingModel]
+    specializations: list[SpecializationModel]
+    offerings: list[OfferingModel]
     logo_url: str | None
     campus_photo_url: str | None
     gallery_urls: list[str]
@@ -267,6 +301,10 @@ def _names(row: LyceumRow | EducationLanguageRow) -> NamesOut:
 def _profile(row: LyceumRow) -> ProfileOut:
     contacts = row.contacts or {}
     return ProfileOut(
+        map=CampusMapModel(**row.campus_map) if row.campus_map else None,
+        buildings=[BuildingModel(**b) for b in row.buildings or []],
+        specializations=[SpecializationModel(**x) for x in row.specializations or []],
+        offerings=[OfferingModel(**o) for o in row.offerings or []],
         logo_url=row.logo_url,
         campus_photo_url=row.campus_photo_url,
         gallery_urls=list(row.gallery_urls or []),
@@ -649,6 +687,8 @@ def _sent_changes(body: BaseModel) -> dict[str, Any]:
         value = getattr(body, key)
         if isinstance(value, BaseModel):
             value = value.model_dump(exclude_none=True)
+        elif isinstance(value, list) and value and isinstance(value[0], BaseModel):
+            value = [v.model_dump(exclude_none=True) for v in value]
         changes[key] = value
     return changes
 
@@ -676,6 +716,10 @@ async def rep_update_profile(
 
 
 class LyceumPatch(BaseModel):
+    map: CampusMapModel | None = None
+    buildings: list[BuildingModel] | None = None
+    specializations: list[SpecializationModel] | None = None
+    offerings: list[OfferingModel] | None = None
     logo_url: str | None = Field(default=None, max_length=500)
     campus_photo_url: str | None = Field(default=None, max_length=500)
     gallery_urls: list[str] | None = None

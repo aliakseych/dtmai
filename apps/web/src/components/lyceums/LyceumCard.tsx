@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useT } from "@dtmai/i18n";
 import { Card } from "@dtmai/ui";
 import { DormitoryBadge } from "./DormitoryBadge";
@@ -14,7 +15,14 @@ function Expanded({ id }: { id: string }) {
   const { data, reload } = useLyceumDetail(id);
   if (data === undefined) return <p className="py-4 text-center text-ink-soft">{t("common.loading")}</p>;
   if (data === null) return <p role="alert" className="py-4 text-center text-ink-soft">{t("common.error")}</p>;
-  return <LyceumDetailView detail={data} onDreamChanged={reload} />;
+  return (
+    <div className="flex flex-col gap-3">
+      <Link href={`/lyceum/?id=${id}`} className="inline-flex min-h-11 items-center self-start font-bold text-brand underline">
+        {t("lyceums.openPage")}
+      </Link>
+      <LyceumDetailView detail={data} onDreamChanged={reload} />
+    </div>
+  );
 }
 
 export function LyceumCard({ summary, title, cityName, open, onToggle }: { summary: LyceumRow; title: string; cityName?: string; open: boolean; onToggle: () => void }) {
@@ -45,14 +53,14 @@ export function LyceumCard({ summary, title, cityName, open, onToggle }: { summa
         <DormitoryBadge status={summary.dormitory_status} className="mt-2" />
       </button>
       {summary.contact && (summary.contact.phones.length > 0 || summary.contact.telegram) && (
-        <p className="mt-2 flex flex-wrap gap-3 text-sm">
+        <p className="mt-1 flex flex-wrap gap-x-4 text-sm">
           {summary.contact.phones[0] && (
-            <a href={`tel:${summary.contact.phones[0]}`} className="font-bold text-brand">
+            <a href={`tel:${summary.contact.phones[0]}`} className="inline-flex min-h-11 items-center font-bold text-brand">
               {summary.contact.phones[0]}
             </a>
           )}
           {summary.contact.telegram && (
-            <a href={summary.contact.telegram} target="_blank" rel="noopener noreferrer" className="font-bold text-brand">
+            <a href={summary.contact.telegram} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center font-bold text-brand">
               {t("lyceums.admission.telegram")}
             </a>
           )}

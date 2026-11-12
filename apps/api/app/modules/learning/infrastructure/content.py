@@ -52,6 +52,8 @@ class FacadeContent:
         n: int,
         exclude_ids: Sequence[UUID] = (),
         difficulty: float | None = None,
+        source_id: UUID | None = None,
+        level: str | None = None,
     ) -> list[Item]:
         dtos = await bank.pick_questions(
             self._s,
@@ -62,6 +64,8 @@ class FacadeContent:
             n=n,
             exclude_ids=exclude_ids,
             difficulty=difficulty,
+            source_id=source_id,
+            level=level,
         )
         return _flatten(dtos)[:n]
 

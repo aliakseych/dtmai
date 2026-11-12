@@ -1,6 +1,6 @@
 "use client";
 import { useLocale, useT } from "@dtmai/i18n";
-import { fmt } from "@/lib/localized";
+import { formatDateTime } from "@/lib/planDates";
 import type { LyceumDetailData } from "./useLyceumDetail";
 
 type Post = LyceumDetailData["posts"][number];
@@ -14,9 +14,7 @@ function PostItem({ post }: { post: Post }) {
   const t = useT();
   const { locale } = useLocale();
   const link = safeLink(post.link);
-  const when = post.starts_at
-    ? new Intl.DateTimeFormat(fmt(locale).resolvedOptions().locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(post.starts_at))
-    : null;
+  const when = post.starts_at ? formatDateTime(post.starts_at, locale) : null;
   return (
     <li className="rounded-2xl border-2 border-line p-3">
       <h4 className="break-words font-bold text-ink">{post.title}</h4>

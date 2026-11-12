@@ -14,6 +14,7 @@ class AISettings(BaseSettings):
     openrouter_title: str = "DTM AI"
     ai_http_timeout_seconds: float = 90.0
     ai_max_retries: int = 3
+    ai_explain_timeout_seconds: float = 40.0  # hard cap for one explain request incl. retries
     ai_retry_base_delay_seconds: float = 2.0
     ai_temur_daily_quota: int = (
         20  # free Ask Temur messages per user per Tashkent day; -1 unlimited

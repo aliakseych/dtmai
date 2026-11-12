@@ -35,7 +35,8 @@ export function AsyncView<T>({
     const offline = state.kind === "offline";
     const auth = state.kind === "auth";
     const code = state.error instanceof ApiError ? state.error.code : undefined;
-    const mapped = code === "no_questions" || code === "no_questions_personal" ? t("err.noQuestions") : code === "lesson_locked" ? t("err.lessonLocked") : code === "conflict" ? t("err.conflict") : null;
+    const missing = state.error instanceof ApiError && (state.error.status === 404 || state.error.status === 422);
+    const mapped = missing ? t("err.notFound.title") : code === "no_questions" || code === "no_questions_personal" ? t("err.noQuestions") : code === "lesson_locked" ? t("err.lessonLocked") : code === "conflict" ? t("err.conflict") : null;
     return (
       <div role="alert" className="flex flex-col items-center gap-3 py-10 text-center">
         <Mascot mood={offline ? "sleep" : "sad"} size={120} alt="" className="h-auto w-24" />

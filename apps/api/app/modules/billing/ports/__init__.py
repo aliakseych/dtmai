@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 from uuid import UUID
@@ -36,6 +37,18 @@ class InvoiceRepository(Protocol):
     ) -> Invoice: ...
     async def get(self, invoice_id: UUID, *, for_update: bool = False) -> Invoice | None: ...
     async def save(self, invoice: Invoice) -> None: ...
+
+
+@dataclass(frozen=True, slots=True)
+class GrantTarget:
+    disabled: bool
+    guest: bool
+
+
+class GrantTargets(Protocol):
+    """Looks up the account an admin is about to grant a plan to (owned by identity)."""
+
+    async def get(self, user_id: UUID) -> GrantTarget | None: ...
 
 
 class PaymentProvider(Protocol):

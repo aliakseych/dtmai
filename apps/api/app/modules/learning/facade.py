@@ -14,6 +14,7 @@ __all__ = [
     "due_review_count",
     "merge_guest",
     "path_progress",
+    "solved_question_ids",
     "user_stats",
     "weak_areas",
 ]
@@ -44,3 +45,8 @@ async def user_stats(session: AsyncSession, user_id: UUID) -> UserStats:
 async def due_review_count(session: AsyncSession, user_id: UUID, subject_id: UUID | None) -> int:
     """Mistakes due for spaced-repetition review now (all subjects when subject_id is None)."""
     return await build_learning_service(session).due_count(user_id, subject_id)
+
+
+async def solved_question_ids(session: AsyncSession, user_id: UUID) -> list[UUID]:
+    """Questions the learner has answered correctly at least once."""
+    return await build_learning_service(session).solved_ids(user_id)

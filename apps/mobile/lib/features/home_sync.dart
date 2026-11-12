@@ -55,10 +55,10 @@ final homeSyncProvider = Provider<void>((ref) {
     await registerPush();
   }
 
-  ref.listen(statsProvider, (_, __) => sync());
-  ref.listen(meProvider, (_, __) => sync());
-  ref.listen(onboardingSkippedProvider, (_, __) => sync());
-  ref.listen(localeProvider, (_, __) => sync());
+  ref.listen(statsProvider, (_, _) => sync());
+  ref.listen(meProvider, (_, _) => sync());
+  ref.listen(onboardingSkippedProvider, (_, _) => sync());
+  ref.listen(localeProvider, (_, _) => sync());
   ref.listen(authProvider, (_, next) {
     if (next == AuthStatus.signedOut) {
       registeredToken = null;

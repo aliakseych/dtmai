@@ -24,6 +24,7 @@ from app.modules.billing.domain.plans import (
     resolve_entitlements,
 )
 from app.modules.billing.ports import (
+    GrantTargets,
     InvoiceRepository,
     PaymentProvider,
     PlanRepository,
@@ -51,6 +52,7 @@ class BillingService:
         invoices: InvoiceRepository,
         provider: PaymentProvider,
         settings: BillingSettings,
+        targets: GrantTargets,
     ) -> None:
         self._session = session
         self._plans = plans
@@ -58,6 +60,7 @@ class BillingService:
         self._invoices = invoices
         self._provider = provider
         self._settings = settings
+        self._targets = targets
 
     # --- plans (admin CRUD) -------------------------------------------------
     async def list_plans(self, *, active_only: bool) -> list[Plan]:
@@ -151,6 +154,23 @@ class BillingService:
             ),
         )
         return sub
+
+    async def admin_grant(
+        self,
+        user_id: UUID,
+        plan_code: str,
+        *,
+        months: int | None = None,
+        until: datetime | None = None,
+    ) -> tuple[Subscription, list[str]]:
+        """Admin grant: refused for disabled accounts; warns (code list) when the target is a guest."""
+        target = await self._targets.get(user_id)
+        if target is None:
+            raise NotFound("user not found", code="user_not_found")
+        if target.disabled:
+            raise Conflict("cannot grant a plan to a disabled user", code="user_disabled")
+        sub = await self.grant(user_id, plan_code, months=months, until=until)
+        return sub, (["guest_account"] if target.guest else [])
 
     async def revoke(self, subscription_id: UUID, now: datetime | None = None) -> Subscription:
         sub = await self._subs.get(subscription_id)

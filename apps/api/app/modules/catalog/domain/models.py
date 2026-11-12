@@ -14,6 +14,7 @@ from app.shared.question_kinds import QUESTION_KINDS
 LOCALES = ("uz-Latn", "uz-Cyrl", "ru", "en")
 BLUEPRINT_KINDS = ("official", "generated", "template")
 SOURCE_KINDS = ("previous_year", "bluebook", "ai_generated", "harvested", "custom")
+MAX_REFERENCE_CHARS = 60_000
 LABEL_SCHEMES = ("latin", "cyrillic", "numeric", "none")
 
 _LANG = re.compile(r"^[a-z]{2,3}(-[A-Za-z]{2,4})?$")
@@ -214,6 +215,19 @@ def validate_entity(entity: str, data: Mapping[str, Any]) -> dict[str, Any]:
                 "weight must be >= 0",
             )
             d["weight"] = float(w)
+        case "reference_sheet":
+            d["contents"] = validate_names(d.get("contents"), field="contents")
+            _need(
+                all(len(v) <= MAX_REFERENCE_CHARS for v in d["contents"].values()),
+                f"contents: at most {MAX_REFERENCE_CHARS} characters per locale",
+            )
+            src = d.get("source", "")
+            _need(
+                isinstance(src, str) and len(src) <= 500, "source must be a string up to 500 chars"
+            )
+            d["source"] = src.strip()
+            _need(isinstance(d.get("active", True), bool), "active must be a boolean")
+            d["active"] = d.get("active", True)
         case "topic":
             d["names"] = validate_names(d.get("names"))
             if d.get("code"):

@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header
@@ -119,6 +119,9 @@ class DrillStartIn(BaseModel):
     type_id: UUID | None = None
     language: str = Field(min_length=2, max_length=10)
     count: int = Field(default=10, ge=1, le=30)
+    source_id: UUID | None = None
+    level: Literal["easy", "medium", "hard"] | None = None
+    unsolved_only: bool = False
 
 
 class ReviewStartIn(BaseModel):
@@ -330,7 +333,15 @@ async def start_lesson(
 async def start_drill(body: DrillStartIn, user: CurrentUser, svc: LearningServiceDep) -> SessionOut:
     return SessionOut.of(
         await svc.start_drill(
-            user.user_id, body.subject_id, body.topic_id, body.type_id, body.language, body.count
+            user.user_id,
+            body.subject_id,
+            body.topic_id,
+            body.type_id,
+            body.language,
+            body.count,
+            source_id=body.source_id,
+            level=body.level,
+            unsolved_only=body.unsolved_only,
         )
     )
 

@@ -1,5 +1,5 @@
 "use client";
-import { useT } from "@/lib/i18n";
+import { useEnum, useT } from "@/lib/i18n";
 import { useState } from "react";
 import { catalog, qk, useAct, useTypes, type QType, type QTypeIn } from "@/lib/catalog";
 import { QUESTION_KINDS, fieldErrors, nm } from "@/lib/util";
@@ -15,6 +15,7 @@ const CONFIG_HINT = "admin.questionTypes.configHint";
 
 export default function QuestionTypesPage() {
   const t = useT();
+  const en = useEnum();
   const [ask, confirmNode] = useConfirm();
   const q = useTypes();
   const [edit, setEdit] = useState<{ id?: string; form: QTypeIn } | null>(null);
@@ -40,7 +41,7 @@ export default function QuestionTypesPage() {
           cols={[
             { key: "code", head: t("admin.common.code"), cell: (r) => <code>{r.code}</code> },
             { key: "name", head: t("admin.common.name"), cell: (r) => nm(r.names) },
-            { key: "kind", head: t("admin.common.kind"), cell: (r) => <Badge tone="blue">{r.kind}</Badge> },
+            { key: "kind", head: t("admin.common.kind"), cell: (r) => <Badge tone="blue">{en("kind", r.kind)}</Badge> },
             { key: "cfg", head: t("admin.questionTypes.config"), cell: (r) => <code className="text-xs text-ink-soft">{JSON.stringify(r.config)}</code> },
             { key: "act", head: t("admin.common.state"), cell: (r) => <Badge tone={r.active ? "green" : "gray"}>{r.active ? t("admin.common.active") : t("admin.topics.inactive")}</Badge> },
           ]} />
@@ -55,7 +56,7 @@ export default function QuestionTypesPage() {
           <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Field label={t("admin.common.code")} error={fe.code}><Input value={f.code} onChange={(e) => set({ code: e.target.value })} /></Field>
-              <Field label={t("admin.common.kind")} error={fe.kind}><Select value={f.kind} onChange={(e) => set({ kind: e.target.value as QTypeIn["kind"] })}>{QUESTION_KINDS.map((k) => <option key={k}>{k}</option>)}</Select></Field>
+              <Field label={t("admin.common.kind")} error={fe.kind}><Select value={f.kind} onChange={(e) => set({ kind: e.target.value as QTypeIn["kind"] })}>{QUESTION_KINDS.map((k) => <option key={k} value={k}>{en("kind", k)}</option>)}</Select></Field>
               <Field label={t("admin.common.position")} error={fe.position}><Input type="number" value={f.position ?? 0} onChange={(e) => set({ position: Number(e.target.value) })} /></Field>
             </div>
             <NamesEditor value={f.names} onChange={(names) => set({ names })} error={fe.names} />

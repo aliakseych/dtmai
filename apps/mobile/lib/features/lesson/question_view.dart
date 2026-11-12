@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n_ext.dart';
@@ -18,7 +18,7 @@ class _PassageBlock extends ConsumerWidget {
     final p = ref.watch(passageProvider(id));
     return p.when(
       loading: () => const Padding(padding: EdgeInsets.all(8), child: LinearProgressIndicator()),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
       data: (d) => Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -32,7 +32,7 @@ class _PassageBlock extends ConsumerWidget {
             for (final m in d.media.where((m) => m.kind == 'image'))
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: Image.network(m.url, semanticLabel: m.alt, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                child: Image.network(m.url, semanticLabel: m.alt, errorBuilder: (_, _, _) => const SizedBox.shrink()),
               ),
             MathText(d.text, style: const TextStyle(fontSize: 16, color: Tokens.text)),
           ],
@@ -370,7 +370,7 @@ class _QuestionViewState extends State<QuestionBody> {
             padding: const EdgeInsets.only(bottom: 16),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(Tokens.radius),
-              child: Image.network(img, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+              child: Image.network(img, errorBuilder: (_, _, _) => const SizedBox.shrink()),
             ),
           ),
         if (item.passageId != null) ...[

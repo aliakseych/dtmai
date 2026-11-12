@@ -16,8 +16,9 @@ from app.modules.billing.domain.plans import (
     Plan,
     Subscription,
 )
+from app.modules.billing.ports import GrantTarget
 from app.modules.billing.settings import BillingSettings
-from app.shared.errors import Forbidden
+from app.shared.errors import Conflict, Forbidden, NotFound
 
 NOW = datetime(2026, 11, 11, 12, 0, tzinfo=UTC)
 NAMES = {"uz-Latn": "a", "uz-Cyrl": "б", "ru": "в", "en": "d"}
@@ -81,8 +82,20 @@ class Invoices:
         return object()
 
 
+class Targets:
+    def __init__(self, target: GrantTarget | None) -> None:
+        self.target = target
+
+    async def get(self, user_id: UUID) -> GrantTarget | None:
+        return self.target
+
+
 def make(
-    *, enabled: bool = True, secret: str = "s", plans: Plans | None = None
+    *,
+    enabled: bool = True,
+    secret: str = "s",
+    plans: Plans | None = None,
+    target: GrantTarget | None = GrantTarget(disabled=False, guest=False),
 ) -> tuple[BillingService, Subs, Invoices]:
     free = Plan("free", NAMES, 0)
     paid = Plan("pro", NAMES, 49000, features=frozenset({"ai_tutor"}))
@@ -94,6 +107,7 @@ def make(
         invoices,
         Provider(),  # type: ignore[arg-type]
         BillingSettings(payments_enabled=enabled, click_secret_key=secret, click_service_id="1"),
+        Targets(target),
     )
     return svc, subs, invoices
 
@@ -195,3 +209,29 @@ def test_nginx_click_location_matches_real_path() -> None:
     ).read_text()
     assert "location /v1/billing/click/" in conf
     assert "$proxy_add_x_forwarded_for" not in conf
+
+
+def test_admin_grant_refused_for_disabled_user() -> None:
+    svc, subs, _ = make(target=GrantTarget(disabled=True, guest=False))
+    with pytest.raises(Conflict) as exc:
+        asyncio.run(svc.admin_grant(uuid4(), "pro", months=1))
+    assert exc.value.code == "user_disabled"
+    assert subs.saved == [] and subs.rows == []
+
+
+def test_admin_grant_unknown_user() -> None:
+    svc, _, _ = make(target=None)
+    with pytest.raises(NotFound):
+        asyncio.run(svc.admin_grant(uuid4(), "pro", months=1))
+
+
+def test_admin_grant_warns_for_guest() -> None:
+    svc, _, _ = make(target=GrantTarget(disabled=False, guest=True))
+    _, warnings = asyncio.run(svc.admin_grant(uuid4(), "pro", months=1))
+    assert warnings == ["guest_account"]
+
+
+def test_admin_grant_no_warning_for_regular_user() -> None:
+    svc, _, _ = make()
+    _, warnings = asyncio.run(svc.admin_grant(uuid4(), "pro", months=1))
+    assert warnings == []

@@ -203,23 +203,37 @@ class LearningService:
         type_id: UUID | None,
         language: str,
         count: int,
+        *,
+        source_id: UUID | None = None,
+        level: str | None = None,
+        unsolved_only: bool = False,
     ) -> SessionView:
         await self._hearts_gate(user_id, Mode.DRILL)
+        # Bank browsing: never repeat solved questions when asked; otherwise avoid recent ones.
+        exclude = (
+            await self._r.solved_ids(user_id)
+            if unsolved_only
+            else await self._r.seen_ids(user_id, 50)
+        )
         items = await self._c.pick(
             subject_id=subject_id,
             topic_ids=[topic_id] if topic_id else None,
             type_ids=[type_id] if type_id else None,
             language=language,
             n=validate_count(count),
-            exclude_ids=await self._r.seen_ids(user_id, 50),
+            exclude_ids=exclude,
+            source_id=source_id,
+            level=level,
         )
-        if not items:  # everything recently seen: allow repeats rather than an empty drill
+        if not items and not unsolved_only:  # all recently seen: allow repeats, not an empty drill
             items = await self._c.pick(
                 subject_id=subject_id,
                 topic_ids=[topic_id] if topic_id else None,
                 type_ids=[type_id] if type_id else None,
                 language=language,
                 n=count,
+                source_id=source_id,
+                level=level,
             )
         rec = await self._open(
             user_id, Mode.DRILL, items, subject_id=subject_id, topic_id=topic_id, language=language
@@ -609,6 +623,9 @@ class LearningService:
         done = await self._r.completed_lesson_ids(user_id, lesson_ids)
         placement = await self._r.placement(user_id, subject_id)
         return done, (placement.start_unit_index if placement else 0)
+
+    async def solved_ids(self, user_id: UUID) -> list[UUID]:
+        return await self._r.solved_ids(user_id)
 
     async def due_count(self, user_id: UUID, subject_id: UUID | None) -> int:
         return await self._r.due_count(user_id, subject_id, self._now())

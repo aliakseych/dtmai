@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { LocaleSwitcher } from "@dtmai/i18n";
+import { Logo } from "@dtmai/ui";
 import { useT } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { ApiError } from "@dtmai/api-client";
@@ -37,6 +38,7 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-screen place-items-center p-4">
       <form onSubmit={submit} className="w-full max-w-sm space-y-3 rounded-card border-2 border-line bg-white p-5">
+        <div className="flex justify-center"><Logo size={44} /></div>
         <div className="flex items-center justify-between gap-2"><h1 className="text-lg text-brand">{t("admin.login.title")}</h1><LocaleSwitcher /></div>
         <Field label={t("admin.login.email")}><Input type="email" autoFocus required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
         <Field label={t("admin.login.password")}><Input type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></Field>

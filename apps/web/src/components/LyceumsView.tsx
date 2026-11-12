@@ -53,9 +53,9 @@ export function LyceumsView() {
           const list = city ? all.filter((l) => l.city === city) : all;
           if (list.length === 0) return <p className="py-10 text-center text-ink-soft">{t("lyceums.none")}</p>;
           return (
-            <div className="grid max-h-[75vh] gap-3 overflow-y-auto pr-1 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid max-h-[75vh] gap-3 overflow-y-auto pr-1 md:grid-cols-2">
               {list.map((l) => (
-                <div key={l.id} className={cn("min-w-0", open === l.id && "md:col-span-2 xl:col-span-3")}>
+                <div key={l.id} className={cn("min-w-0", open === l.id && "md:col-span-2")}>
                   <LyceumCard summary={l} title={pick(l.names, locale)} cityName={cityName(l.city)} open={open === l.id} onToggle={() => setOpen(open === l.id ? null : l.id)} />
                 </div>
               ))}

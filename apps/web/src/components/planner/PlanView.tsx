@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Badge, buttonClass, Card, EmptyState, Tabs } from "@dtmai/ui";
 import { useLocale, useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
+import { SaveProgress } from "@/components/auth/SaveProgress";
+import { useAuth } from "@/lib/auth";
 import { PageTitle } from "@/components/PageTitle";
 import { getHome, getProfile, getSettings, getToday, type HomeOut, type TodayOut } from "@/lib/planner";
 import { formatDay, todayISO } from "@/lib/planDates";
@@ -16,12 +18,14 @@ type Tab = "focus" | "week" | "month";
 /** `/plan`: Focus (today), Week and Month. Without a plan it offers the wizard. */
 export function PlanView() {
   const t = useT();
+  const { isGuest } = useAuth();
   const plan = useAsync(getSettings, []);
   const [tab, setTab] = useState<Tab>("focus");
   const home = useAsync(getHome, []);
   return (
     <>
       <PageTitle>{t("plan.title")}</PageTitle>
+      {isGuest && <SaveProgress />}
       <AsyncView state={plan.state} onRetry={plan.reload}>
         {(p) =>
           p === null ? (

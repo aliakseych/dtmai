@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/api.dart';
@@ -157,7 +157,7 @@ class _LyceumLogo extends StatelessWidget {
     if (url == null) return fallback;
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: Image.network(url!, width: 40, height: 40, fit: BoxFit.cover, errorBuilder: (_, __, ___) => fallback),
+      child: Image.network(url!, width: 40, height: 40, fit: BoxFit.cover, errorBuilder: (_, _, _) => fallback),
     );
   }
 }
@@ -221,7 +221,7 @@ class _LyceumSheetState extends ConsumerState<_LyceumSheet> {
               padding: const EdgeInsets.only(bottom: 12),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(Tokens.radius),
-                child: Image.network(d.campusPhotoUrl!, height: 160, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                child: Image.network(d.campusPhotoUrl!, height: 160, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink()),
               ),
             ),
           Row(children: [

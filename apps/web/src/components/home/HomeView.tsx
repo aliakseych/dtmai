@@ -116,7 +116,7 @@ function Quests() {
     <section className="flex flex-col gap-2" aria-label={t("home.quests")}>
       <div className="flex items-baseline justify-between">
         <h2 className="text-lg">{t("home.quests")}</h2>
-        <Link href="/quests/" className="text-sm font-extrabold text-brand">
+        <Link href="/quests/" className="inline-flex min-h-11 items-center text-sm font-extrabold text-brand">
           {t("home.all")}
         </Link>
       </div>

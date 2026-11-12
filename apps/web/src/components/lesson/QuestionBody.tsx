@@ -128,6 +128,7 @@ export function QuestionBody({
   disabled,
   correct,
   wasCorrect,
+  stemAs: Stem = "h1",
 }: {
   item: ItemOut;
   value: Response | null;
@@ -136,6 +137,8 @@ export function QuestionBody({
   /** correct_response once checked (lessons) */
   correct?: Response | null;
   wasCorrect?: boolean;
+  /** Element for the stem; embedded cards (home daily question) use "p" so the page keeps one h1. */
+  stemAs?: "h1" | "p";
 }) {
   const t = useT();
   const inputId = useId();
@@ -291,9 +294,9 @@ export function QuestionBody({
           <MediaList media={passage.media} />
         </section>
       )}
-      <h1 className="text-2xl">
+      <Stem className="text-2xl font-extrabold">
         <RichText text={item.stem} />
-      </h1>
+      </Stem>
       <MediaList media={item.media} />
       {body}
     </div>

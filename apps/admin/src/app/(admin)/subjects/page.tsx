@@ -8,6 +8,7 @@ import { Badge, Btn, Check, Field, Input, PageHeader } from "@/components/ui/con
 import { Drawer } from "@/components/ui/overlay";
 import { useConfirm } from "@/components/ui/confirm";
 import { DataTable } from "@/components/ui/table";
+import { ReferenceSheetEditor } from "@/components/subjects/ReferenceSheetEditor";
 import { NamesEditor, cleanNames } from "@/components/ui/names";
 
 const blank: SubjectIn = { code: "", names: {}, weight: 1, active: true, position: 0 };
@@ -27,6 +28,7 @@ export default function SubjectsPage() {
   );
   const del = useAct((id: string) => catalog.subjects.remove(id), [qk.subjects], t("admin.common.deleted"));
   const rows = [...(q.data ?? [])].sort((a, b) => a.position - b.position);
+  const [refFor, setRefFor] = useState<Subject | null>(null);
   const f = edit?.form;
   const fe = fieldErrors(save.error);
   const set = (p: Partial<SubjectIn>) => setEdit((e) => e && { ...e, form: { ...e.form, ...p } });
@@ -47,6 +49,7 @@ export default function SubjectsPage() {
       </div>
       <Drawer open={!!edit} onClose={() => setEdit(null)} width="max-w-lg" title={edit?.id ? t("admin.subjects.editSubject") : t("admin.subjects.newSubject")}
         footer={<>
+          {edit?.id && <Btn onClick={() => setRefFor(rows.find((r) => r.id === edit.id) ?? null)}>{t("admin.reference.formulas")}</Btn>}
           {edit?.id && <Btn variant="danger" className="mr-auto" onClick={() => { const saved = rows.find((r) => r.id === edit.id); ask({ title: t("admin.subjects.deleteThisSubject"), name: saved ? nm(saved.names) || saved.code : edit.form.code, danger: true, confirmLabel: t("admin.common.delete") }, () => del.mutate(edit.id!, { onSuccess: () => setEdit(null) })); }}>{t("admin.common.delete")}</Btn>}
           <Btn onClick={() => setEdit(null)}>{t("admin.common.cancel")}</Btn>
           <Btn variant="primary" disabled={save.isPending} onClick={() => save.mutate(edit!, { onSuccess: () => setEdit(null) })}>{t("admin.common.save")}</Btn>
@@ -63,6 +66,7 @@ export default function SubjectsPage() {
           </div>
         )}
       </Drawer>
+      <ReferenceSheetEditor subject={refFor} onClose={() => setRefFor(null)} />
       {confirmNode}
     </>
   );

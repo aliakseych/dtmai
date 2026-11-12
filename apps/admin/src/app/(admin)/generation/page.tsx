@@ -1,5 +1,5 @@
 "use client";
-import { useT } from "@/lib/i18n";
+import { useEnum, useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
@@ -14,6 +14,7 @@ const TONE: Record<string, "gray" | "green" | "red" | "blue" | "gold"> = { queue
 
 export default function GenerationPage() {
   const t = useT();
+  const en = useEnum();
   const subjects = useSubjects();
   const types = useTypes();
   const [f, setF] = useState<Partial<GenerationIn>>({ language: "uz-Latn", count: 10 });
@@ -30,7 +31,7 @@ export default function GenerationPage() {
         <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 rounded-xl border border-line bg-white p-4">
           <Field label={t("admin.common.subject")}><Select value={f.subject_id ?? ""} onChange={(e) => set({ subject_id: e.target.value, topic_id: undefined })}><option value="">—</option>{subjects.data?.map((s) => <option key={s.id} value={s.id}>{nm(s.names)}</option>)}</Select></Field>
           <Field label={t("admin.common.topic")}><Select value={f.topic_id ?? ""} onChange={(e) => set({ topic_id: e.target.value })}><option value="">—</option>{topics.data?.map((t) => <option key={t.id} value={t.id}>{nm(t.names)}</option>)}</Select></Field>
-          <Field label={t("admin.generation.questionType")}><Select value={f.type_id ?? ""} onChange={(e) => set({ type_id: e.target.value })}><option value="">—</option>{types.data?.map((t) => <option key={t.id} value={t.id}>{nm(t.names)} · {t.kind}</option>)}</Select></Field>
+          <Field label={t("admin.generation.questionType")}><Select value={f.type_id ?? ""} onChange={(e) => set({ type_id: e.target.value })}><option value="">—</option>{types.data?.map((t) => <option key={t.id} value={t.id}>{nm(t.names)} · {en("kind", t.kind)}</option>)}</Select></Field>
           <Field label={t("admin.common.language")}><LangInput value={f.language ?? ""} onChange={(language) => set({ language })} /></Field>
           <Field label={t("admin.common.count")}><Input type="number" min={1} max={200} value={f.count ?? 10} onChange={(e) => set({ count: Number(e.target.value) })} /></Field>
           <Field label={t("admin.generation.difficultyEloOptional")}><Input type="number" value={f.difficulty ?? ""} onChange={(e) => set({ difficulty: e.target.value ? Number(e.target.value) : null })} /></Field>
@@ -41,7 +42,7 @@ export default function GenerationPage() {
           cols={[
             { key: "s", head: t("admin.common.subject"), cell: (r) => name(subjects.data, r.subject_id) },
             { key: "t", head: t("admin.common.topic"), cell: (r) => name(topics.data, r.topic_id) },
-            { key: "k", head: t("admin.common.kind"), cell: (r) => <Badge tone="blue">{r.kind}</Badge> },
+            { key: "k", head: t("admin.common.kind"), cell: (r) => <Badge tone="blue">{en("kind", r.kind)}</Badge> },
             { key: "l", head: t("admin.common.lang"), cell: (r) => r.language },
             { key: "st", head: t("admin.common.status"), cell: (r) => <Badge tone={TONE[r.status] ?? "gray"}>{r.status}</Badge> },
             { key: "n", head: t("admin.generation.createdRequested"), cell: (r) => `${r.created_count} / ${r.requested}` },

@@ -1,7 +1,7 @@
 import { cn } from "../cn";
 
 /**
- * DTM AI banner wordmark: bold italic name inside a slanted outlined box.
+ * The one DTM AI logo (source: design file "DTM AI Logo.svg", viewBox 763x216).
  * `tone="brand"` = #100FA0 on light surfaces, `tone="light"` = white on brand-coloured ones.
  */
 export function Logo({
@@ -12,7 +12,7 @@ export function Logo({
 }: {
   name?: string;
   tone?: "brand" | "light";
-  /** Height of the mark in px; the width follows the 10:3 aspect. */
+  /** Height of the mark in px; the width follows the 763:216 aspect. */
   size?: number;
   className?: string;
 }) {
@@ -20,26 +20,14 @@ export function Logo({
     <svg
       role="img"
       aria-label={name}
-      viewBox="0 0 150 46"
+      viewBox="0 0 763 216"
+      fill="none"
       height={size}
-      width={(size * 150) / 46}
+      width={(size * 763) / 216}
       className={cn("shrink-0 select-none", tone === "brand" ? "text-brand" : "text-white", className)}
     >
-      <polygon points="14,3 147,3 136,43 3,43" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinejoin="round" />
-      <text
-        x="75"
-        y="32"
-        textAnchor="middle"
-        fill="currentColor"
-        fontStyle="italic"
-        fontWeight={900}
-        fontSize="26"
-        textLength="100"
-        lengthAdjust="spacingAndGlyphs"
-        style={{ fontFamily: "var(--font-nunito), Nunito, system-ui, sans-serif" }}
-      >
-        {name}
-      </text>
+      <path d="M51.1924 10H750.193L711.193 205.5H12.1924L51.1924 10Z" stroke-width="20" stroke="currentColor"/>
+      <path d="M76.8828 38H126.688C138.406 38 148.595 40.2135 157.254 44.6406C165.913 49.0026 172.618 55.3503 177.371 63.6836C182.189 71.9518 184.598 81.9128 184.598 93.5664C184.598 106.132 182.775 117.622 179.129 128.039C175.548 138.391 170.438 147.375 163.797 154.992C157.156 162.609 149.246 168.501 140.066 172.668C130.887 176.835 120.698 178.918 109.5 178.918H47L76.8828 38ZM101.59 62.1211L81.9609 154.699H105.789C112.885 154.699 119.363 153.332 125.223 150.598C131.147 147.863 136.258 143.99 140.555 138.977C144.917 133.898 148.27 127.844 150.613 120.812C153.022 113.781 154.227 105.936 154.227 97.2773C154.227 89.7904 152.924 83.4427 150.32 78.2344C147.716 73.026 143.875 69.0547 138.797 66.3203C133.784 63.5208 127.599 62.1211 120.242 62.1211H101.59ZM242.996 178.918H213.309L238.016 62.3164H195.828L201.004 38H315.066L309.891 62.3164H267.703L242.996 178.918ZM328.445 178.918H301.883L331.766 38H365.555L383.23 141.516H383.816L444.363 38H481.18L451.199 178.918H424.637L445.828 79.6992H444.852L386.258 178.43H366.824L350.125 79.6992H349.441L328.445 178.918ZM600.32 65.9297L570.34 122.668H606.863L601.004 65.9297H600.32ZM612.137 178.918L608.621 144.738H559.012L540.652 178.918H509.207L588.797 38H623.562L641.727 178.918H612.137ZM685.379 178.918H655.691L685.672 38H715.359L685.379 178.918Z" fill="currentColor"/>
     </svg>
   );
 }
