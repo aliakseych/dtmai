@@ -5,7 +5,7 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAt
 import { useT } from "@/lib/i18n";
 import { errMsg } from "@/lib/util";
 
-const field = "w-full rounded-xl border border-line bg-white px-2 py-1.5 text-sm outline-none focus:border-blue focus:ring-1 focus:ring-blue aria-[invalid=true]:border-red-deep disabled:bg-snow";
+const field = "min-h-11 w-full rounded-xl border border-line bg-white px-2 py-1.5 text-sm outline-none focus:border-blue focus:ring-1 focus:ring-blue aria-[invalid=true]:border-red-deep disabled:bg-snow";
 
 export function Input({ className, ...p }: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...p} className={cn(field, className)} />;
@@ -48,7 +48,7 @@ export function Field({ label, hint, error, children, className }: { label: stri
 
 export function Check({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label?: string }) {
   return (
-    <label className="inline-flex cursor-pointer items-center gap-1.5 text-sm">
+    <label className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 py-2 text-sm">
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="size-4 accent-blue" />
       {label}
     </label>

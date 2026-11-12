@@ -243,12 +243,12 @@ export function Cockpit() {
   return (
     <div className="flex h-screen flex-col bg-snow text-ink">
       <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line bg-white px-3 py-2 text-sm sm:px-4">
-        <Link href="/questions/" className="font-extrabold text-blue-deep">{t("admin.labeling.admin")}</Link>
+        <Link href="/questions/" className="tap font-extrabold text-blue-deep">{t("admin.labeling.admin")}</Link>
         <h1 className="text-base">{t("admin.labeling.labeling")}</h1>
         <Select className="w-full sm:w-36" value={filters.subject_id ?? ""} onChange={(e) => resetQueue({ ...filters, subject_id: e.target.value || undefined })}><option value="">{t("admin.labeling.allSubjects")}</option>{subjects.data?.map((s) => <option key={s.id} value={s.id}>{nm(s.names)}</option>)}</Select>
         <Select className="w-full sm:w-32" value={filters.state ?? ""} onChange={(e) => resetQueue({ ...filters, state: (e.target.value || undefined) as QueueState | undefined })}><option value="">{t("admin.labeling.allStates")}</option>{STATES.map((s) => <option key={s} value={s}>{en("state", s)}</option>)}</Select>
         <div className="w-full sm:w-24"><LangInput value={filters.language ?? ""} onChange={(v) => resetQueue({ ...filters, language: v || undefined })} /></div>
-        <label className="flex items-center gap-1.5"><input type="checkbox" className="accent-blue" checked={blind} onChange={(e) => setBlind(e.target.checked)} />{t("admin.labeling.blind")} <kbd className="text-xs opacity-60">H</kbd></label>
+        <label className="flex min-h-11 items-center gap-1.5"><input type="checkbox" className="accent-blue" checked={blind} onChange={(e) => setBlind(e.target.checked)} />{t("admin.labeling.blind")} <kbd className="hidden md:inline text-xs opacity-60">H</kbd></label>
         <div className="flex min-w-0 flex-wrap items-center gap-2 sm:ml-auto sm:gap-3">
           {queueDepth.map(([k, v]) => <Badge key={k} tone={k === "needs_human" ? "red" : k === "escalated" ? "orange" : "green"}>{en("state", k)} {v}</Badge>)}
           <span title={t("admin.labeling.thisSession")} className="font-extrabold">{t("admin.labeling.sessionStat", { n: session.n, rate: rate.toFixed(1) })}{session.n ? t("admin.labeling.avg", { s: (session.ms / session.n / 1000).toFixed(1) }) : ""}</span>
@@ -300,18 +300,18 @@ export function Cockpit() {
                   <>
                     <div className="flex items-center gap-2"><span className="text-2xl font-extrabold">{fmtAnswer(q.kind, q.payload, cur.suggested)}</span>
                       {conf != null && <Badge tone={conf >= 0.9 ? "green" : conf >= 0.6 ? "gold" : "red"}>{t("admin.labeling.agreePct", { pct: Math.round(conf * 100) })}</Badge>}</div>
-                    <p className="mt-2 text-sm text-ink-soft">{cur.reason}</p>
+                    <p className="mt-2 text-sm text-ink-soft">{en("consensus", cur.reason)}</p>
                   </>
                 )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <Btn variant="primary" disabled={!!curDone} onClick={confirm}>{entered() && !(suggested && sameAnswer(kind, entered(), suggested)) || editJson !== null ? t("admin.labeling.submitAnswer") : t("admin.labeling.accept")} <kbd className="ml-1 opacity-70">Enter</kbd></Btn>
-                <Btn disabled={!!curDone} onClick={() => decide("skip")}>{t("admin.labeling.skip2")} <kbd className="opacity-60">S</kbd></Btn>
-                <Btn variant="danger" disabled={!!curDone} onClick={() => setFlagging("")}>{t("admin.labeling.flag2")} <kbd className="opacity-60">F</kbd></Btn>
-                <Btn disabled={!!curDone} onClick={startEdit}>{t("admin.common.edit")} <kbd className="opacity-60">E</kbd></Btn>
-                <Btn className="col-span-2" onClick={() => void undo()}>{t("admin.labeling.undo2")} <kbd className="opacity-60">Z</kbd></Btn>
+                <Btn variant="primary" disabled={!!curDone} onClick={confirm}>{entered() && !(suggested && sameAnswer(kind, entered(), suggested)) || editJson !== null ? t("admin.labeling.submitAnswer") : t("admin.labeling.accept")} <kbd className="hidden md:inline ml-1 opacity-70">Enter</kbd></Btn>
+                <Btn disabled={!!curDone} onClick={() => decide("skip")}>{t("admin.labeling.skip2")} <kbd className="hidden md:inline opacity-60">S</kbd></Btn>
+                <Btn variant="danger" disabled={!!curDone} onClick={() => setFlagging("")}>{t("admin.labeling.flag2")} <kbd className="hidden md:inline opacity-60">F</kbd></Btn>
+                <Btn disabled={!!curDone} onClick={startEdit}>{t("admin.common.edit")} <kbd className="hidden md:inline opacity-60">E</kbd></Btn>
+                <Btn className="col-span-2" onClick={() => void undo()}>{t("admin.labeling.undo2")} <kbd className="hidden md:inline opacity-60">Z</kbd></Btn>
               </div>
-              <p className="text-xs text-ink-soft"><kbd>1–9</kbd>/<kbd>A–D</kbd> {t("admin.labeling.pick")} <kbd>Enter</kbd> {t("admin.labeling.acceptSubmitTypedKinds")} <kbd>Enter</kbd> {t("admin.labeling.walksTheFields")} <kbd>S</kbd> {t("admin.labeling.skip")} <kbd>F</kbd> {t("admin.labeling.flag")} <kbd>E</kbd> {t("admin.labeling.edit")} <kbd>H</kbd> {t("admin.labeling.blindOnOff")} <kbd>Z</kbd> {t("admin.labeling.undo")} <kbd>J</kbd>/<kbd>K</kbd> {t("admin.labeling.nextPrev")} <kbd>{t("admin.labeling.esc")}</kbd> {t("admin.labeling.leaveField", { n: Math.max(0, items.length - idx - 1) })}</p>
+              <p className="hidden text-xs text-ink-soft md:block"><kbd>1–9</kbd>/<kbd>A–D</kbd> {t("admin.labeling.pick")} <kbd>Enter</kbd> {t("admin.labeling.acceptSubmitTypedKinds")} <kbd>Enter</kbd> {t("admin.labeling.walksTheFields")} <kbd>S</kbd> {t("admin.labeling.skip")} <kbd>F</kbd> {t("admin.labeling.flag")} <kbd>E</kbd> {t("admin.labeling.edit")} <kbd>H</kbd> {t("admin.labeling.blindOnOff")} <kbd>Z</kbd> {t("admin.labeling.undo")} <kbd>J</kbd>/<kbd>K</kbd> {t("admin.labeling.nextPrev")} <kbd>{t("admin.labeling.esc")}</kbd> {t("admin.labeling.leaveField", { n: Math.max(0, items.length - idx - 1) })}</p>
             </aside>
           </>
         )}

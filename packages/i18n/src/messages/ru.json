@@ -1709,5 +1709,14 @@
   "stat.days.one": "{n} день",
   "stat.days.few": "{n} дня",
   "stat.days.many": "{n} дней",
-  "stat.days.other": "{n} дня"
+  "stat.days.other": "{n} дня",
+  "admin.enum.consensus.official_key": "Официальный ключ",
+  "admin.enum.consensus.official_key_generated_options": "Официальный ключ (варианты сгенерированы)",
+  "admin.enum.consensus.insufficient_solvers": "Недостаточно решателей",
+  "admin.enum.consensus.low_confidence": "Низкая уверенность",
+  "admin.enum.consensus.unanimous": "Все модели согласны",
+  "admin.enum.consensus.disagreement": "Модели расходятся",
+  "admin.enum.consensus.no_adjudication": "Арбитр не дал ответа",
+  "admin.enum.consensus.adjudicator_agrees": "Арбитр согласен",
+  "admin.enum.consensus.adjudicator_differs": "Арбитр ответил иначе"
 }

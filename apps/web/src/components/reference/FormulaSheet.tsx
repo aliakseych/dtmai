@@ -63,9 +63,9 @@ export function FormulaSheet({ subjectId, className = "" }: { subjectId: string 
   return (
     <>
       <button ref={opener} type="button" onClick={() => setOpen(true)} aria-haspopup="dialog"
-        className={`flex h-10 shrink-0 items-center gap-1.5 rounded-xl border-2 border-line px-3 text-sm font-extrabold text-ink-soft hover:bg-snow ${className}`}>
+        className={`flex h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border-2 border-line px-2.5 text-sm font-extrabold text-ink-soft hover:bg-snow sm:px-3 ${className}`}>
         <Icon name="learn" size={20} />
-        <span>{t("reference.button")}</span>
+        <span className="sr-only sm:not-sr-only">{t("reference.button")}</span>
       </button>
       {open && (
         <div className="fixed inset-0 z-[60] flex items-end justify-end bg-black/40 sm:items-stretch" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}>
@@ -73,7 +73,7 @@ export function FormulaSheet({ subjectId, className = "" }: { subjectId: string 
             className="flex max-h-[85dvh] w-full flex-col rounded-t-3xl bg-white pb-[env(safe-area-inset-bottom)] outline-none sm:max-h-none sm:w-[420px] sm:rounded-none sm:border-l-2 sm:border-line">
             <header className="flex items-center justify-between gap-2 border-b-2 border-line px-4 py-3">
               <h2 id={titleId} className="text-xl font-extrabold">{t("reference.title")}</h2>
-              <button type="button" onClick={() => setOpen(false)} aria-label={t("common.close")} className="grid size-10 place-items-center rounded-xl text-ink-soft hover:bg-snow">
+              <button type="button" onClick={() => setOpen(false)} aria-label={t("common.close")} className="grid size-11 place-items-center rounded-xl text-ink-soft hover:bg-snow">
                 <Icon name="close" size={20} />
               </button>
             </header>

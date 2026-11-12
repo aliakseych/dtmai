@@ -1709,5 +1709,14 @@
   "stat.days.one": "{n} kun",
   "stat.days.few": "{n} kun",
   "stat.days.many": "{n} kun",
-  "stat.days.other": "{n} kun"
+  "stat.days.other": "{n} kun",
+  "admin.enum.consensus.official_key": "Rasmiy kalit",
+  "admin.enum.consensus.official_key_generated_options": "Rasmiy kalit (variantlar yaratilgan)",
+  "admin.enum.consensus.insufficient_solvers": "Yechuvchilar yetarli emas",
+  "admin.enum.consensus.low_confidence": "Ishonch past",
+  "admin.enum.consensus.unanimous": "Barcha modellar kelishgan",
+  "admin.enum.consensus.disagreement": "Modellar kelishmagan",
+  "admin.enum.consensus.no_adjudication": "Hakam javob bermadi",
+  "admin.enum.consensus.adjudicator_agrees": "Hakam rozi",
+  "admin.enum.consensus.adjudicator_differs": "Hakam boshqacha javob berdi"
 }

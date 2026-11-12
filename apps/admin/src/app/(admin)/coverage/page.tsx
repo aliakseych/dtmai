@@ -36,7 +36,7 @@ export default function CoveragePage() {
       <Toolbar>
         <Field label={t("admin.common.subject")}><Select value={subjectId} onChange={(e) => setSubjectId(e.target.value)}><option value="">{t("admin.common.all")}</option>{subjects.data?.map((s) => <option key={s.id} value={s.id}>{nm(s.names)}</option>)}</Select></Field>
         <Field label={t("admin.common.language")}><LangInput value={language} onChange={setLanguage} /></Field>
-        <label className="flex items-center gap-1.5 pb-1.5 text-sm"><input type="checkbox" className="accent-blue" checked={onlyBad} onChange={(e) => setOnlyBad(e.target.checked)} />{t("admin.coverage.onlyBelowMinimum")}</label>
+        <label className="flex min-h-11 items-center gap-1.5 text-sm"><input type="checkbox" className="accent-blue" checked={onlyBad} onChange={(e) => setOnlyBad(e.target.checked)} />{t("admin.coverage.onlyBelowMinimum")}</label>
       </Toolbar>
       <div className="min-h-0 flex-1 overflow-auto">
         {cov.data && cov.data.length === 0 ? <EmptyState compact title={t("admin.coverage.noData")} body={t("admin.coverage.noDataBody")} action={<Link className="font-bold text-blue-deep hover:underline" href="/paths/">{t("admin.nav.paths")}</Link>} /> : <DataTable rows={rows} loading={cov.isLoading} error={cov.error} rowKey={(r) => `${r.topic_id}|${r.type_id}|${r.language}`} empty={t("admin.coverage.everyCellMeetsIts")}

@@ -1709,5 +1709,14 @@
   "stat.days.one": "{n} day",
   "stat.days.few": "{n} days",
   "stat.days.many": "{n} days",
-  "stat.days.other": "{n} days"
+  "stat.days.other": "{n} days",
+  "admin.enum.consensus.official_key": "Official key",
+  "admin.enum.consensus.official_key_generated_options": "Official key (generated options)",
+  "admin.enum.consensus.insufficient_solvers": "Not enough solvers",
+  "admin.enum.consensus.low_confidence": "Low confidence",
+  "admin.enum.consensus.unanimous": "All models agree",
+  "admin.enum.consensus.disagreement": "Models disagree",
+  "admin.enum.consensus.no_adjudication": "No adjudicator answer",
+  "admin.enum.consensus.adjudicator_agrees": "Adjudicator agrees",
+  "admin.enum.consensus.adjudicator_differs": "Adjudicator differs"
 }

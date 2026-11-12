@@ -17,6 +17,7 @@ export function LanguageSelector({
   placement = "bottom",
   align = "start",
   className,
+  compact = false,
 }: {
   value: string;
   options: LanguageOption[];
@@ -26,6 +27,8 @@ export function LanguageSelector({
   placement?: "bottom" | "top";
   align?: "start" | "end";
   className?: string;
+  /** Always show the short label (narrow sidebars). */
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -109,8 +112,8 @@ export function LanguageSelector({
         className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-[13px] font-extrabold uppercase tracking-wide text-ink-soft transition hover:bg-snow hover:text-ink"
       >
         <span className="shrink-0 overflow-hidden rounded-[3px] [&>svg]:block [&>svg]:h-4 [&>svg]:w-6">{current?.flag}</span>
-        <span className="whitespace-nowrap sm:hidden">{current?.short ?? current?.label}</span>
-        <span className="hidden whitespace-nowrap sm:inline">
+        <span className={cn("whitespace-nowrap", !compact && "sm:hidden")}>{current?.short ?? current?.label}</span>
+        <span className={cn("hidden whitespace-nowrap", !compact && "sm:inline")}>
           {label}: {current?.label}
         </span>
         <svg
@@ -157,7 +160,7 @@ export function LanguageSelector({
                     close(true);
                   }}
                   className={cn(
-                    "flex items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 text-left text-[15px] font-extrabold transition",
+                    "flex items-center gap-2.5 rounded-xl border-2 min-h-11 px-3 py-2 text-left text-[15px] font-extrabold transition",
                     selected ? "border-brand bg-brand-soft text-brand" : "border-transparent text-ink hover:bg-snow",
                   )}
                 >

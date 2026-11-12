@@ -145,11 +145,11 @@ function Run({ attempt }: { attempt: Attempt }) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white pt-[env(safe-area-inset-top)]">
-      <header className="flex items-center gap-2 border-b-2 border-line px-4 py-3 sm:gap-3">
-        <button type="button" onClick={() => setExit(true)} aria-label={t("common.close")} className="grid size-10 shrink-0 place-items-center rounded-xl border-2 border-line text-ink-soft">
+      <header className="flex items-center gap-1.5 border-b-2 border-line px-3 py-3 sm:gap-3 sm:px-4">
+        <button type="button" onClick={() => setExit(true)} aria-label={t("common.close")} className="grid size-11 shrink-0 place-items-center rounded-xl border-2 border-line text-ink-soft">
           <Icon name="close" size={20} />
         </button>
-        <div role="timer" aria-label={t("mock.timer")} className={`rounded-xl px-3 py-1 text-xl font-extrabold tabular-nums ${low ? "bg-red-soft text-red-deep" : "bg-snow text-ink"}`}>
+        <div role="timer" aria-label={t("mock.timer")} className={`shrink-0 rounded-xl px-2 py-1 text-lg font-extrabold tabular-nums sm:px-3 sm:text-xl ${low ? "bg-red-soft text-red-deep" : "bg-snow text-ink"}`}>
           {clock(left)}
         </div>
         <div className="flex-1" />

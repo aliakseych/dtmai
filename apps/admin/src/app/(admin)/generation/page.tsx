@@ -26,7 +26,7 @@ export default function GenerationPage() {
   const name = (list: { id: string; names: Record<string, string> }[] | undefined, id: string | null | undefined) => (id ? nm(list?.find((x) => x.id === id)?.names, id.slice(0, 8)) : "—");
   return (
     <>
-      <PageHeader title={t("admin.generation.generationRuns")} sub={t("admin.generation.aiGenerateQuestionsFor")} actions={<Link href="/labeling/" className="text-sm font-extrabold text-blue-deep">{t("admin.generation.openLabeling")}</Link>} />
+      <PageHeader title={t("admin.generation.generationRuns")} sub={t("admin.generation.aiGenerateQuestionsFor")} actions={<Link href="/labeling/" className="tap text-sm font-extrabold text-blue-deep">{t("admin.generation.openLabeling")}</Link>} />
       <div className="min-h-0 flex-1 space-y-4 overflow-auto p-4">
         <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 rounded-xl border border-line bg-white p-4">
           <Field label={t("admin.common.subject")}><Select value={f.subject_id ?? ""} onChange={(e) => set({ subject_id: e.target.value, topic_id: undefined })}><option value="">—</option>{subjects.data?.map((s) => <option key={s.id} value={s.id}>{nm(s.names)}</option>)}</Select></Field>

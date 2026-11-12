@@ -52,10 +52,12 @@ export function LocaleSwitcher({
   className,
   placement,
   align,
+  compact,
 }: {
   className?: string;
   placement?: "bottom" | "top";
   align?: "start" | "end";
+  compact?: boolean;
 }) {
   const { locale, setLocale } = useLocale();
   const t = useT();
@@ -68,6 +70,7 @@ export function LocaleSwitcher({
       label={t("language.site" as MessageKey)}
       placement={placement}
       align={align}
+      compact={compact}
       className={className}
     />
   );

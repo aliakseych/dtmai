@@ -1709,5 +1709,14 @@
   "stat.days.one": "{n} кун",
   "stat.days.few": "{n} кун",
   "stat.days.many": "{n} кун",
-  "stat.days.other": "{n} кун"
+  "stat.days.other": "{n} кун",
+  "admin.enum.consensus.official_key": "Расмий калит",
+  "admin.enum.consensus.official_key_generated_options": "Расмий калит (вариантлар яратилган)",
+  "admin.enum.consensus.insufficient_solvers": "Ечувчилар етарли эмас",
+  "admin.enum.consensus.low_confidence": "Ишонч паст",
+  "admin.enum.consensus.unanimous": "Барча моделлар келишган",
+  "admin.enum.consensus.disagreement": "Моделлар келишмаган",
+  "admin.enum.consensus.no_adjudication": "Ҳакам жавоб бермади",
+  "admin.enum.consensus.adjudicator_agrees": "Ҳакам рози",
+  "admin.enum.consensus.adjudicator_differs": "Ҳакам бошқача жавоб берди"
 }

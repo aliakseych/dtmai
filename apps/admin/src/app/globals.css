@@ -4,7 +4,15 @@
 @source "../../../../packages/ui/src";
 
 html { font-weight: 600; font-size: 14px; }
+/* Root is 14px, so rem-based Tailwind sizes (min-h-11 = 2.75rem) land at 38.5px. Tap targets must be 44 CSS px. Unlayered, so it wins over utilities. */
+.min-h-11 { min-height: 44px; }
+.min-w-11 { min-width: 44px; }
+.size-11 { width: 44px; height: 44px; }
+.tap { display: inline-flex; min-height: 44px; align-items: center; }
 body { background: var(--color-snow); }
 h1, h2, h3 { font-weight: 800; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 6px; }
+.formula-sheet p, .formula-sheet li { line-height: 2.4; max-width: 100%; overflow-x: auto; overflow-y: hidden; padding-block: 0.15rem; }
+.formula-sheet .katex { line-height: 1.6; white-space: nowrap; }
+.formula-sheet .katex-display { display: block; margin: 0.5rem 0; }

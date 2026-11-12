@@ -29,11 +29,11 @@ function NavBody({ path }: { path: string }) {
           </div>
         ))}
       </div>
-      <div className="shrink-0 space-y-1 border-t border-line bg-white p-3 text-xs">
-        <div className="hidden min-w-0 max-w-full overflow-hidden md:block"><LocaleSwitcher placement="top" /></div>
-        <div className="truncate font-extrabold">{me?.name || me?.email}</div>
+      <div className="shrink-0 border-t border-line bg-white px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 text-xs">
+        <div className="hidden min-w-0 max-w-full overflow-hidden md:block"><LocaleSwitcher placement="top" compact /></div>
+        <div className="truncate pt-1 font-extrabold">{me?.name || me?.email}</div>
         <div className="text-ink-soft">{me?.roles.join(", ")} · <kbd className="hidden rounded border border-line px-1 md:inline">⌘K</kbd></div>
-        <button type="button" className="mt-1 inline-flex min-h-11 items-center text-red-deep hover:underline" onClick={() => void logout()}>{t("admin.common.signOut")}</button>
+        <button type="button" className="inline-flex min-h-11 items-center text-red-deep hover:underline" onClick={() => void logout()}>{t("admin.common.signOut")}</button>
       </div>
     </>
   );
