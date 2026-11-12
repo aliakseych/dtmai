@@ -2,13 +2,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { buttonClass, GemsStat, HeartsStat, Modal, Skeleton, StreakStat } from "@dtmai/ui";
-import { useT } from "@dtmai/i18n";
+import { useLocale, useT } from "@dtmai/i18n";
+import { tPlural } from "@/lib/plural";
 import { useStats } from "@/lib/stats";
 import { clock, useCountdown } from "@/lib/useCountdown";
 import { useBilling } from "@/lib/billing";
 
 export function TopStats() {
   const t = useT();
+  const { locale } = useLocale();
   const { canBuy } = useBilling();
   const { state } = useStats();
   const [open, setOpen] = useState<"hearts" | "streak" | null>(null);
@@ -43,8 +45,8 @@ export function TopStats() {
       </Modal>
       <Modal open={open === "streak"} onClose={() => setOpen(null)} title={t("stat.streak")}>
         <p className="mb-2 text-xl font-extrabold">{t("stat.days", { n: stats.streak })}</p>
-        <p className="mb-2 text-ink-soft">{t("streak.longest", { n: stats.streak_longest })}</p>
-        <p className="mb-4 text-ink-soft">{stats.streak_active_today && stats.today_xp >= stats.daily_goal_xp ? t("streak.doneToday") : stats.streak_at_risk ? t("streak.atRisk") : stats.streak_active_today ? t("streak.longest", { n: stats.streak_longest }) : t("streak.practice")}</p>
+        <p className="mb-2 text-ink-soft">{tPlural(t, locale, "streak.longest", stats.streak_longest)}</p>
+        <p className="mb-4 text-ink-soft">{stats.streak_active_today && stats.today_xp >= stats.daily_goal_xp ? t("streak.doneToday") : stats.streak_at_risk ? t("streak.atRisk") : stats.streak_active_today ? tPlural(t, locale, "streak.longest", stats.streak_longest) : t("streak.practice")}</p>
         <button type="button" className={buttonClass("secondary", true)} onClick={() => setOpen(null)}>
           {t("common.close")}
         </button>

@@ -219,7 +219,10 @@ export function RequireAuth({ children, allowUnonboarded, account }: { children:
 }
 
 let languages: Promise<Language[]> | null = null;
-/** Education-language code (`uz`/`ru`/`en`) sent as `language` when starting sessions. */
+/** edu.uz education-language classifier code → content language ("12" Russian, "14" English, anything else Uzbek/Karakalpak). */
+export const contentLangOfCode = (code: string): "uz" | "ru" | "en" => (code === "12" ? "ru" : code === "14" ? "en" : "uz");
+
+/** Content language of the learner's education language, independent of the UI locale (UI locale only until it is known). */
 export function useLearnLanguage(): "uz" | "ru" | "en" {
   const { me } = useAuth();
   const { locale } = useLocale();
@@ -230,5 +233,5 @@ export function useLearnLanguage(): "uz" | "ru" | "en" {
     languages ??= api.unwrap(api.client.GET("/v1/lyceums/languages"));
     languages.then((ls) => setCode(ls.find((l) => l.id === id)?.code ?? null)).catch(() => (languages = null));
   }, [id]);
-  return code === "ru" || code === "en" || code === "uz" ? code : contentLang(locale);
+  return code ? contentLangOfCode(code) : contentLang(locale);
 }

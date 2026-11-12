@@ -9,10 +9,11 @@ import { useLearnLanguage } from "@/lib/auth";
 import { useBilling } from "@/lib/billing";
 import { isCode } from "@/lib/errors";
 import { pick } from "@/lib/localized";
-import { isActiveConflict, StartFailure } from "./StartFailure";
-import { useSubjectNames } from "./useSubjectNames";
+import { useAsync } from "@/lib/useAsync";
+import { hasContent } from "@/components/practice/SubjectEmpty";
+import { startFailureKind, StartFailure, type StartFailureKind } from "./StartFailure";
 
-type Status = "idle" | "busy" | "premium" | "error" | "conflict";
+type Status = "idle" | "busy" | "premium" | StartFailureKind;
 
 /** Personal mock from weak areas; a 403 premium_required becomes a note (buy link only if canBuy). */
 export function PersonalMockCard() {
@@ -21,10 +22,12 @@ export function PersonalMockCard() {
   const { locale } = useLocale();
   const language = useLearnLanguage();
   const { canBuy } = useBilling();
-  const { subjects } = useSubjectNames();
+  const list = useAsync(() => api.unwrap(api.client.GET("/v1/catalog/subjects", { params: { query: { language } } })), [language]);
+  const subjects = list.state.status === "ready" ? list.state.data : [];
   const [subject, setSubject] = useState("");
   const [status, setStatus] = useState<Status>("idle");
-  const chosen = subject || subjects[0]?.id || "";
+  const picked = subjects.find((s) => s.id === subject);
+  const chosen = (picked && hasContent(picked) ? picked : (subjects.find(hasContent) ?? subjects[0]))?.id ?? "";
 
   async function start() {
     setStatus("busy");
@@ -32,7 +35,7 @@ export function PersonalMockCard() {
       const a = await api.unwrap(api.client.POST("/v1/assessment/attempts/personal", { body: { subject_id: chosen, language, count: 30 } }));
       router.push(`/mocks/run/?attempt=${a.id}`);
     } catch (e) {
-      setStatus(isCode(e, "premium_required") ? "premium" : isActiveConflict(e) ? "conflict" : "error");
+      setStatus(isCode(e, "premium_required") ? "premium" : startFailureKind(e));
     }
   }
 
@@ -47,8 +50,9 @@ export function PersonalMockCard() {
           {t("mock.subject")}
           <select value={chosen} onChange={(e) => setSubject(e.target.value)} className="rounded-2xl border-2 border-line bg-snow px-3 py-3 text-base normal-case text-ink">
             {subjects.map((s) => (
-              <option key={s.id} value={s.id}>
+              <option key={s.id} value={s.id} disabled={!hasContent(s)}>
                 {pick(s.names, locale)}
+                {hasContent(s) ? "" : ` · ${t("common.soon")}`}
               </option>
             ))}
           </select>
@@ -67,7 +71,7 @@ export function PersonalMockCard() {
           )}
         </p>
       )}
-      {(status === "error" || status === "conflict") && <StartFailure conflict={status === "conflict"} />}
+      {(status === "empty" || status === "conflict" || status === "failed") && <StartFailure kind={status} />}
     </Card>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Avatar, Button, Card, GemsStat, HeartsStat, StreakFlame, XpStat, useToast, Icon } from "@dtmai/ui";
-import { LocaleSwitcher, useT } from "@dtmai/i18n";
+import { LocaleSwitcher, useLocale, useT } from "@dtmai/i18n";
 import Link from "next/link";
 import { buttonClass } from "@dtmai/ui";
 import { AsyncView } from "@/components/AsyncView";
@@ -13,6 +13,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { sharedBillingMe, useBilling } from "@/lib/billing";
+import { tPlural } from "@/lib/plural";
 import { useStats } from "@/lib/stats";
 import { useAsync } from "@/lib/useAsync";
 import { ApiError } from "@dtmai/api-client";
@@ -21,6 +22,7 @@ const GOALS = [10, 20, 30, 50] as const;
 
 export function ProfileView() {
   const t = useT();
+  const { locale } = useLocale();
   const toast = useToast();
   const { me, isGuest, logout } = useAuth();
   const { canBuy } = useBilling();
@@ -59,9 +61,9 @@ export function ProfileView() {
         {(s) => (
           <div className="mx-auto flex w-full min-w-0 max-w-5xl flex-col gap-4">
             <Reveal y={12}>
-              <Card className="flex items-center gap-4 bg-brand-soft">
+              <Card className="flex flex-col items-start gap-3 bg-brand-soft sm:flex-row sm:items-center sm:gap-4">
                 <Avatar name={me?.name ?? "?"} size={72} />
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 w-full flex-1">
                   <h2 className="break-words text-2xl">{isGuest ? t("profile.guest") : me?.name}</h2>
                   {me?.email && <p className="break-all text-ink-soft">{me.email}</p>}
                 </div>
@@ -88,7 +90,7 @@ export function ProfileView() {
                 <StreakFlame days={s.streak} />
               </div>
               <p className={s.streak_at_risk ? "font-bold text-red" : "text-ink-soft"}>
-                {s.streak_at_risk ? t("streak.atRisk") : s.streak_active_today && s.today_xp >= s.daily_goal_xp ? t("streak.doneToday") : s.streak > 0 ? t("streak.longest", { n: s.streak_longest }) : t("streak.practice")}
+                {s.streak_at_risk ? t("streak.atRisk") : s.streak_active_today && s.today_xp >= s.daily_goal_xp ? t("streak.doneToday") : s.streak > 0 ? tPlural(t, locale, "streak.longest", s.streak_longest) : t("streak.practice")}
               </p>
               <div className="flex items-center justify-between gap-3">
                 <span className="flex items-center gap-2 font-bold text-ink">

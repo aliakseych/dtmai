@@ -225,7 +225,6 @@
   "quests.done": "Выполнено",
   "streak.atRisk": "Позанимайтесь сегодня, чтобы сохранить серию!",
   "streak.doneToday": "Цель на сегодня выполнена. Отлично!",
-  "streak.longest": "Лучшая серия: {n} дн.",
   "streak.practice": "Пройдите урок, чтобы начать серию.",
   "tg.failed": "Не удалось войти через Telegram.",
   "mock.prediction": "Прогноз балла",
@@ -1693,5 +1692,10 @@
   "plan.wizard.choice.speech": "Какой язык вы выбираете?",
   "account.text.noGoogle": "Создайте аккаунт с email и паролем — после этого откроется доступ к приложению.",
   "account.gate.body.noGoogle": "Чтобы войти в приложение, задайте логин и пароль.",
-  "onb.placement.done": "Тест уровня завершён!"
+  "onb.placement.done": "Тест уровня завершён!",
+  "mock.noQuestions": "Для пробника пока недостаточно вопросов.",
+  "streak.longest.one": "Самая длинная серия: {n} день",
+  "streak.longest.few": "Самая длинная серия: {n} дня",
+  "streak.longest.many": "Самая длинная серия: {n} дней",
+  "streak.longest.other": "Самая длинная серия: {n} дня"
 }

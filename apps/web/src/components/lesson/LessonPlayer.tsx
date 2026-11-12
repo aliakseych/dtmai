@@ -338,13 +338,13 @@ function Runner({ session, exitHref, doneHref, theory, onRestart }: { onRestart:
             ) : explain?.failed ? (
               <p className="mt-1 font-semibold">{t("common.error")}</p>
             ) : (
-              <button type="button" onClick={explainIt} disabled={!!explain} className="mt-1 font-extrabold underline">
+              <button type="button" onClick={explainIt} disabled={!!explain} className="mt-1 inline-flex min-h-11 items-center font-extrabold underline">
                 {explain ? t("lesson.explaining") : t("lesson.explain")}
               </button>
             )}
             {!result.correct && theory && theory.length > 0 && (
               <div className="mt-1">
-                <button type="button" onClick={() => setTheoryOpen(true)} className="font-extrabold underline">
+                <button type="button" onClick={() => setTheoryOpen(true)} className="inline-flex min-h-11 items-center font-extrabold underline">
                   {t("theory.see")}
                 </button>
               </div>
@@ -353,7 +353,7 @@ function Runner({ session, exitHref, doneHref, theory, onRestart }: { onRestart:
               {report === "sent" ? (
                 <span className="text-sm font-semibold text-ink-soft">{t("lesson.reported")}</span>
               ) : (
-                <button type="button" onClick={reportIt} disabled={report === "busy"} className="text-sm font-bold text-ink-soft underline">
+                <button type="button" onClick={reportIt} disabled={report === "busy"} className="inline-flex min-h-11 items-center text-sm font-bold text-ink-soft underline">
                   {t("lesson.report")}
                 </button>
               )}

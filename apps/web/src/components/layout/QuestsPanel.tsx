@@ -16,7 +16,7 @@ export function QuestsPanel() {
     <Card className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-lg">{t("nav.quests")}</h2>
-        <Link href="/quests/" className="text-sm font-extrabold uppercase text-brand hover:underline">
+        <Link href="/quests/" className="inline-flex min-h-11 min-w-11 items-center justify-center text-sm font-extrabold uppercase text-brand hover:underline">
           {t("quests.all")}
         </Link>
       </div>

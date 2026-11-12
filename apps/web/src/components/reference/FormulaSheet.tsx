@@ -77,7 +77,7 @@ export function FormulaSheet({ subjectId, className = "" }: { subjectId: string 
                 <Icon name="close" size={20} />
               </button>
             </header>
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+            <div className="formula-sheet min-h-0 flex-1 overflow-y-auto px-4 py-3">
               <Markdown text={sheet.content} />
               {sheet.source && <p className="mt-4 text-xs text-ink-soft">{t("reference.source", { source: sheet.source })}</p>}
             </div>

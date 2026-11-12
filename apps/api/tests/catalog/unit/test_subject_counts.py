@@ -20,3 +20,25 @@ async def test_subjects_carry_verified_question_count(monkeypatch: pytest.Monkey
     ]
     out = await route.subjects_with_counts(None, subs)  # type: ignore[arg-type]
     assert [(o.code, o.question_count) for o in out] == [("math", 12), ("history", 0)]
+
+
+@pytest.mark.asyncio
+async def test_subject_counts_are_per_language(monkeypatch: pytest.MonkeyPatch) -> None:
+    sid = uuid4()
+    per_language = {"uz": 77, "ru": 5, "en": 0}
+
+    async def count(_s, subject_id, language=None):  # noqa: ANN001, ANN202
+        assert subject_id == sid
+        return per_language[language]
+
+    monkeypatch.setattr(route.bank, "count_verified_for_subject", count)
+    subs = [
+        SimpleNamespace(
+            id=sid, code="math", names={"en": "Math"}, weight=1.0, active=True, position=0
+        )
+    ]
+    got = {
+        lang: (await route.subjects_with_counts(None, subs, lang))[0].question_count  # type: ignore[arg-type]
+        for lang in per_language
+    }
+    assert got == per_language

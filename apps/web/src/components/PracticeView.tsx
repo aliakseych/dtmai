@@ -78,13 +78,9 @@ function Panel({ subjectId }: { subjectId: string }) {
       <Card className="flex flex-col gap-3">
         <h2 className="text-xl">{t("practice.personalMock")}</h2>
         <p className="text-ink-soft">{t("practice.personalMock.text")}</p>
-        {canBuy ? (
-          <Link href="/premium/" className={buttonClass("super", true)}>
-            {t("practice.premiumOnly")}
-          </Link>
-        ) : (
-          <span className="font-bold text-ink-soft">{t("common.soon")}</span>
-        )}
+        <Link href={canBuy ? "/premium/" : "/mocks/"} className={buttonClass(canBuy ? "super" : "secondary", true)}>
+          {canBuy ? t("practice.premiumOnly") : t("mocks.start")}
+        </Link>
       </Card>
     </div>
   );

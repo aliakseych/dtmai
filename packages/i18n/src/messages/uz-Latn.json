@@ -225,7 +225,6 @@
   "quests.done": "Bajarildi",
   "streak.atRisk": "Seriyani saqlash uchun bugun mashq qiling!",
   "streak.doneToday": "Bugungi maqsad bajarildi. Barakalla!",
-  "streak.longest": "Eng uzun seriya: {n} kun",
   "streak.practice": "Seriyani boshlash uchun dars o‘ting.",
   "tg.failed": "Telegram orqali kirib bo‘lmadi.",
   "mock.prediction": "Bashorat qilingan ball",
@@ -1439,7 +1438,7 @@
   "home.noPlan": "Imtihon sanasi va bashorat uchun o‘quv rejasini tuzing.",
   "home.buildPlan": "Reja tuzish",
   "plan.undo": "Bekor qilish",
-  "streak.freeze.buyFor": "Streak muzlatgichini olish · {n} olmos",
+  "streak.freeze.buyFor": "Seriya muzlatgichini olish · {n} olmos",
   "admin.common.confirm": "Tasdiqlash",
   "admin.common.required": "Majburiy",
   "admin.common.discardTitle": "O‘zgarishlar bekor qilinsinmi?",
@@ -1693,5 +1692,10 @@
   "plan.wizard.choice.speech": "Qaysi tilni tanlaysiz?",
   "account.text.noGoogle": "Email va parol bilan hisob yarating — shundan so‘ng ilovaga kirasiz.",
   "account.gate.body.noGoogle": "Ilovaga kirish uchun login va parol yarating.",
-  "onb.placement.done": "Daraja testi yakunlandi!"
+  "onb.placement.done": "Daraja testi yakunlandi!",
+  "mock.noQuestions": "Mock uchun hozircha savollar yetarli emas.",
+  "streak.longest.one": "Eng uzun seriya: {n} kun",
+  "streak.longest.few": "Eng uzun seriya: {n} kun",
+  "streak.longest.many": "Eng uzun seriya: {n} kun",
+  "streak.longest.other": "Eng uzun seriya: {n} kun"
 }

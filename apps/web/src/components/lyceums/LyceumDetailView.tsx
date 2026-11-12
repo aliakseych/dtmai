@@ -126,7 +126,7 @@ export function LyceumDetailView({ detail: d, onDreamChanged }: { detail: Lyceum
       </section>
 
       <p className="text-center text-sm text-ink-soft">
-        <Link href="/rep/" className="underline hover:text-ink">
+        <Link href="/rep/" className="inline-flex min-h-11 items-center underline hover:text-ink">
           {t("lyceums.representLink")}
         </Link>
       </p>

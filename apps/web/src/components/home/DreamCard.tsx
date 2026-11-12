@@ -68,7 +68,7 @@ export function DreamCard() {
         </h2>
         {field && <p className="break-words text-sm font-bold opacity-90">{t("dream.card.field", { name: field })}</p>}
       </div>
-      <Link href="/lyceums/" className="ml-auto shrink-0 rounded-xl bg-white px-3 py-2 text-sm font-extrabold text-brand">
+      <Link href="/lyceums/" className="ml-auto inline-flex min-h-11 shrink-0 items-center rounded-xl bg-white px-3 py-2 text-sm font-extrabold text-brand">
         {t("dream.card.change")}
       </Link>
     </motion.section>

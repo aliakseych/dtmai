@@ -47,7 +47,7 @@ export function DreamPin() {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={DREAM_PLACEHOLDER} alt="" className="hidden h-24 w-32 shrink-0 object-contain sm:block" />
         )}
-        <Link href="/lyceums/" className="shrink-0 rounded-xl bg-white px-3 py-2 text-sm font-extrabold text-brand">
+        <Link href="/lyceums/" className="inline-flex min-h-11 shrink-0 items-center rounded-xl bg-white px-3 py-2 text-sm font-extrabold text-brand">
           {t("dream.pin.change")}
         </Link>
       </div>

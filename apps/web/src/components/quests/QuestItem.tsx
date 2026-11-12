@@ -27,7 +27,9 @@ export function QuestItem({ quest: q, compact = false }: { quest: Quest; compact
   const t = useT();
   const { locale } = useLocale();
   const reduce = useReducedMotion();
-  const title = pick(q.title, locale);
+  const raw = pick(q.title, locale);
+  // Server titles use ASCII apostrophes; uz-Latn elsewhere uses o‘ / g‘ (U+2018).
+  const title = locale === "uz-Latn" ? raw.replace(/([OoGg])['’ʻʼ`]/g, "$1\u2018") : raw;
   const body = (
     <>
       <div className="flex min-w-0 flex-1 flex-col gap-2">

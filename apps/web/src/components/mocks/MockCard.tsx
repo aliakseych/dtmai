@@ -6,7 +6,7 @@ import { useLocale, useT } from "@dtmai/i18n";
 import { api, type Mock } from "@/lib/api";
 import { useLearnLanguage } from "@/lib/auth";
 import { pick } from "@/lib/localized";
-import { isActiveConflict, StartFailure } from "./StartFailure";
+import { startFailureKind, StartFailure, type StartFailureKind } from "./StartFailure";
 
 export function MockCard({ mock }: { mock: Mock }) {
   const t = useT();
@@ -14,7 +14,7 @@ export function MockCard({ mock }: { mock: Mock }) {
   const { locale } = useLocale();
   const language = useLearnLanguage();
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<"none" | "conflict" | "failed">("none");
+  const [error, setError] = useState<StartFailureKind | "none">("none");
 
   async function start() {
     setBusy(true);
@@ -24,7 +24,7 @@ export function MockCard({ mock }: { mock: Mock }) {
       router.push(`/mocks/run/?attempt=${a.id}`);
     } catch (e) {
       setBusy(false);
-      setError(isActiveConflict(e) ? "conflict" : "failed");
+      setError(startFailureKind(e));
     }
   }
 
@@ -41,7 +41,7 @@ export function MockCard({ mock }: { mock: Mock }) {
           {busy ? t("mock.starting") : t("mocks.start")}
         </Button>
       </div>
-      {error !== "none" && <StartFailure conflict={error === "conflict"} />}
+      {error !== "none" && <StartFailure kind={error} />}
     </Card>
   );
 }

@@ -27,7 +27,7 @@ export function RushView() {
   const language = useLearnLanguage();
   const { me } = useAuth();
   const preset = useSearchParams().get("subject");
-  const subjects = useAsync(() => api.unwrap(api.client.GET("/v1/catalog/subjects")), []);
+  const subjects = useAsync(() => api.unwrap(api.client.GET("/v1/catalog/subjects", { params: { query: { language } } })), [language]);
   const [subject, setSubject] = useState<string | null>(preset);
   const [phase, setPhase] = useState<Phase>({ name: "pick" });
   const [busy, setBusy] = useState(false);

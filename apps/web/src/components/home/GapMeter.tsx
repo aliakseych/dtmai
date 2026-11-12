@@ -31,7 +31,7 @@ export function GapMeter() {
         <h2 className="text-sm uppercase text-ink-soft">{t("dream.gap.title")}</h2>
         <p className="font-bold">{t("dream.gap.bar", { score: fmt(g.passing_score) })}</p>
         {ratio && <p className="text-sm text-ink-soft">{ratio}</p>}
-        <Link href="/plan/setup/" className="text-sm font-extrabold text-brand underline">
+        <Link href="/plan/setup/" className="inline-flex min-h-11 items-center text-sm font-extrabold text-brand underline">
           {t("dream.gap.noScore")}
         </Link>
       </section>
@@ -77,7 +77,7 @@ export function GapMeter() {
       )}
       {ratio && <p className="text-sm text-ink-soft">{ratio}</p>}
       {next ? (
-        <Link href="/plan/" className="break-words rounded-xl bg-brand-soft px-3 py-2 text-sm font-extrabold text-brand">
+        <Link href="/plan/" className="inline-flex min-h-11 items-center break-words rounded-xl bg-brand-soft px-3 py-2 text-sm font-extrabold text-brand">
           {next}
         </Link>
       ) : (

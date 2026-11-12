@@ -66,7 +66,7 @@ export function QuestionBank() {
                   />
                 )}
                 <label className="flex min-h-11 items-center gap-3 font-bold text-ink">
-                  <input type="checkbox" className="h-5 w-5 accent-brand" checked={unsolved} onChange={(e) => setUnsolved(e.target.checked)} />
+                  <span className="grid size-11 shrink-0 place-items-center"><input type="checkbox" className="h-5 w-5 accent-brand" checked={unsolved} onChange={(e) => setUnsolved(e.target.checked)} /></span>
                   {t("bank.unsolvedOnly")}
                 </label>
                 {overview.total === 0 || rows.length === 0 ? (

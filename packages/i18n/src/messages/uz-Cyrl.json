@@ -225,7 +225,6 @@
   "quests.done": "Бажарилди",
   "streak.atRisk": "Серияни сақлаш учун бугун машқ қилинг!",
   "streak.doneToday": "Бугунги мақсад бажарилди. Баракалла!",
-  "streak.longest": "Энг узун серия: {n} кун",
   "streak.practice": "Серияни бошлаш учун дарс ўтинг.",
   "tg.failed": "Telegram орқали кириб бўлмади.",
   "mock.prediction": "Башорат қилинган балл",
@@ -1439,7 +1438,7 @@
   "home.noPlan": "Имтиҳон санаси ва башорат учун ўқув режасини тузинг.",
   "home.buildPlan": "Режа тузиш",
   "plan.undo": "Бекор қилиш",
-  "streak.freeze.buyFor": "Стрик музлатгичини олиш · {n} олмос",
+  "streak.freeze.buyFor": "Серия музлатгичини олиш · {n} олмос",
   "admin.common.confirm": "Тасдиқлаш",
   "admin.common.required": "Мажбурий",
   "admin.common.discardTitle": "Ўзгаришлар бекор қилинсинми?",
@@ -1693,5 +1692,10 @@
   "plan.wizard.choice.speech": "Қайси тилни танлайсиз?",
   "account.text.noGoogle": "Email ва парол билан ҳисоб яратинг — шундан сўнг иловага киргасиз.",
   "account.gate.body.noGoogle": "Иловага кириш учун логин ва парол яратинг.",
-  "onb.placement.done": "Даража тести якунланди!"
+  "onb.placement.done": "Даража тести якунланди!",
+  "mock.noQuestions": "Мок учун ҳозирча саволлар етарли эмас.",
+  "streak.longest.one": "Энг узун серия: {n} кун",
+  "streak.longest.few": "Энг узун серия: {n} кун",
+  "streak.longest.many": "Энг узун серия: {n} кун",
+  "streak.longest.other": "Энг узун серия: {n} кун"
 }

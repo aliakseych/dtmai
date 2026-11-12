@@ -140,7 +140,7 @@ function TodayPlan() {
     <section className="flex flex-col gap-2" aria-label={t("home.today")}>
       <div className="flex items-baseline justify-between">
         <h2 className="text-lg">{t("home.today")}</h2>
-        <Link href="/plan/" className="text-sm font-extrabold text-brand">
+        <Link href="/plan/" className="inline-flex min-h-11 items-center text-sm font-extrabold text-brand">
           {t("home.openPlan")}
         </Link>
       </div>

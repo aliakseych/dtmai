@@ -1,12 +1,19 @@
 "use client";
-import { useT } from "@dtmai/i18n";
+import { useT, type MessageKey } from "@dtmai/i18n";
+import { useFieldLabel } from "./useFieldLabel";
 import type { LyceumDetailData } from "./useLyceumDetail";
 
 type Admission = LyceumDetailData["admission"];
 
+const langOf = (r: Admission["plan"][number], t: (k: MessageKey) => string) => {
+  const names = [r.seats_uz > 0 && t("lyceums.admission.uz"), r.seats_ru > 0 && t("lyceums.admission.ru"), r.seats_qq > 0 && t("lyceums.admission.qq")].filter(Boolean);
+  return names.length ? names.join(", ") : "—";
+};
+
 /** Seats per direction and language of instruction, applicants per seat, and phone / Telegram links. */
 export function AdmissionSeats({ admission: a }: { admission: Admission }) {
   const t = useT();
+  const label = useFieldLabel();
   const contact = a.contact;
   const hasContact = !!contact && (contact.phones.length > 0 || !!contact.telegram);
   if (a.plan.length === 0 && !hasContact) return null;
@@ -26,8 +33,8 @@ export function AdmissionSeats({ admission: a }: { admission: Admission }) {
               </span>
             )}
           </p>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[28rem] text-left text-sm">
+          <div className="max-w-full overflow-x-auto" tabIndex={0}>
+            <table className="w-full min-w-[36rem] text-left text-sm">
               <thead className="text-ink-soft">
                 <tr>
                   <th scope="col" className="py-1 pr-2">{t("lyceums.admission.direction")}</th>
@@ -42,8 +49,18 @@ export function AdmissionSeats({ admission: a }: { admission: Admission }) {
               <tbody>
                 {a.plan.map((r) => (
                   <tr key={`${r.direction_code}-${r.language_name ?? ""}`} className="border-t border-line">
-                    <td className="py-1 pr-2">{r.direction_code}</td>
-                    <td className="py-1 pr-2">{r.language_name ?? "—"}</td>
+                    <td className="py-1 pr-2">
+                      {(() => {
+                        const f = label(r.direction_code);
+                        return (
+                          <>
+                            {f.name}
+                            {f.subjects && <span className="block text-xs text-ink-soft">{f.subjects}</span>}
+                          </>
+                        );
+                      })()}
+                    </td>
+                    <td className="py-1 pr-2">{r.language_name ?? langOf(r, t)}</td>
                     <td className="py-1 pr-2">{r.seats_uz}</td>
                     <td className="py-1 pr-2">{r.seats_ru}</td>
                     <td className="py-1 pr-2">{r.seats_qq}</td>
