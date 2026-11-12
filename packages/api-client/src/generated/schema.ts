@@ -1964,7 +1964,7 @@ export interface paths {
         };
         /**
          * Get Public Passage
-         * @description Reading passage shared by items of a session (public: ids are unguessable UUIDs).
+         * @description Reading passage of learner-servable questions (404 for passages of unpublished ones).
          */
         get: operations["bank_get_passage"];
         put?: never;
@@ -4529,7 +4529,7 @@ export interface components {
             /** Kind */
             kind: string;
             /** Media */
-            media: unknown[];
+            media: components["schemas"]["app__interfaces__http__v1___media__MediaOut"][];
             /** Payload */
             payload: {
                 [key: string]: unknown;
@@ -4544,6 +4544,8 @@ export interface components {
         };
         /** DailyQuestionsOut */
         DailyQuestionsOut: {
+            /** Answered Ids */
+            answered_ids: string[];
             /**
              * Day
              * Format: date

@@ -2848,7 +2848,9 @@
             "type": "string"
           },
           "media": {
-            "items": {},
+            "items": {
+              "$ref": "#/components/schemas/app__interfaces__http__v1___media__MediaOut"
+            },
             "title": "Media",
             "type": "array"
           },
@@ -2880,6 +2882,14 @@
       },
       "DailyQuestionsOut": {
         "properties": {
+          "answered_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Answered Ids",
+            "type": "array"
+          },
           "day": {
             "format": "date",
             "title": "Day",
@@ -2895,7 +2905,8 @@
         },
         "required": [
           "day",
-          "questions"
+          "questions",
+          "answered_ids"
         ],
         "title": "DailyQuestionsOut",
         "type": "object"
@@ -27390,7 +27401,7 @@
     },
     "/v1/bank/passages/{passage_id}": {
       "get": {
-        "description": "Reading passage shared by items of a session (public: ids are unguessable UUIDs).",
+        "description": "Reading passage of learner-servable questions (404 for passages of unpublished ones).",
         "operationId": "bank_get_passage",
         "parameters": [
           {
@@ -27466,6 +27477,11 @@
             "description": "Unprocessable Content"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Get Public Passage",
         "tags": [
           "bank"
