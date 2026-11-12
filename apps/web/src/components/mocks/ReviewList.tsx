@@ -5,6 +5,7 @@ import { ApiError } from "@dtmai/api-client";
 import { Card } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
 import { RichText } from "@/components/RichText";
+import { Markdown } from "@/components/temur/Markdown";
 import { correctText, QuestionBody } from "@/components/lesson/QuestionBody";
 import { api, type AttemptResult, type ItemOut } from "@/lib/api";
 import { useBilling } from "@/lib/billing";
@@ -91,7 +92,9 @@ export function ReviewList({ review, items, flags }: { review: AttemptResult["re
                 </>
               )}
               {isGroup ? null : ex?.text ? (
-                <p className="font-semibold">{ex.text}</p>
+                <div className="font-semibold">
+                  <Markdown text={ex.text} />
+                </div>
               ) : ex?.limit ? (
                 <p className="font-semibold">
                   {t("lesson.explainLimit")}{" "}
@@ -104,7 +107,7 @@ export function ReviewList({ review, items, flags }: { review: AttemptResult["re
               ) : ex?.failed ? (
                 <p className="font-semibold">{t("common.error")}</p>
               ) : (
-                <button type="button" onClick={() => void ask(r.question_id)} disabled={ex?.busy} className="self-start font-extrabold text-brand underline">
+                <button type="button" onClick={() => void ask(r.question_id)} disabled={ex?.busy} aria-busy={ex?.busy} className={`self-start font-extrabold text-brand underline ${ex?.busy ? "animate-pulse" : ""}`}>
                   {ex?.busy ? t("lesson.explaining") : t("lesson.explain")}
                 </button>
               )}

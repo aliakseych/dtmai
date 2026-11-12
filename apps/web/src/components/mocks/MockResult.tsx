@@ -60,12 +60,14 @@ function Body({ result, attempt }: { result: AttemptResult; attempt: Attempt }) 
         </p>
       )}
       <Card className="flex flex-col items-center gap-1 text-center">
-        <p className="text-sm font-bold uppercase text-ink-soft">{t("mock.total")}</p>
         <p className="text-6xl font-extrabold text-brand">
-          {num.format(result.total)}
-          <span className="text-2xl text-ink-soft"> / {num.format(result.max_total)}</span>
+          {num.format(result.correct)}
+          <span className="text-2xl text-ink-soft"> / {num.format(result.questions || items.length)}</span>
         </p>
-        <p className="text-ink-soft">{t("mock.correctOf", { n: result.correct, total: result.questions })}</p>
+        <p className="text-ink-soft">{t("mock.correctOf", { n: result.correct, total: result.questions || items.length })}</p>
+        <p className="text-sm font-bold text-ink-soft">
+          {t("mock.total")}: {num.format(result.total)} / {num.format(result.max_total)}
+        </p>
       </Card>
 
       {Object.keys(result.subject_scores).length > 0 && (

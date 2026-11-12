@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@dtmai/ui";
 import { useT } from "@dtmai/i18n";
 import { AuthFrame, Field } from "@/components/auth/AuthFrame";
@@ -9,14 +10,14 @@ import { api } from "@/lib/api";
 import { useRedirectIfSignedIn } from "@/components/auth/useRedirectIfSignedIn";
 import { authErrorKey, checkEmail, checkPassword, checkRequired, serverFieldErrors, type FieldErrors } from "@/lib/errors";
 
-export default function ForgotPage() {
+function ForgotForm() {
   const t = useT();
   const signedIn = useSignedIn();
   useRedirectIfSignedIn();
   const [fields, setFields] = useState<FieldErrors>({});
   const [info, setInfo] = useState(false);
   const [step, setStep] = useState<"email" | "reset">("email");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(useSearchParams().get("email") ?? "");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<ReturnType<typeof authErrorKey> | null>(null);
@@ -103,5 +104,13 @@ export default function ForgotPage() {
         </Button>
       </form>
     </AuthFrame>
+  );
+}
+
+export default function ForgotPage() {
+  return (
+    <Suspense>
+      <ForgotForm />
+    </Suspense>
   );
 }

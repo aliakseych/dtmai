@@ -36,7 +36,14 @@ from app.modules.identity.ports import (
     RefreshTokenRepository,
     UserRepository,
 )
-from app.shared.errors import Conflict, Forbidden, NotFound, Unauthorized, ValidationFailed
+from app.shared.errors import (
+    Conflict,
+    DomainError,
+    Forbidden,
+    NotFound,
+    Unauthorized,
+    ValidationFailed,
+)
 from app.shared.ids import new_id
 from app.shared.security import encode_access_token
 
@@ -151,6 +158,15 @@ class IdentityService:
         user.email_verified = True  # the code proves mailbox ownership
         await self._users.save(user)
         return await self._issue(user)
+
+    async def change_password(self, user_id: UUID, current: str, new: str) -> None:
+        """Signed-in password change; other sessions stay valid."""
+        validate_password(new)
+        user = await self.get_me(user_id)
+        if not user.password_hash or not self._hasher.verify(current, user.password_hash):
+            raise DomainError("current password is wrong", code="wrong_password")
+        user.password_hash = self._hasher.hash(new)
+        await self._users.save(user)
 
     async def login(self, email: str, password: str) -> TokenPair:
         user = await self._users.by_email(normalize_email(email))

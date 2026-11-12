@@ -25,7 +25,7 @@ function Run() {
     },
     [kind, subject, topic, type, language],
   );
-  return <LessonPlayer load={load} exitHref="/practice/" />;
+  return <LessonPlayer key={`${kind}|${subject}|${topic}|${type}`} load={load} exitHref="/practice/" />;
 }
 
 export default function PracticeRunPage() {

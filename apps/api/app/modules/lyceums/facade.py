@@ -3,8 +3,10 @@
 from uuid import UUID
 
 from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.assessment.facade import Benchmark, set_benchmark_port
+from app.modules.lyceums.infrastructure.admission import SqlAdmissionStore
 from app.modules.lyceums.infrastructure.orm import YearlyStatRow
 from app.shared.db import get_sessionmaker
 
@@ -30,6 +32,12 @@ class LyceumBenchmark:
             ).one()
         ratio = round(apps / quota, 2) if quota else None
         return Benchmark(year=year, passing_score=score, competition_ratio=ratio)
+
+
+async def lyceum_names(session: AsyncSession, ids: list[UUID]) -> list[str]:
+    """Display names of the given lyceums, in the order of `ids` (unknown ids are skipped)."""
+    names = await SqlAdmissionStore(session).lyceum_names()
+    return [names[i] for i in ids if i in names]
 
 
 set_benchmark_port(LyceumBenchmark())

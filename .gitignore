@@ -21,3 +21,6 @@ apps/mobile/ios/Pods/
 .codegraph/
 .omp/
 .uploads/
+
+# raw materials, never pushed
+temp-*

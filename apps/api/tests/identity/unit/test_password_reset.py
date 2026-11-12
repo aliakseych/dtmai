@@ -162,3 +162,17 @@ def test_invalid_code_is_not_401():
     with pytest.raises(ValidationFailed) as e:
         asyncio.run(svc.reset_password("a@b.uz", "000000x", "newpassword"))
     assert e.value.status == 422 and e.value.code == "invalid_code"
+
+
+def test_change_password_requires_current_and_keeps_sessions():
+    from app.shared.errors import DomainError
+
+    user = _user()
+    svc, users, _, _ = make(user)
+    with pytest.raises(DomainError) as e:
+        asyncio.run(svc.change_password(user.id, "wrong-pass", "another-pass"))
+    assert e.value.status == 400 and e.value.code == "wrong_password"
+    with pytest.raises(ValidationFailed):
+        asyncio.run(svc.change_password(user.id, "oldpassword", "short"))
+    asyncio.run(svc.change_password(user.id, "oldpassword", "another-pass"))
+    assert users.u.password_hash == "h:another-pass" and svc._refresh.revoked_for == []

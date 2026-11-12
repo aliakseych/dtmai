@@ -12,7 +12,7 @@ export function LanguageStep({ state, onRetry, value, onChange }: { state: Async
     <AsyncView state={state} onRetry={onRetry} isEmpty={(d) => d.length === 0}>
       {(d) => (
         <div role="radiogroup" className="grid gap-2">
-          {d.filter((l) => l.code === "uz" || l.code === "ru").map((l) => (
+          {d.map((l) => (
             <Choice key={l.id} on={value === l.id} onClick={() => onChange(l.id)}>
               {pick(l.names, locale)}
             </Choice>

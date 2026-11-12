@@ -10,6 +10,7 @@ Shapes (answer shape == client response shape == GradeResult.correct_response):
 - passage_group: payload {"child_ids":[uuid str]}                  answer {}; response {"answers": {child_id: response}}
 """
 
+import re
 import unicodedata
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -77,6 +78,36 @@ def normalize_text(s: str, *, case_sensitive: bool = False) -> str:
     s = s.replace("\u2019", "'").replace("\u02bc", "'").replace("\u2018", "'").replace("`", "'")
     s = " ".join(s.split())
     return s if case_sensitive else s.casefold()
+
+
+# A literal unicode escape left in text (e.g. backslash, "u02bl"): backslash, u, digit, alnum.
+_LITERAL_ESCAPE = re.compile(r"\\u[0-9][0-9A-Za-z]")
+
+
+def _strings(value: Any) -> Sequence[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, Mapping):
+        return [t for v in value.values() for t in _strings(v)]
+    if isinstance(value, list):
+        return [t for v in value for t in _strings(v)]
+    return []
+
+
+def check_text_quality(stem: str, payload: Mapping[str, Any]) -> None:
+    """Reject corrupted text: literal `\\u02bx` escapes and duplicate option texts."""
+    for text in (stem, *_strings(payload)):
+        m = _LITERAL_ESCAPE.search(text)
+        _need(m is None, f"text contains a literal unicode escape {m.group(0)!r}" if m else "")
+    options = payload.get("options")
+    if isinstance(options, list):
+        seen: set[str] = set()
+        for o in options:
+            text = o.get("text") if isinstance(o, Mapping) else None
+            if isinstance(text, str) and text.strip():
+                key = normalize_text(text)
+                _need(key not in seen, f"duplicate option text {text!r}")
+                seen.add(key)
 
 
 def validate_question(kind: str, payload: Mapping[str, Any], answer: Mapping[str, Any]) -> None:

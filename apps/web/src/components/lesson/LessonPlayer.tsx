@@ -20,13 +20,25 @@ import { HeartsGate } from "./HeartsGate";
 import { correctText, isAnswered, QuestionBody, type Response } from "./QuestionBody";
 
 type Phase = "answering" | "feedback" | "done";
+const isClosed = (e: unknown) => e instanceof ApiError && e.status === 409 && e.code === "session_closed";
 const isNoHearts = (e: unknown) => e instanceof ApiError && e.status === 409 && e.code === "no_hearts";
 
 /** Lesson/drill/review/placement runner: CHECK -> feedback sheet -> CONTINUE. Hearts apply to lesson and drill only. */
 export function LessonPlayer({ load, exitHref, doneHref, lessonId }: { load: () => Promise<SessionOut>; exitHref: string; doneHref?: string; lessonId?: string }) {
   // The session id lives in the URL (?s=) so a reload or the hearts gate resumes it instead of starting over.
   const resumeId = useRef<string | null>(typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("s"));
-  const start = useCallback(async () => {
+  // Effects run twice under StrictMode: concurrent starts share one in-flight request so only one session is created.
+  const pending = useRef<{ load: () => Promise<SessionOut>; p: Promise<SessionOut> } | null>(null);
+  const start = useCallback(() => {
+    if (pending.current?.load === load) return pending.current.p;
+    const p = begin();
+    pending.current = { load, p };
+    const clear = () => {
+      if (pending.current?.p === p) pending.current = null;
+    };
+    p.then(clear, clear);
+    return p;
+    async function begin() {
     const sid = resumeId.current;
     if (sid) {
       try {
@@ -42,18 +54,27 @@ export function LessonPlayer({ load, exitHref, doneHref, lessonId }: { load: () 
     url.searchParams.set("s", s.id);
     window.history.replaceState(window.history.state, "", url);
     return s;
+    }
   }, [load]);
   const { state, reload } = useAsync(start, [start]);
+  // The session was closed elsewhere (e.g. by a duplicate start): drop it from the URL and begin a fresh one.
+  const restart = useCallback(() => {
+    resumeId.current = null;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("s");
+    window.history.replaceState(window.history.state, "", url);
+    reload();
+  }, [reload]);
   if (state.status === "error" && isNoHearts(state.error)) return <HeartsGate exitHref={exitHref} onRetry={reload} />;
   return (
     <AsyncView state={state} onRetry={reload} exitHref={exitHref} isEmpty={(s) => s.items.length === 0 && s.answered === 0}>
-      {(s) => <TheoryFirst session={s} lessonId={lessonId} exitHref={exitHref} doneHref={doneHref ?? exitHref} />}
+      {(s) => <TheoryFirst session={s} onRestart={restart} lessonId={lessonId} exitHref={exitHref} doneHref={doneHref ?? exitHref} />}
     </AsyncView>
   );
 }
 
 /** A lesson with theory shows its cards once per device before the first question; the same cards stay reachable from the wrong-answer sheet. */
-function TheoryFirst({ session, lessonId, exitHref, doneHref }: { session: SessionOut; lessonId?: string; exitHref: string; doneHref: string }) {
+function TheoryFirst({ session, lessonId, exitHref, doneHref, onRestart }: { onRestart: () => void; session: SessionOut; lessonId?: string; exitHref: string; doneHref: string }) {
   const t = useT();
   const theory = useLessonTheory(session.subject_id, lessonId);
   const [shown, setShown] = useState(false);
@@ -69,10 +90,10 @@ function TheoryFirst({ session, lessonId, exitHref, doneHref }: { session: Sessi
         }}
       />
     );
-  return <Runner session={session} exitHref={exitHref} doneHref={doneHref} theory={theory} />;
+  return <Runner session={session} onRestart={onRestart} exitHref={exitHref} doneHref={doneHref} theory={theory} />;
 }
 
-function Runner({ session, exitHref, doneHref, theory }: { session: SessionOut; exitHref: string; doneHref: string; theory?: TheoryCard[] }) {
+function Runner({ session, exitHref, doneHref, theory, onRestart }: { onRestart: () => void; session: SessionOut; exitHref: string; doneHref: string; theory?: TheoryCard[] }) {
   const [theoryOpen, setTheoryOpen] = useState(false);
   const t = useT();
   const router = useRouter();
@@ -92,8 +113,9 @@ function Runner({ session, exitHref, doneHref, theory }: { session: SessionOut; 
   const [exit, setExit] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [closed, setClosed] = useState(false);
   const [report, setReport] = useState<"idle" | "busy" | "sent">("idle");
-  const [explain, setExplain] = useState<{ text?: string; limit?: boolean; failed?: boolean } | null>(null);
+  const [explain, setExplain] = useState<{ text?: string; limit?: boolean; guest?: boolean; failed?: boolean } | null>(null);
   const started = useRef(Date.now());
   const main = useRef<HTMLElement>(null);
 
@@ -121,6 +143,7 @@ function Runner({ session, exitHref, doneHref, theory }: { session: SessionOut; 
       setPhase("feedback");
     } catch (e) {
       if (isNoHearts(e)) setGate(true);
+      else if (isClosed(e)) setClosed(true);
       else setError(true);
     } finally {
       setBusy(false);
@@ -211,7 +234,13 @@ function Runner({ session, exitHref, doneHref, theory }: { session: SessionOut; 
       const r = await api.unwrap(api.client.POST("/v1/ai/explain/{question_id}", { params: { path: { question_id: q.id } } }));
       setExplain({ text: r.explanation });
     } catch (e) {
-      setExplain(e instanceof ApiError && [402, 403, 429].includes(e.status) ? { limit: true } : { failed: true });
+      setExplain(
+        e instanceof ApiError && e.status === 403
+          ? { guest: true }
+          : e instanceof ApiError && [402, 429].includes(e.status)
+            ? { limit: true }
+            : { failed: true },
+      );
     }
   }
 
@@ -232,8 +261,8 @@ function Runner({ session, exitHref, doneHref, theory }: { session: SessionOut; 
       );
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 px-4 text-center">
-        <Mascot mood="celebrate" size={220} alt="" className="pop-in h-auto w-48" />
-        <h1 className="text-3xl">{t("lesson.done")}</h1>
+        <Mascot mood={summary.total > 0 && summary.correct * 2 < summary.total ? "sad" : "celebrate"} size={220} alt="" className="pop-in h-auto w-48" />
+        <h1 className="text-3xl">{session.mode === "lesson" || session.mode === "placement" ? t("lesson.done") : t("lesson.drillDone")}</h1>
         <p className="text-lg text-ink-soft">
           +{summary.xp_base} {t("stat.xp")} · {summary.correct}/{summary.total}
         </p>
@@ -257,6 +286,14 @@ function Runner({ session, exitHref, doneHref, theory }: { session: SessionOut; 
 
       <main ref={main} className="flex flex-1 flex-col gap-5 pb-56">
         {q && <QuestionBody key={q.id} item={q} value={value} onChange={setValue} disabled={phase !== "answering"} correct={phase === "feedback" ? (result?.correct_response ?? null) : null} wasCorrect={result?.correct} />}
+        {closed && (
+          <div role="alert" className="flex flex-col items-start gap-2 font-bold text-red-deep">
+            {t("common.error")}
+            <Button variant="secondary" onClick={onRestart}>
+              {t("common.retry")}
+            </Button>
+          </div>
+        )}
         {error && (
           <p role="alert" className="font-bold text-red-deep">
             {t("common.error")}
@@ -278,7 +315,7 @@ function Runner({ session, exitHref, doneHref, theory }: { session: SessionOut; 
           >
             {!result.correct && (
               <p>
-                {t("lesson.correctAnswer")}: <strong>
+                <strong>
                   <RichText text={correctText(q, result.correct_response)} />
                 </strong>
               </p>
@@ -286,6 +323,11 @@ function Runner({ session, exitHref, doneHref, theory }: { session: SessionOut; 
             {explain?.text ? (
               <p className="mt-1 font-semibold">
                 <RichText text={explain.text} />
+              </p>
+            ) : explain?.guest ? (
+              <p className="mt-1 font-semibold">
+                {t("lesson.explainGuest")}{" "}
+                <Link href="/register/" className="underline">{t("lesson.explainSignUp")}</Link>
               </p>
             ) : explain?.limit ? (
               <p className="mt-1 font-semibold">

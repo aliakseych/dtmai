@@ -53,9 +53,10 @@ export function Onboarding() {
   const subjectList = subjects.state.status === "ready" ? subjects.state.data : [];
   // First subject in catalog order among those chosen.
   const firstSubject = subjectList.find((s) => subjectIds.includes(s.id));
+  // Education-language codes are numeric (11 Uzbek, 12 Russian, 14 English); the placement API takes uz/ru/en.
   const langCode = () => {
     const c = languages.state.status === "ready" ? languages.state.data.find((l) => l.id === languageId)?.code : undefined;
-    return c === "ru" || c === "en" ? c : "uz";
+    return c === "12" ? "ru" : c === "14" ? "en" : "uz";
   };
 
   async function save(): Promise<boolean> {

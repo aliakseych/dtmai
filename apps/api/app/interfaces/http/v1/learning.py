@@ -25,7 +25,7 @@ from app.modules.learning.wiring import LearningServiceDep
 from app.shared.db import get_session
 from app.shared.deps import CurrentUser
 from app.shared.errors import Forbidden, NotFound, ProblemDetails
-from app.shared.events import dispatch_pending
+from app.shared.events import commit_and_dispatch, dispatch_pending
 from app.shared.locale import pick_locale
 from app.shared.security import decode_access_token
 
@@ -435,8 +435,14 @@ async def answer(
     responses=ERR,
     operation_id="learning_finish",
 )
-async def finish(session_id: UUID, user: CurrentUser, svc: LearningServiceDep) -> FinishOut:
-    return FinishOut.of(await svc.finish(user.user_id, session_id))
+async def finish(
+    session_id: UUID, user: CurrentUser, svc: LearningServiceDep, session: Session
+) -> FinishOut:
+    out = FinishOut.of(await svc.finish(user.user_id, session_id))
+    await commit_and_dispatch(
+        session
+    )  # credit XP/streak/quests now, not on the next scheduler tick
+    return out
 
 
 @router.get(

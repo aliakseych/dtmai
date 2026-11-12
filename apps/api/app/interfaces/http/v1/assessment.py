@@ -1,9 +1,10 @@
 from datetime import datetime
-from typing import Any
+from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.interfaces.http.v1._media import MediaOut, to_media
 from app.modules.assessment.application.service import AttemptView, PredictionView, ResultView
@@ -12,8 +13,10 @@ from app.modules.assessment.domain.comparison import Comparison
 from app.modules.assessment.domain.prediction import Prediction
 from app.modules.assessment.ports import Blueprint, Item
 from app.modules.assessment.wiring import AssessmentServiceDep
+from app.shared.db import get_session
 from app.shared.deps import CurrentUser
 from app.shared.errors import ProblemDetails
+from app.shared.events import commit_and_dispatch
 
 ERR: dict[int | str, dict[str, Any]] = {
     401: {"model": ProblemDetails, "description": "Unauthorized"},
@@ -362,8 +365,15 @@ async def save(
     responses=ERR,
     operation_id="assessment_submit",
 )
-async def submit(attempt_id: UUID, user: CurrentUser, svc: AssessmentServiceDep) -> ResultOut:
-    return ResultOut.of(await svc.submit(user.user_id, attempt_id))
+async def submit(
+    attempt_id: UUID,
+    user: CurrentUser,
+    svc: AssessmentServiceDep,
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> ResultOut:
+    out = ResultOut.of(await svc.submit(user.user_id, attempt_id))
+    await commit_and_dispatch(session)
+    return out
 
 
 @router.get(

@@ -20,9 +20,15 @@ const LOW_SECONDS = 300;
 /** Full-screen timed mock: navigator, mark-for-review, debounced autosave, guarded submit. */
 export function MockRunner({ attemptId }: { attemptId: string }) {
   const { state, reload } = useAsync(() => api.unwrap(api.client.GET("/v1/assessment/attempts/{attempt_id}", { params: { path: { attempt_id: attemptId } } })), [attemptId]);
+  const router = useRouter();
+  const submitted = state.status === "ready" && state.data.status === "submitted";
+  // A submitted attempt has no live exam: go to its result.
+  useEffect(() => {
+    if (submitted) router.replace(`/mocks/result/?attempt=${attemptId}`);
+  }, [submitted, router, attemptId]);
   return (
     <AsyncView state={state} onRetry={reload}>
-      {(attempt) => <Run key={attempt.id} attempt={attempt} />}
+      {(attempt) => (attempt.status === "submitted" ? null : <Run key={attempt.id} attempt={attempt} />)}
     </AsyncView>
   );
 }
@@ -36,7 +42,11 @@ function Run({ attempt }: { attempt: Attempt }) {
 
   const [answers, setAnswers] = useState<Record<string, Response>>(() => ({ ...attempt.answers }));
   const [flags, setFlags] = useState<string[]>(attempt.flags);
-  const [index, setIndex] = useState(0);
+  // Resume at the first unanswered question.
+  const [index, setIndex] = useState(() => {
+    const i = items.findIndex((it) => !isAnswered(it, attempt.answers[it.id] ?? null));
+    return i < 0 ? 0 : i;
+  });
   const [navOpen, setNavOpen] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [exit, setExit] = useState(false);
@@ -194,27 +204,19 @@ function Run({ attempt }: { attempt: Attempt }) {
         <aside className={`${navOpen ? "block" : "hidden"} absolute inset-x-0 bottom-[4.5rem] z-10 max-h-[60%] overflow-y-auto border-t-2 border-line bg-white p-4 lg:static lg:block lg:max-h-none lg:w-80 lg:border-l-2 lg:border-t-0`}>
           <h2 className="mb-3 text-sm uppercase text-ink-soft">{t("mock.nav")}</h2>
           <QuestionNavigator cells={cells} current={index} onGo={go} />
-          <Button onClick={() => setConfirm(true)} disabled={submitting} className="mt-4 w-full">
-            {t("mock.submit")}
-          </Button>
         </aside>
       </div>
 
-      <footer className="flex items-center gap-2 border-t-2 border-line px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <Button variant="secondary" disabled={index === 0} onClick={() => go(index - 1)}>
+      <footer className="grid grid-cols-3 gap-2 border-t-2 border-line px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:flex lg:items-center">
+        <Button variant="secondary" className="min-w-0 !px-2 lg:!px-5" disabled={index === 0} onClick={() => go(index - 1)}>
           {t("mock.prev")}
         </Button>
-        <Button variant="secondary" className="lg:hidden" aria-expanded={navOpen} onClick={() => setNavOpen((o) => !o)}>
+        <Button variant="secondary" className="min-w-0 !px-2 lg:hidden" aria-expanded={navOpen} onClick={() => setNavOpen((o) => !o)}>
           {t("mock.nav")}
         </Button>
-        <div className="flex-1" />
-        {index < items.length - 1 ? (
-          <Button onClick={() => go(index + 1)}>{t("mock.next")}</Button>
-        ) : (
-          <Button onClick={() => setConfirm(true)} disabled={submitting}>
-            {t("mock.submit")}
-          </Button>
-        )}
+        <div className="hidden flex-1 lg:block" />
+        {/* The header already carries the one submit button; the last question just has no "next". */}
+        {index < items.length - 1 ? <Button className="min-w-0 !px-2 lg:!px-5" onClick={() => go(index + 1)}>{t("mock.next")}</Button> : <span aria-hidden="true" />}
       </footer>
 
       <ConfirmModal

@@ -9,6 +9,7 @@ Contract (frozen for all modules):
   through ports.
 """
 
+import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -82,3 +83,17 @@ async def dispatch_pending(limit: int = 200) -> int:
             done += 1
         await session.commit()
     return done
+
+
+async def commit_and_dispatch(session: AsyncSession) -> None:
+    """Commit the request's unit of work, then deliver the outbox in-process.
+
+    Crediting (XP, streak, quests) must not wait for the scheduler. Dispatch is best-effort:
+    a failure leaves rows undispatched and the scheduled job redelivers them (handlers are
+    idempotent on event.id).
+    """
+    await session.commit()
+    try:
+        await dispatch_pending()
+    except Exception:  # noqa: BLE001 - the committed request must still succeed
+        logging.getLogger(__name__).exception("in-process outbox dispatch failed")

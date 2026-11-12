@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 
 from app.modules.bank.domain.kinds import (
     InvalidQuestion,
+    check_text_quality,
     empirical_difficulty,
     grade_group,
     grade_response,
@@ -202,14 +203,14 @@ class BankService:
                 child.passage_id = child.passage_id or cmd.passage_id
                 child_ids.append(await self._insert(child, parent_id=qid))
             payload["child_ids"] = [str(c) for c in child_ids]
-        self._validate(cmd.kind, payload, cmd.answer)
+        self._validate(cmd.kind, payload, cmd.answer, cmd.stem)
         q = self._build(qid, cmd, payload, None)
         await self.repo.add(q)
         await self.repo.add_audit(cmd.created_by, "create", qid, None, question_json(q))
         return qid
 
     async def _insert(self, cmd: CreateQuestionCmd, *, parent_id: UUID) -> UUID:
-        self._validate(cmd.kind, cmd.payload, cmd.answer)
+        self._validate(cmd.kind, cmd.payload, cmd.answer, cmd.stem)
         qid = new_id()
         q = self._build(qid, cmd, dict(cmd.payload), parent_id)
         await self.repo.add(q)
@@ -242,9 +243,12 @@ class BankService:
         )
 
     @staticmethod
-    def _validate(kind: str, payload: Mapping[str, Any], answer: Mapping[str, Any]) -> None:
+    def _validate(
+        kind: str, payload: Mapping[str, Any], answer: Mapping[str, Any], stem: str = ""
+    ) -> None:
         try:
             validate_question(kind, payload, answer)
+            check_text_quality(stem, payload)
         except InvalidQuestion as e:
             raise ValidationFailed(str(e), code="invalid_question") from e
 
@@ -259,9 +263,9 @@ class BankService:
             raise ValidationFailed("invalid language or empty stem", code="invalid_question")
         if is_group(q.kind):
             # a group's answer lives in its children
-            self._validate(q.kind, q.payload, {})
+            self._validate(q.kind, q.payload, {}, q.stem)
         else:
-            self._validate(q.kind, q.payload, q.answer)
+            self._validate(q.kind, q.payload, q.answer, q.stem)
         if "answer" in patch and q.answer_official:
             q.answer_official = False  # an edited answer is no longer the official key
         await self.repo.save(q)
@@ -274,6 +278,8 @@ class BankService:
         q = await self.require(qid)
         if not transition_allowed(q.status, status):
             raise Conflict(f"cannot move {q.status} -> {status}", code="invalid_transition")
+        if status == "verified":
+            self._validate(q.kind, q.payload, {} if is_group(q.kind) else q.answer, q.stem)
         before = q.status
         q.status = status
         await self.repo.save(q)
@@ -293,7 +299,7 @@ class BankService:
             try:
                 await self.set_status(qid, status, actor, reason)
                 done += 1
-            except (NotFound, Conflict):
+            except (NotFound, Conflict, ValidationFailed):
                 continue
         return done
 
@@ -305,7 +311,7 @@ class BankService:
             raise ValidationFailed("set answers on the group's children", code="invalid_question")
         if q.answer_official and not official:
             raise Conflict("official answer cannot be overwritten", code="answer_official")
-        self._validate(q.kind, q.payload, response)
+        self._validate(q.kind, q.payload, response, q.stem)
         before = dict(q.answer)
         q.answer = dict(response)
         q.answer_official = official or q.answer_official

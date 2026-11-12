@@ -8,6 +8,7 @@ import { AsyncView } from "@/components/AsyncView";
 import { GoalRing } from "@/components/GoalRing";
 import { PageTitle } from "@/components/PageTitle";
 import { StatsSection } from "@/components/profile/StatsSection";
+import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
 import { Reveal } from "@/components/motion/Reveal";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -34,6 +35,7 @@ export function ProfileView() {
     }
   }
   const [buying, setBuying] = useState(false);
+  const [pwOpen, setPwOpen] = useState(false);
   async function buyFreeze() {
     setBuying(true);
     try {
@@ -137,9 +139,10 @@ export function ProfileView() {
                 <Link href="/plan/setup/" className={buttonClass("secondary", true)}>
                   {t("profile.reminders")}
                 </Link>
-                <Link href="/forgot/" className={buttonClass("secondary", true)}>
+                <Button variant="secondary" block onClick={() => setPwOpen(true)}>
                   {t("profile.changePassword")}
-                </Link>
+                </Button>
+                <ChangePasswordDialog open={pwOpen} onClose={() => setPwOpen(false)} />
               </Card>
             )}
             <Card className="flex items-center justify-between">

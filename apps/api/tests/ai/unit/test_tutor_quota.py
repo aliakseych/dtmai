@@ -65,6 +65,7 @@ async def test_concurrent_chats_cannot_exceed_quota(monkeypatch: pytest.MonkeyPa
         return "catalog"
 
     monkeypatch.setattr(tutor_mod, "_catalog_context", no_catalog)
+    monkeypatch.setattr(tutor_mod, "learner_context", no_catalog)
     ledger = FakeLedger()
     gw = FakeGateway()
     svc = TutorService(gw, ledger, NoActiveMock(), FakeSlots(ledger))  # type: ignore[arg-type]
@@ -94,6 +95,7 @@ async def test_failed_llm_call_releases_reservation(monkeypatch: pytest.MonkeyPa
         return "catalog"
 
     monkeypatch.setattr(tutor_mod, "_catalog_context", no_catalog)
+    monkeypatch.setattr(tutor_mod, "learner_context", no_catalog)
     ledger = FakeLedger()
     gw = FakeGateway()
 

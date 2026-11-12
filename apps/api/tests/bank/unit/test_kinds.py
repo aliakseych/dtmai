@@ -111,3 +111,22 @@ def test_transitions():
     assert not transition_allowed("retired", "verified")
     assert transition_allowed("retired", "draft")
     assert not transition_allowed("draft", "bogus")
+
+
+def test_text_quality_rejects_literal_unicode_escape():
+    from app.modules.bank.domain.kinds import check_text_quality
+
+    with pytest.raises(InvalidQuestion):
+        check_text_quality("yo\\u02blni", OPTS)
+    with pytest.raises(InvalidQuestion):
+        check_text_quality("ok", {"options": [{"id": "a", "text": "to\\u02bgri"}]})
+    check_text_quality("yo\u02bbni, \\underline{x}", OPTS)  # real char and LaTeX are fine
+
+
+def test_text_quality_rejects_duplicate_option_texts():
+    from app.modules.bank.domain.kinds import check_text_quality
+
+    dup = {"options": [{"id": "c", "text": "253"}, {"id": "e", "text": " 253 "}]}
+    with pytest.raises(InvalidQuestion):
+        check_text_quality("stem", dup)
+    check_text_quality("stem", OPTS)

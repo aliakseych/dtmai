@@ -71,7 +71,7 @@ export default function LoginPage() {
             )}
           </p>
         )}
-        <Link href="/forgot/" className="self-start text-sm font-extrabold text-brand underline">
+        <Link href={email.trim() ? `/forgot/?email=${encodeURIComponent(email.trim())}` : "/forgot/"} className="self-start text-sm font-extrabold text-brand underline">
           {t("auth.forgot.link")}
         </Link>
         <Button type="submit" block disabled={busy}>

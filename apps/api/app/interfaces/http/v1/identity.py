@@ -51,6 +51,11 @@ class PasswordResetIn(BaseModel):
     password: str = Field(min_length=8, max_length=128)
 
 
+class PasswordChangeIn(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 class LoginIn(BaseModel):
     email: EmailStr
     password: str
@@ -160,6 +165,16 @@ async def password_forgot(body: EmailIn, svc: IdentityServiceDep) -> Response:
 @router.post("/password/reset", operation_id="identity_password_reset", responses=ERR)
 async def password_reset(body: PasswordResetIn, svc: IdentityServiceDep) -> TokensOut:
     return _tokens(await svc.reset_password(body.email, body.code, body.password))
+
+
+@router.post(
+    "/password/change", status_code=204, operation_id="identity_password_change", responses=ERR
+)
+async def password_change(
+    body: PasswordChangeIn, user: CurrentUser, svc: IdentityServiceDep
+) -> Response:
+    await svc.change_password(user.user_id, body.current_password, body.new_password)
+    return Response(status_code=204)
 
 
 @router.post("/login", operation_id="identity_login", responses=ERR)
