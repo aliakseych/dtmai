@@ -43,6 +43,7 @@ _PATCHABLE = {
     "translation_group_id",
     "language",
 }
+_NON_NULL = {"stem", "payload", "answer", "topic_id", "type_id", "difficulty", "media", "language"}
 
 
 @dataclass(slots=True)
@@ -202,6 +203,7 @@ class BankService:
         if is_group(cmd.kind):
             if not cmd.children:
                 raise ValidationFailed("passage_group needs children", code="invalid_question")
+            self._validate(cmd.kind, {**payload, "child_ids": [str(uuid4())]}, {}, cmd.stem)
             child_ids: list[UUID] = []
             for child in cmd.children:
                 if is_group(child.kind):
@@ -264,6 +266,10 @@ class BankService:
         for k, v in patch.items():
             if k not in _PATCHABLE:
                 raise ValidationFailed(f"field {k!r} is not editable", code="invalid_field")
+            if v is None and k in _NON_NULL:
+                raise ValidationFailed(f"field {k!r} cannot be null", code="invalid_field")
+            if k == "payload" and is_group(q.kind) and "child_ids" in q.payload:
+                v = {**v, "child_ids": q.payload["child_ids"]}  # children are managed separately
             setattr(q, k, v)
         if not _LANG.match(q.language) or not q.stem.strip():
             raise ValidationFailed("invalid language or empty stem", code="invalid_question")
@@ -278,10 +284,22 @@ class BankService:
         await self.repo.add_audit(_actor(actor), "update", qid, before, question_json(q))
         return q
 
-    async def set_status(self, qid: UUID, status: str, actor: Any, reason: str = "") -> None:
+    async def set_status(
+        self,
+        qid: UUID,
+        status: str,
+        actor: Any,
+        reason: str = "",
+        *,
+        loaded: Question | None = None,
+    ) -> None:
         if status not in STATUSES:
             raise ValidationFailed(f"unknown status {status!r}", code="invalid_status")
-        q = await self.require(qid)
+        q = loaded or await self.require(qid)
+        if q.parent_id is not None:
+            raise Conflict(
+                "change the status of the passage group, not its child", code="child_status"
+            )
         if not transition_allowed(q.status, status):
             raise Conflict(f"cannot move {q.status} -> {status}", code="invalid_transition")
         if status == "verified":
@@ -289,10 +307,13 @@ class BankService:
         before = q.status
         q.status = status
         await self.repo.save(q)
-        if is_group(q.kind):
-            await self.repo.bulk_set_status(
-                [UUID(c) for c in q.payload.get("child_ids", [])], status
-            )
+        child_ids = [UUID(c) for c in q.payload.get("child_ids", [])] if is_group(q.kind) else []
+        if child_ids:
+            await self.repo.bulk_set_status(child_ids, status)
+        if before == "hidden" and status == "verified":
+            # an admin restored it: old reports must not re-hide it
+            for rid in (qid, *child_ids):
+                await self.repo.clear_reports(rid)
         await self.repo.add_audit(
             _actor(actor), "set_status", qid, {"status": before}, {"status": status}, reason
         )
@@ -301,9 +322,13 @@ class BankService:
         self, ids: Sequence[UUID], status: str, actor: Any, reason: str = ""
     ) -> int:
         done = 0
-        for qid in dict.fromkeys(ids):
+        unique = list(dict.fromkeys(ids))
+        loaded = {q.id: q for q in await self.repo.get_many(unique)}
+        for qid in unique:
             try:
-                await self.set_status(qid, status, actor, reason)
+                if qid not in loaded:
+                    raise NotFound("question not found", code="question_not_found")
+                await self.set_status(qid, status, actor, reason, loaded=loaded[qid])
                 done += 1
             except (NotFound, Conflict, ValidationFailed):
                 continue
@@ -341,7 +366,8 @@ class BankService:
         res = ImportResult()
         for i, raw in enumerate(items):
             try:
-                res.created.append(await self.create(_cmd_from_dict(raw, _actor(actor))))
+                async with self.repo.savepoint():
+                    res.created.append(await self.create(_cmd_from_dict(raw, _actor(actor))))
             except (ValidationFailed, KeyError, ValueError, TypeError) as e:
                 res.errors.append((i, str(e) or type(e).__name__))
         return res
@@ -357,12 +383,16 @@ class BankService:
         if is_guest:
             raise Forbidden("guests cannot report questions", code="guest_cannot_report")
         q = await self.require(qid)
+        if q.status != "verified":
+            raise NotFound("question not found", code="question_not_found")
         since = datetime.now(UTC) - timedelta(days=1)
         if await self.repo.count_reports_by_user_since(user_id, since) >= MAX_REPORTS_PER_DAY:
             raise Conflict("daily report limit reached", code="report_rate_limited")
-        n = await self.repo.add_report(qid, user_id, reason)
-        if q.status == "verified" and n >= self.report_hide_threshold:
-            await self.set_status(qid, "hidden", None, f"auto-hidden after {n} reports")
+        n, inserted = await self.repo.add_report(qid, user_id, reason)
+        if inserted and n >= self.report_hide_threshold:
+            # a child is served through its group, so the group is what gets hidden
+            target = q.parent_id or qid
+            await self.set_status(target, "hidden", None, f"auto-hidden after {n} reports")
             return True
         return False
 
@@ -376,11 +406,15 @@ class BankService:
         media: list[Any] | None,
         source_id: UUID | None,
     ) -> UUID:
-        if not _LANG.match(language) or not text.strip():
-            raise ValidationFailed("passage needs language and text", code="invalid_passage")
+        self._check_passage(language, text)
         pid = uuid4()
         await self.repo.add_passage(Passage(pid, language, text, title, media or [], source_id))
         return pid
+
+    @staticmethod
+    def _check_passage(language: str, text: str) -> None:
+        if not _LANG.match(language) or not text.strip():
+            raise ValidationFailed("passage needs language and text", code="invalid_passage")
 
     async def update_passage(self, pid: UUID, patch: Mapping[str, Any]) -> Passage:
         p = await self.repo.get_passage(pid)
@@ -388,7 +422,10 @@ class BankService:
             raise NotFound("passage not found", code="passage_not_found")
         for k, v in patch.items():
             if k in ("language", "text", "title", "media", "source_id"):
+                if v is None and k in ("language", "text", "media"):
+                    raise ValidationFailed(f"field {k!r} cannot be null", code="invalid_passage")
                 setattr(p, k, v)
+        self._check_passage(p.language, p.text)
         await self.repo.save_passage(p)
         return p
 

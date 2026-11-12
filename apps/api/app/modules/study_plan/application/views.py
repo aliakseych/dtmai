@@ -130,6 +130,7 @@ class DreamGapView:
 class DailyQuestionsView:
     day: date
     questions: tuple[DailyQuestion, ...]
+    answered: tuple[UUID, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

@@ -9,10 +9,10 @@ from app.interfaces.http.v1 import catalog as route
 async def test_bases_without_verified_questions_are_hidden(monkeypatch: pytest.MonkeyPatch) -> None:
     full, empty, off = uuid4(), uuid4(), uuid4()
 
-    async def count(_s, source_id):  # noqa: ANN001, ANN202
-        return {full: 3, empty: 0, off: 9}[source_id]
+    async def counts(_s):  # noqa: ANN001, ANN202
+        return {full: 3, off: 9}
 
-    monkeypatch.setattr(route.bank, "count_verified_by_source", count)
+    monkeypatch.setattr(route.bank, "verified_counts_by_source", counts)
     bases = [
         {"id": full, "active": True},
         {"id": empty, "active": True},

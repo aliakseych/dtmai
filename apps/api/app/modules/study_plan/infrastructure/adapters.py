@@ -145,6 +145,9 @@ class CatalogAdapter:
         return (await catalog.get_topic(self._s, topic_id)).names
 
 
+_PICK_ROUNDS = 5
+
+
 class QuestionAdapter:
     def __init__(self, session: AsyncSession) -> None:
         self._s = session
@@ -152,11 +155,24 @@ class QuestionAdapter:
     async def pick(
         self, subject_id: UUID, language: str, n: int, exclude: list[UUID]
     ) -> list[DailyQuestion]:
-        # Over-fetch: passage groups are not answerable as a single card and are skipped.
-        qs = await bank.pick_questions(
-            self._s, subject_id=subject_id, language=language, n=n * 3, exclude_ids=exclude
-        )
-        return [_question(q) for q in qs if q.kind != "passage_group"][:n]
+        # Passage groups are not answerable as a single card: exclude them in the query by
+        # id (rounds are bounded) so group-heavy subjects still yield single questions.
+        picked: list[DailyQuestion] = []
+        skipped: list[UUID] = []
+        for _ in range(_PICK_ROUNDS):
+            qs = await bank.pick_questions(
+                self._s,
+                subject_id=subject_id,
+                language=language,
+                n=n * 3,
+                exclude_ids=[*exclude, *skipped, *(q.id for q in picked)],
+            )
+            groups = [q.id for q in qs if q.kind == "passage_group"]
+            picked.extend(_question(q) for q in qs if q.kind != "passage_group")
+            skipped.extend(groups)
+            if len(picked) >= n or not groups:
+                break
+        return picked[:n]
 
     async def get(self, ids: list[UUID]) -> list[DailyQuestion]:
         by_id = {q.id: q for q in await bank.get_questions(self._s, ids)}

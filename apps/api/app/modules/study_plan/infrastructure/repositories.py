@@ -236,6 +236,10 @@ class SqlPlanRepository:
             .on_conflict_do_nothing()
         )
 
+    async def get_daily_answered(self, user_id: UUID, day: date) -> list[UUID]:
+        r = await self._s.get(DailySetRow, (user_id, day))
+        return [UUID(i) for i in (r.answered or [])] if r else []
+
     async def claim_daily_answer(self, user_id: UUID, day: date, question_id: UUID) -> bool:
         row = (
             await self._s.execute(

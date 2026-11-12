@@ -675,11 +675,11 @@ async def subjects_with_counts(
     session: AsyncSession, subjects: list[Any], language: str | None = None
 ) -> list[SubjectOut]:
     """Subjects annotated with their verified question count so clients can flag empty ones."""
-    out: list[SubjectOut] = []
-    for s in subjects:
-        total = await bank.count_verified_for_subject(session, s.id, language)
-        out.append(SubjectOut.model_validate(s).model_copy(update={"question_count": total}))
-    return out
+    counts = await bank.verified_counts_by_subject(session, language)
+    return [
+        SubjectOut.model_validate(s).model_copy(update={"question_count": counts.get(s.id, 0)})
+        for s in subjects
+    ]
 
 
 @router.get(
@@ -786,10 +786,9 @@ async def servable_bases(
     session: AsyncSession, bases: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
     """Active, non-archived bases that hold at least one verified question; empty ones are not learner-facing."""
+    counts = await bank.verified_counts_by_source(session)
     return [
         b
         for b in bases
-        if b["active"]
-        and not b.get("archived", False)
-        and await bank.count_verified_by_source(session, b["id"]) > 0
+        if b["active"] and not b.get("archived", False) and counts.get(b["id"], 0) > 0
     ]

@@ -342,7 +342,9 @@ class SqlLeagueRepository:
     async def membership(self, user_id: UUID, week: date) -> Membership | None:
         row = (
             await self._s.execute(
-                select(orm.LeagueMemberRow, orm.LeagueCohortRow.tier_idx)
+                select(
+                    orm.LeagueMemberRow, orm.LeagueCohortRow.tier_idx, orm.LeagueCohortRow.settled
+                )
                 .join(orm.LeagueCohortRow, orm.LeagueCohortRow.id == orm.LeagueMemberRow.cohort_id)
                 .where(
                     orm.LeagueMemberRow.user_id == user_id, orm.LeagueMemberRow.week_start == week
@@ -351,8 +353,8 @@ class SqlLeagueRepository:
         ).first()
         if row is None:
             return None
-        m, tier_idx = row
-        return Membership(m.cohort_id, tier_idx, m.week_start, m.xp)
+        m, tier_idx, settled = row
+        return Membership(m.cohort_id, tier_idx, m.week_start, m.xp, settled, m.outcome)
 
     async def open_cohorts(self, week: date, tier_idx: int) -> dict[UUID, int]:
         rows = await self._s.execute(
@@ -401,17 +403,61 @@ class SqlLeagueRepository:
         )
         return [StandingRow(Standing(uid, xp, order), name or "") for uid, xp, order, name in rows]
 
-    async def unsettled(self, before_week: date) -> list[CohortRef]:
-        rows = await self._s.scalars(
+    async def claim_unsettled(self, before_week: date) -> CohortRef | None:
+        """Lock one finished, unsettled cohort; cohorts held by other transactions are skipped."""
+        r = await self._s.scalar(
             select(orm.LeagueCohortRow)
             .where(
                 orm.LeagueCohortRow.settled.is_(False), orm.LeagueCohortRow.week_start < before_week
             )
-            .order_by(orm.LeagueCohortRow.week_start)
+            .order_by(orm.LeagueCohortRow.week_start, orm.LeagueCohortRow.id)
+            .limit(1)
+            .with_for_update(skip_locked=True)
         )
-        return [CohortRef(r.id, r.week_start, r.tier_idx) for r in rows]
+        return CohortRef(r.id, r.week_start, r.tier_idx, r.settled) if r else None
+
+    async def lock_cohort(self, cohort_id: UUID) -> CohortRef | None:
+        r = await self._s.scalar(
+            select(orm.LeagueCohortRow)
+            .where(orm.LeagueCohortRow.id == cohort_id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+        return CohortRef(r.id, r.week_start, r.tier_idx, r.settled) if r else None
+
+    async def latest_membership_before(self, user_id: UUID, week: date) -> Membership | None:
+        row = (
+            await self._s.execute(
+                select(
+                    orm.LeagueMemberRow, orm.LeagueCohortRow.tier_idx, orm.LeagueCohortRow.settled
+                )
+                .join(orm.LeagueCohortRow, orm.LeagueCohortRow.id == orm.LeagueMemberRow.cohort_id)
+                .where(
+                    orm.LeagueMemberRow.user_id == user_id, orm.LeagueMemberRow.week_start < week
+                )
+                .order_by(orm.LeagueMemberRow.week_start.desc())
+                .limit(1)
+            )
+        ).first()
+        if row is None:
+            return None
+        m, tier_idx, settled = row
+        return Membership(m.cohort_id, tier_idx, m.week_start, m.xp, settled, m.outcome)
+
+    async def has_unsettled_above(self, tier_count: int) -> bool:
+        return bool(
+            await self._s.scalar(
+                select(
+                    exists().where(
+                        orm.LeagueCohortRow.settled.is_(False),
+                        orm.LeagueCohortRow.tier_idx >= tier_count,
+                    )
+                )
+            )
+        )
 
     async def settle(self, cohort_id: UUID, results: list[Settlement]) -> None:
+        """Writes member outcomes and the cohort flag only; never touches user_stats."""
         for r in results:
             await self._s.execute(
                 update(orm.LeagueMemberRow)
@@ -425,13 +471,6 @@ class SqlLeagueRepository:
             update(orm.LeagueCohortRow)
             .where(orm.LeagueCohortRow.id == cohort_id)
             .values(settled=True)
-        )
-
-    async def set_tier(self, user_id: UUID, tier_idx: int) -> None:
-        await self._s.execute(
-            update(orm.UserStatsRow)
-            .where(orm.UserStatsRow.user_id == user_id)
-            .values(league_tier=tier_idx)
         )
 
     async def merge(self, from_id: UUID, into_id: UUID) -> None:

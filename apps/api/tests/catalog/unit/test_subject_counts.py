@@ -10,10 +10,10 @@ from app.interfaces.http.v1 import catalog as route
 async def test_subjects_carry_verified_question_count(monkeypatch: pytest.MonkeyPatch) -> None:
     full, empty = uuid4(), uuid4()
 
-    async def count(_s, subject_id, language=None):  # noqa: ANN001, ANN202
-        return {full: 12, empty: 0}[subject_id]
+    async def counts(_s, language=None):  # noqa: ANN001, ANN202
+        return {full: 12}
 
-    monkeypatch.setattr(route.bank, "count_verified_for_subject", count)
+    monkeypatch.setattr(route.bank, "verified_counts_by_subject", counts)
     subs = [
         SimpleNamespace(id=i, code=c, names={"en": c}, weight=1.0, active=True, position=n)
         for n, (i, c) in enumerate([(full, "math"), (empty, "history")])
@@ -27,11 +27,10 @@ async def test_subject_counts_are_per_language(monkeypatch: pytest.MonkeyPatch) 
     sid = uuid4()
     per_language = {"uz": 77, "ru": 5, "en": 0}
 
-    async def count(_s, subject_id, language=None):  # noqa: ANN001, ANN202
-        assert subject_id == sid
-        return per_language[language]
+    async def counts(_s, language=None):  # noqa: ANN001, ANN202
+        return {sid: per_language[language]}
 
-    monkeypatch.setattr(route.bank, "count_verified_for_subject", count)
+    monkeypatch.setattr(route.bank, "verified_counts_by_subject", counts)
     subs = [
         SimpleNamespace(
             id=sid, code="math", names={"en": "Math"}, weight=1.0, active=True, position=0

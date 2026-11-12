@@ -10,6 +10,10 @@ from app.shared.db import get_sessionmaker
 async def weekly_rollover() -> int:
     """Monday 00:05 Tashkent: settle last week's league cohorts (idempotent)."""
     async with get_sessionmaker()() as session:
-        settled = await build_gamification_service(session).rollover()
+        svc = build_gamification_service(session)
+        settled = 0
+        while await svc.settle_next_cohort():  # one short transaction per cohort
+            await session.commit()
+            settled += 1
         await session.commit()
         return settled

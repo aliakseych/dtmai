@@ -12,13 +12,18 @@ from sqlalchemy import (
     Table,
     Uuid,
     and_,
+    any_,
     case,
     cast,
+    delete,
     func,
+    literal,
     or_,
     select,
     update,
 )
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -104,6 +109,9 @@ class SqlQuestionRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.s = session
 
+    def savepoint(self) -> Any:
+        return self.s.begin_nested()
+
     async def add(self, q: Question) -> None:
         row = QuestionRow()
         _apply(row, q)
@@ -177,8 +185,12 @@ class SqlQuestionRepository:
         """Verified top-level questions grouped by (topic, type, source, level) with the total
         and how many of them are in `solved_ids`."""
         d = QuestionRow.difficulty
-        level = case((d < 1100, "easy"), (d < 1350, "medium"), else_="hard")
-        solved = func.count().filter(QuestionRow.id.in_(list(solved_ids)))
+        (_, easy_hi), (_, medium_hi) = LEVEL_BOUNDS["easy"], LEVEL_BOUNDS["medium"]
+        level = case((d < easy_hi, "easy"), (d < medium_hi, "medium"), else_="hard")
+        # one array parameter instead of an IN list per id (asyncpg caps bind params at 32767)
+        solved = func.count().filter(
+            QuestionRow.id == any_(literal(list(solved_ids), ARRAY(PG_UUID(as_uuid=True))))
+        )
         rows = await self.s.execute(
             select(
                 QuestionRow.topic_id,
@@ -269,11 +281,12 @@ class SqlQuestionRepository:
         )
         return [(a, b, c, d, int(e)) for a, b, c, d, e in (await self.s.execute(stmt)).all()]
 
-    async def add_report(self, question_id: UUID, user_id: UUID, reason: str) -> int:
-        await self.s.execute(
+    async def add_report(self, question_id: UUID, user_id: UUID, reason: str) -> tuple[int, bool]:
+        inserted = await self.s.scalar(
             pg_insert(ReportRow)
             .values(question_id=question_id, user_id=user_id, reason=reason[:500])
             .on_conflict_do_nothing(index_elements=["question_id", "user_id"])
+            .returning(ReportRow.user_id)
         )
         n = int(
             await self.s.scalar(
@@ -286,7 +299,53 @@ class SqlQuestionRepository:
         await self.s.execute(
             update(QuestionRow).where(QuestionRow.id == question_id).values(report_count=n)
         )
-        return n
+        return n, inserted is not None
+
+    async def clear_reports(self, question_id: UUID) -> None:
+        await self.s.execute(delete(ReportRow).where(ReportRow.question_id == question_id))
+        await self.s.execute(
+            update(QuestionRow).where(QuestionRow.id == question_id).values(report_count=0)
+        )
+
+    async def passage_is_public(self, passage_id: UUID) -> bool:
+        """A verified, learner-visible question references the passage."""
+        found = await self.s.scalar(
+            select(QuestionRow.id)
+            .where(
+                QuestionRow.passage_id == passage_id,
+                QuestionRow.status == "verified",
+                _base_visible(),
+            )
+            .limit(1)
+        )
+        return found is not None
+
+    async def verified_counts_by_subject(self, language: str | None) -> dict[UUID, int]:
+        stmt = (
+            select(QuestionRow.subject_id, func.count())
+            .where(
+                QuestionRow.status == "verified",
+                QuestionRow.parent_id.is_(None),
+                _base_visible(),
+            )
+            .group_by(QuestionRow.subject_id)
+        )
+        if language is not None:
+            stmt = stmt.where(QuestionRow.language == language)
+        return {sid: int(n) for sid, n in (await self.s.execute(stmt)).all()}
+
+    async def verified_counts_by_source(self) -> dict[UUID, int]:
+        stmt = (
+            select(QuestionRow.source_id, func.count())
+            .where(
+                QuestionRow.status == "verified",
+                QuestionRow.parent_id.is_(None),
+                QuestionRow.source_id.is_not(None),
+                _base_visible(),
+            )
+            .group_by(QuestionRow.source_id)
+        )
+        return {sid: int(n) for sid, n in (await self.s.execute(stmt)).all()}
 
     async def count_reports_by_user_since(self, user_id: UUID, since: datetime) -> int:
         return int(

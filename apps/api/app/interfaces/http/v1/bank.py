@@ -343,7 +343,7 @@ async def overview(
     caller's solved counts, filterable by question base and difficulty level."""
     if source_id is not None:
         await catalog.require_learner_base(session, source_id)
-    solved = await learning.solved_question_ids(session, user.user_id)
+    solved = await learning.solved_question_ids(session, user.user_id)  # bound as ONE array param
     rows = await bank_facade.facets(session, subject_id, language, solved)
     types = {t.id: t for t in await catalog.list_question_types(session)}
     return build_overview(
@@ -367,10 +367,12 @@ class PublicPassageOut(BaseModel):
     response_model=PublicPassageOut,
     responses=ERR,
 )
-async def get_public_passage(passage_id: UUID, svc: BankServiceDep) -> PublicPassageOut:
-    """Reading passage shared by items of a session (public: ids are unguessable UUIDs)."""
+async def get_public_passage(
+    passage_id: UUID, user: CurrentUser, svc: BankServiceDep
+) -> PublicPassageOut:
+    """Reading passage of learner-servable questions (404 for passages of unpublished ones)."""
     p = await svc.repo.get_passage(passage_id)
-    if p is None:
+    if p is None or not await svc.repo.passage_is_public(passage_id):
         raise NotFound("passage not found", code="passage_not_found")
     return PublicPassageOut(id=p.id, text=p.text, media=to_media(p.media))
 
@@ -475,9 +477,10 @@ async def get_explanation(question_id: UUID, locale: str, svc: BankServiceDep) -
     responses=ERR,
 )
 async def put_explanation(
-    question_id: UUID, locale: str, body: ExplanationIn, svc: BankServiceDep
+    question_id: UUID, locale: str, body: ExplanationIn, svc: BankServiceDep, who: AdminUser
 ) -> Response:
     await svc.upsert_explanation(question_id, locale, body.text, body.model or "human")
+    audit_admin(who, "bank.explanation.put", question_id=str(question_id), locale=locale)
     return Response(status_code=204)
 
 
@@ -515,7 +518,7 @@ async def list_passages(
 @admin_router.post(
     "/passages", status_code=201, operation_id="bank_admin_create_passage", responses=ERR
 )
-async def create_passage(body: PassageIn, svc: BankServiceDep) -> CreatedOut:
+async def create_passage(body: PassageIn, svc: BankServiceDep, who: AdminUser) -> CreatedOut:
     pid = await svc.create_passage(
         language=body.language,
         text=body.text,
@@ -523,6 +526,7 @@ async def create_passage(body: PassageIn, svc: BankServiceDep) -> CreatedOut:
         media=body.media,
         source_id=body.source_id,
     )
+    audit_admin(who, "bank.passage.create", passage_id=str(pid))
     return CreatedOut(id=pid)
 
 

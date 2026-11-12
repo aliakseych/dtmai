@@ -85,6 +85,10 @@ def _name(names: dict[str, str], locale: str) -> str | None:
     return names.get(locale) or names.get("en") or next(iter(names.values()), None)
 
 
+WEEK_MIN = date(2000, 1, 1)
+WEEK_MAX = date(2100, 12, 31)
+
+
 class PlanService:
     def __init__(
         self,
@@ -335,8 +339,10 @@ class PlanService:
                 await self._regenerate(
                     plan, await self._profile(plan.settings.direction_code), today
                 )
-            except (ExamDateTooSoon, NoActiveSubjects):
-                pass  # keep serving the stored plan
+            except (ExamDateTooSoon, NoActiveSubjects, DirectionNotFound):
+                # keep serving the stored plan; stamp the day so reads do not retry all day
+                plan.last_replanned_on = today
+                await self._r.save_plan(plan)
         return plan
 
     @staticmethod
@@ -384,6 +390,8 @@ class PlanService:
         )
 
     async def week(self, user_id: UUID, start: date | None, locale: str) -> RangeView:
+        if start is not None and not (WEEK_MIN <= start <= WEEK_MAX):
+            raise ValidationFailed("invalid week start", code="invalid_week")
         first = start or self._today() - timedelta(days=self._today().weekday())
         return await self._range(user_id, first, first + timedelta(days=6), locale)
 
@@ -475,8 +483,25 @@ class PlanService:
         if await self._r.get_plan(user_id) is None:
             return HomeView(configured=False)
         plan = await self._fresh_plan(user_id)
-        profile = await self._profile(plan.settings.direction_code)
         today = self._today()
+        try:
+            profile = await self._profile(plan.settings.direction_code)
+        except DirectionNotFound:  # retired direction: show the stored plan without a forecast
+            tasks = await self._r.tasks_between(plan.id, today, today)
+            return HomeView(
+                True,
+                max((plan.settings.exam_date - today).days, 0),
+                plan.settings.exam_date,
+                plan.plan_end,
+                None,
+                None,
+                None,
+                sum(t.status is TaskStatus.DONE for t in tasks),
+                len(tasks),
+                sum(t.est_minutes for t in tasks),
+                self._views(tasks, await self._names(), locale),
+                False,
+            )
         cd = countdown(today, plan.settings.exam_date, profile.taper_days)
         score, _, _ = await self._predicted(user_id, plan, profile)
         tasks = await self._r.tasks_between(plan.id, today, today)
@@ -508,7 +533,13 @@ class PlanService:
                 None, DEFAULT_MAX_SCORE, target.passing_score, target.competition_ratio
             )
             return DreamGapView(target.lyceum_id, target.year, gap)
-        profile = await self._profile(plan.settings.direction_code)
+        try:
+            profile = await self._profile(plan.settings.direction_code)
+        except DirectionNotFound:  # retired direction: no forecast, bar-only gap
+            gap = compute_gap(
+                None, DEFAULT_MAX_SCORE, target.passing_score, target.competition_ratio
+            )
+            return DreamGapView(target.lyceum_id, target.year, gap)
         score, mastery, exempt = await self._predicted(user_id, plan, profile)
         gap = compute_gap(score, profile.max_score, target.passing_score, target.competition_ratio)
         topic_id: UUID | None = None
@@ -540,7 +571,10 @@ class PlanService:
         today = self._today()
         ids = await self._r.get_daily_set(user_id, today)
         if ids is None:
-            profile = await self._profile(plan.settings.direction_code)
+            try:
+                profile = await self._profile(plan.settings.direction_code)
+            except DirectionNotFound:
+                return DailyQuestionsView(today, ())
             _, wanted = self._plannable(plan, profile)
             chosen: list[UUID] = []
             for _round in range(DAILY_QUESTION_COUNT):
@@ -555,7 +589,12 @@ class PlanService:
                 return DailyQuestionsView(today, ())
             await self._r.save_daily_set(user_id, today, chosen)
             ids = await self._r.get_daily_set(user_id, today) or chosen
-        return DailyQuestionsView(today, tuple(await self._q.get(ids)))
+        answered = {str(i) for i in await self._r.get_daily_answered(user_id, today)}
+        return DailyQuestionsView(
+            today,
+            tuple(await self._q.get(ids)),
+            tuple(i for i in ids if str(i) in answered),
+        )
 
     async def answer_daily_question(
         self, user_id: UUID, question_id: UUID, response: dict[str, Any]

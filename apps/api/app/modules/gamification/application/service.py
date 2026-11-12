@@ -6,6 +6,7 @@ from uuid import UUID
 from app.modules.gamification.domain.achievements import newly_earned
 from app.modules.gamification.domain.config import GameConfig
 from app.modules.gamification.domain.league import (
+    Outcome,
     choose_cohort,
     next_tier,
     settle_cohort,
@@ -24,6 +25,7 @@ from app.modules.gamification.domain.stats import UserStats
 from app.modules.gamification.domain.streak import tashkent_day
 from app.modules.gamification.domain.xp import clamp_session_xp, within_daily_cap
 from app.modules.gamification.ports import (
+    CohortRef,
     ConfigRepository,
     LeaderboardRow,
     LeagueRepository,
@@ -153,12 +155,18 @@ class GamificationService:
 
     async def _league_xp(self, stats: UserStats, day: date, amount: int) -> None:
         week = week_start(day)
+        current = week_start(tashkent_day(self._now()))
+        if week < current:
+            # A late event never lands in a settled (or never-joined) past week: count it now.
+            past = await self._leagues.membership(stats.user_id, week)
+            if past is None or past.settled:
+                week = current
         if await self._leagues.membership(stats.user_id, week) is None:
-            await self._settle_previous(stats, week)
             tiers = await self._leagues.tiers()
             if not tiers:
                 return
-            idx = min(max(stats.league_tier, 0), len(tiers) - 1)
+            stats.league_tier = await self._tier_for_new_week(stats, week, tiers)
+            idx = stats.league_tier
             cohort = choose_cohort(
                 await self._leagues.open_cohorts(week, idx), tiers[idx].cohort_size
             )
@@ -167,13 +175,24 @@ class GamificationService:
             await self._leagues.add_member(cohort, stats.user_id, week)
         await self._leagues.add_xp(stats.user_id, week, amount)
 
-    async def _settle_previous(self, stats: UserStats, week: date) -> None:
-        """Apply pending promotions/demotions before joining a new week's cohort."""
-        if await self._leagues.unsettled(week):
-            moved: dict[UUID, int] = {}
-            await self._rollover(moved)
-            if stats.user_id in moved:
-                stats.league_tier = moved[stats.user_id]
+    async def _tier_for_new_week(self, stats: UserStats, week: date, tiers: list[Tier]) -> int:
+        """Tier after the user's latest finished membership, settling only that one cohort.
+
+        Runs under the user's own stats lock and takes a single cohort lock, so concurrent
+        users cannot form a lock cycle. The result is written to the user's own row only.
+        """
+        last = await self._leagues.latest_membership_before(stats.user_id, week)
+        if last is None:
+            return min(max(stats.league_tier, 0), len(tiers) - 1)
+        if not last.settled:
+            cohort = await self._leagues.lock_cohort(last.cohort_id)
+            if cohort is not None and not cohort.settled:
+                await self._settle_cohort(cohort, tiers)
+            last = await self._leagues.latest_membership_before(stats.user_id, week)
+        if last is None or last.outcome is None:
+            return min(max(stats.league_tier, 0), len(tiers) - 1)
+        base = min(last.tier_idx, len(tiers) - 1)
+        return next_tier(base, Outcome(last.outcome), len(tiers))
 
     async def _ensure_quests(self, stats: UserStats, cfg: GameConfig, day: date) -> list[UserQuest]:
         existing = await self._rewards.quests_for_day(stats.user_id, day)
@@ -402,18 +421,17 @@ class GamificationService:
             await self._stats.save(stats)
         if m is None:
             return None
-        tier = tiers[m.tier_idx]
+        tier = tiers[min(m.tier_idx, len(tiers) - 1)]
         from app.modules.gamification.domain.league import rank_standings
 
         rows = await self._leagues.standings(m.cohort_id)
         names = {r.standing.user_id: r.name for r in rows}
         ranked = rank_standings([r.standing for r in rows])
         n = len(ranked)
-        can_promote = m.tier_idx < len(tiers) - 1
+        tier_idx = min(m.tier_idx, len(tiers) - 1)
+        can_promote = tier_idx < len(tiers) - 1
         demote_n = (
-            tier.demote_count
-            if m.tier_idx > 0 and n > tier.promote_count + tier.demote_count
-            else 0
+            tier.demote_count if tier_idx > 0 and n > tier.promote_count + tier.demote_count else 0
         )
         out = []
         for i, s in enumerate(ranked, start=1):
@@ -464,35 +482,37 @@ class GamificationService:
 
     # ---------- weekly rollover ----------
     async def rollover(self) -> int:
-        """Settle every finished week's cohorts: record ranks, move users between tiers. Idempotent."""
-        return await self._rollover({})
-
-    async def _rollover(self, moved: dict[UUID, int]) -> int:
-        """Rollover that also records each user's new tier in `moved`."""
-        tiers = {t.idx: t for t in await self._leagues.tiers()}
-        if not tiers:
-            return 0
-        current = week_start(tashkent_day(self._now()))
+        """Settle every finished week's cohorts: record ranks and outcomes. Idempotent."""
         settled = 0
-        for cohort in await self._leagues.unsettled(current):
-            tier = tiers.get(cohort.tier_idx)
-            if tier is None:
-                continue
-            rows = await self._leagues.standings(cohort.id)
-            results = settle_cohort(
-                [r.standing for r in rows],
-                cohort.tier_idx,
-                len(tiers),
-                tier.promote_count,
-                tier.demote_count,
-            )
-            await self._leagues.settle(cohort.id, results)
-            for r in results:
-                new_tier = next_tier(cohort.tier_idx, r.outcome, len(tiers))
-                moved[r.user_id] = new_tier
-                await self._leagues.set_tier(r.user_id, new_tier)
+        while await self.settle_next_cohort():
             settled += 1
         return settled
+
+    async def settle_next_cohort(self) -> bool:
+        """Claim (SKIP LOCKED) and settle one finished cohort; False when none is left.
+
+        Writes only member outcomes and the cohort flag. Users pick up their new tier from
+        their latest settled membership when they join the next week, so no other user's
+        stats row is touched. The caller commits after each call.
+        """
+        tiers = await self._leagues.tiers()
+        if not tiers:
+            return False
+        current = week_start(tashkent_day(self._now()))
+        cohort = await self._leagues.claim_unsettled(current)
+        if cohort is None:
+            return False
+        await self._settle_cohort(cohort, tiers)
+        return True
+
+    async def _settle_cohort(self, cohort: CohortRef, tiers: list[Tier]) -> None:
+        idx = min(cohort.tier_idx, len(tiers) - 1)  # tier list may have shrunk since
+        tier = tiers[idx]
+        rows = await self._leagues.standings(cohort.id)
+        results = settle_cohort(
+            [r.standing for r in rows], idx, len(tiers), tier.promote_count, tier.demote_count
+        )
+        await self._leagues.settle(cohort.id, results)
 
     # ---------- merge ----------
     async def merge_guest(self, from_id: UUID, into_id: UUID) -> None:
@@ -538,6 +558,10 @@ class GamificationService:
             raise ValidationFailed("tier idx must be 0..n-1 in order", code="invalid_tiers")
         if any(t.cohort_size < 2 or t.promote_count < 0 or t.demote_count < 0 for t in tiers):
             raise ValidationFailed("invalid tier sizes", code="invalid_tiers")
+        if await self._leagues.has_unsettled_above(len(tiers)):
+            raise ValidationFailed(
+                "cannot remove tiers that still have unsettled cohorts", code="tiers_in_use"
+            )
         await self._leagues.replace_tiers(tiers)
         return tiers
 

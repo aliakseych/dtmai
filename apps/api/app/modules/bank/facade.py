@@ -19,7 +19,8 @@ __all__ = [
     "content_min_pool",
     "count_verified",
     "FacetRow",
-    "count_verified_by_source",
+    "verified_counts_by_source",
+    "verified_counts_by_subject",
     "facets",
     "create_passage",
     "create_question",
@@ -246,30 +247,16 @@ async def count_verified(
     return await service(session).count_verified(subject_id, topic_ids, type_ids, language)
 
 
-async def count_verified_by_source(session: AsyncSession, source_id: UUID) -> int:
-    """Verified, learner-servable questions that belong to one question base."""
-    from app.modules.bank.domain.models import QuestionFilter
-
-    _, total = await service(session).search(
-        QuestionFilter(source_id=source_id, status="verified"), 1, 0
-    )
-    return total
+async def verified_counts_by_source(session: AsyncSession) -> dict[UUID, int]:
+    """Verified, learner-servable top-level questions per question base."""
+    return await service(session).repo.verified_counts_by_source()
 
 
-async def count_verified_for_subject(
-    session: AsyncSession, subject_id: UUID, language: str | None = None
-) -> int:
-    """Verified, learner-servable questions of one subject (in `language`, or any when None)."""
-    from app.modules.bank.domain.models import QuestionFilter
-
-    _, total = await service(session).search(
-        QuestionFilter(
-            subject_id=subject_id, language=language, status="verified", learner_visible=True
-        ),
-        1,
-        0,
-    )
-    return total
+async def verified_counts_by_subject(
+    session: AsyncSession, language: str | None = None
+) -> dict[UUID, int]:
+    """Verified, learner-servable top-level questions per subject (in `language`, or any)."""
+    return await service(session).repo.verified_counts_by_subject(language)
 
 
 def content_min_pool() -> int:

@@ -7,6 +7,7 @@ from fastapi import APIRouter, Header, Query
 from pydantic import BaseModel, Field, field_validator
 
 from app.interfaces.http.v1._bounds import check_response_size
+from app.interfaces.http.v1._media import MediaOut, to_media
 from app.modules.study_plan.application.views import (
     AnalyticsView,
     DailyQuestionsView,
@@ -309,25 +310,27 @@ class DailyQuestionOut(BaseModel):
     subject_id: UUID
     kind: str
     stem: str
-    media: list[Any]
+    media: list[MediaOut]
     payload: dict[str, Any]
 
 
 class DailyQuestionsOut(BaseModel):
     day: date
     questions: list[DailyQuestionOut]
+    answered_ids: list[UUID]
 
     @classmethod
     def of(cls, v: DailyQuestionsView) -> "DailyQuestionsOut":
         return cls(
             day=v.day,
+            answered_ids=list(v.answered),
             questions=[
                 DailyQuestionOut(
                     id=q.id,
                     subject_id=q.subject_id,
                     kind=q.kind,
                     stem=q.stem,
-                    media=q.media,
+                    media=to_media(q.media),
                     payload=q.payload,
                 )
                 for q in v.questions
@@ -432,7 +435,7 @@ async def today(
 async def week(
     user: CurrentUser,
     svc: PlanServiceDep,
-    start: Annotated[date | None, Query()] = None,
+    start: Annotated[date | None, Query(ge=date(2000, 1, 1), le=date(2100, 12, 31))] = None,
     accept_language: AcceptLanguage = None,
 ) -> RangeOut:
     return RangeOut.of(await svc.week(user.user_id, start, pick_locale(accept_language)))

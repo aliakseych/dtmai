@@ -148,15 +148,16 @@ async def test_tashkent_midnight_boundary_uses_occurred_at():
             old = await league.membership(top, OLD_WEEK)
             assert old is not None and old.xp == 100, "old week must not receive the xp"
 
-            # Sun 2031-01-12 18:30 UTC == 23:30 Tashkent Sunday: still the OLD week. The
-            # bottom user (member of the old week, unsettled for them) keeps accruing there.
+            # Sun 2031-01-12 18:30 UTC == 23:30 Tashkent Sunday: the OLD week, but that cohort
+            # was settled above (top's join). A late event must not vanish into a settled week:
+            # it is clamped to the current week.
             before = datetime(2031, 1, 12, 18, 30, tzinfo=UTC)
             await svc.on_session_completed(uuid4(), bottom, "s-bot", "drill", 10, 5, 5, before)
             old_b = await league.membership(bottom, OLD_WEEK)
-            assert old_b is not None and old_b.xp > 10, "23:30 Tashkent Sunday belongs to old week"
-            assert await league.membership(bottom, NEW_WEEK) is None, (
-                "23:30 Tashkent Sunday must not open the new week"
-            )
+            assert old_b is not None and old_b.xp == 10, "settled week must not receive xp"
+            new_b = await league.membership(bottom, NEW_WEEK)
+            assert new_b is not None and new_b.xp > 0, "late xp must count in the current week"
+            assert new_b.tier_idx == 0, "bottom user joins at the demoted tier"
             await tx.rollback()
     finally:
         await engine.dispose()
