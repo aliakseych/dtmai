@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLocale, useT } from "@dtmai/i18n";
 import { LessonPlayer } from "@/components/lesson/LessonPlayer";
 import { api } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { contentLangOfCode, useAuth } from "@/lib/auth";
 import { pick } from "@/lib/localized";
 import { useAsync } from "@/lib/useAsync";
 import { LanguageStep } from "./LanguageStep";
@@ -50,11 +50,7 @@ export function Onboarding() {
   const chosen = subjectList.filter((s) => subjectIds.includes(s.id));
   const firstSubject = chosen.find(hasContent) ?? chosen[0];
   const placementEmpty = !!firstSubject && !hasContent(firstSubject);
-  // Education-language codes are numeric (11 Uzbek, 12 Russian, 14 English); the placement API takes uz/ru/en.
-  const langCode = () => {
-    const c = languages.state.status === "ready" ? languages.state.data.find((l) => l.id === languageId)?.code : undefined;
-    return c === "12" ? "ru" : c === "14" ? "en" : "uz";
-  };
+  const langCode = () => contentLangOfCode((languages.state.status === "ready" ? languages.state.data.find((l) => l.id === languageId)?.code : undefined) ?? "");
 
   async function save(): Promise<boolean> {
     if (lyceumIds.length === 0 || !languageId) return false;
