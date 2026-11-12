@@ -23,5 +23,5 @@ export function renderRich(src: string): string {
 
 export function RichText({ text, className }: { text: string; className?: string }) {
   const html = useMemo(() => renderRich(text), [text]);
-  return <span className={className ?? "whitespace-pre-line"} dangerouslySetInnerHTML={{ __html: html }} />;
+  return <span className={className ?? "whitespace-pre-line leading-relaxed"} dangerouslySetInnerHTML={{ __html: html }} />;
 }

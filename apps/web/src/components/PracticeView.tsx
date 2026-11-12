@@ -6,7 +6,7 @@ import { useLocale, useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
 import { PageTitle } from "@/components/PageTitle";
 import { api } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { useAuth, useLearnLanguage } from "@/lib/auth";
 import { useBilling } from "@/lib/billing";
 import { pick } from "@/lib/localized";
 import { useAsync } from "@/lib/useAsync";
@@ -94,7 +94,8 @@ export function PracticeView() {
   const t = useT();
   const { locale } = useLocale();
   const { me } = useAuth();
-  const subjects = useAsync(() => api.unwrap(api.client.GET("/v1/catalog/subjects")), []);
+  const language = useLearnLanguage();
+  const subjects = useAsync(() => api.unwrap(api.client.GET("/v1/catalog/subjects", { params: { query: { language } } })), [language]);
   const [active, setActive] = useState<string | null>(null);
   return (
     <>

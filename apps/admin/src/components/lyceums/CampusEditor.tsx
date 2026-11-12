@@ -23,7 +23,7 @@ export function campusPatch(c: CampusForm): Pick<LyceumPatch, "map" | "buildings
     map: { lat: num(c.lat), lng: num(c.lng), embed_url: c.embedUrl.trim() || null, image_url: c.mapImage || null },
     buildings: c.buildings.map((b): P[number] => ({
       name: clean(b.name),
-      floor_plans: b.plans.filter((p) => p.image).map((p) => ({ label: clean(p.label), image_url: p.image })),
+      floor_plans: b.plans.map((p) => ({ label: clean(p.label), image_url: p.image })),
     })),
     specializations: c.specs.map((s) => ({
       field_code: s.field.trim(), name: clean(s.name), description: clean(s.desc),
@@ -95,6 +95,7 @@ export function CampusEditor({ value: c, onChange }: { value: CampusForm; onChan
               <div key={j} className="flex items-start gap-2 rounded-lg bg-snow p-2">
                 <div className="flex-1 space-y-2">
                   <ImageSlot label={t("admin.lyceums.floorPlan")} value={p.image} onChange={(image) => set({ buildings: move(c.buildings, i, { ...b, plans: move(b.plans, j, { ...p, image }) }) })} />
+                  {!p.image && <p role="alert" className="text-xs font-bold text-red">{t("admin.lyceums.floorPlanImageRequired")}</p>}
                   <Localized label={t("admin.lyceums.floorPlanLabel")} value={p.label} onChange={(label) => set({ buildings: move(c.buildings, i, { ...b, plans: move(b.plans, j, { ...p, label }) }) })} />
                 </div>
                 <RemoveBtn onClick={() => set({ buildings: move(c.buildings, i, { ...b, plans: move(b.plans, j, null) }) })} />

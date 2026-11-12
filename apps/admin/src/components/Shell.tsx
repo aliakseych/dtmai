@@ -30,7 +30,7 @@ function NavBody({ path }: { path: string }) {
         ))}
       </div>
       <div className="shrink-0 space-y-1 border-t border-line bg-white p-3 text-xs">
-        <div className="hidden md:block"><LocaleSwitcher placement="top" /></div>
+        <div className="hidden min-w-0 max-w-full overflow-hidden md:block"><LocaleSwitcher placement="top" /></div>
         <div className="truncate font-extrabold">{me?.name || me?.email}</div>
         <div className="text-ink-soft">{me?.roles.join(", ")} · <kbd className="hidden rounded border border-line px-1 md:inline">⌘K</kbd></div>
         <button type="button" className="mt-1 py-1 text-red-deep hover:underline" onClick={() => void logout()}>{t("admin.common.signOut")}</button>

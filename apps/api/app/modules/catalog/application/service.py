@@ -203,6 +203,15 @@ class CatalogService:
         bp = await self.require("blueprint", id)
         if bp["status"] == "published":
             raise Conflict("Already published", code="catalog.blueprint_published")
+        sections = bp.get("sections") or []
+        if not sections or any(
+            not isinstance(s, dict) or int(s.get("count") or s.get("question_count") or 0) <= 0
+            for s in sections
+        ):
+            raise ValidationFailed(
+                "Blueprint needs at least one section with a positive question count",
+                code="blueprint_invalid",
+            )
         v = await self.repo.max_version(bp["code"]) + 1
         row = await self.repo.update(
             "blueprint",

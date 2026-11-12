@@ -256,12 +256,18 @@ async def count_verified_by_source(session: AsyncSession, source_id: UUID) -> in
     return total
 
 
-async def count_verified_for_subject(session: AsyncSession, subject_id: UUID) -> int:
-    """Verified, learner-servable questions of one subject (any language)."""
+async def count_verified_for_subject(
+    session: AsyncSession, subject_id: UUID, language: str | None = None
+) -> int:
+    """Verified, learner-servable questions of one subject (in `language`, or any when None)."""
     from app.modules.bank.domain.models import QuestionFilter
 
     _, total = await service(session).search(
-        QuestionFilter(subject_id=subject_id, status="verified", learner_visible=True), 1, 0
+        QuestionFilter(
+            subject_id=subject_id, language=language, status="verified", learner_visible=True
+        ),
+        1,
+        0,
     )
     return total
 

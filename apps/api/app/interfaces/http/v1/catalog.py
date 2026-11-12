@@ -49,7 +49,7 @@ class SubjectOut(_Out):
     position: int
     question_count: int = Field(
         default=0,
-        description="Verified, learner-servable questions; 0 = no content yet (learner list only)",
+        description="Verified, learner-servable questions (in the requested language); 0 = no content yet (learner list only)",
     )
 
 
@@ -659,15 +659,25 @@ async def launch_gate(session: Session, svc: CatalogServiceDep, subject_id: UUID
     operation_id="catalog_list_subjects",
     responses=ERR,
 )
-async def list_subjects(session: Session) -> Any:
-    return await subjects_with_counts(session, await facade.list_subjects(session))
+async def list_subjects(
+    session: Session,
+    language: Annotated[
+        Literal["uz", "ru", "en"] | None,
+        Query(
+            description="Count only questions in this content language (learner's education language)"
+        ),
+    ] = None,
+) -> Any:
+    return await subjects_with_counts(session, await facade.list_subjects(session), language)
 
 
-async def subjects_with_counts(session: AsyncSession, subjects: list[Any]) -> list[SubjectOut]:
+async def subjects_with_counts(
+    session: AsyncSession, subjects: list[Any], language: str | None = None
+) -> list[SubjectOut]:
     """Subjects annotated with their verified question count so clients can flag empty ones."""
     out: list[SubjectOut] = []
     for s in subjects:
-        total = await bank.count_verified_for_subject(session, s.id)
+        total = await bank.count_verified_for_subject(session, s.id, language)
         out.append(SubjectOut.model_validate(s).model_copy(update={"question_count": total}))
     return out
 

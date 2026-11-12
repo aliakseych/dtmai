@@ -20,7 +20,7 @@ export default function BlueprintsPage() {
   const en = useEnum();
   const [ask, confirmNode] = useConfirm();
   const q = useQuery({ queryKey: qk.blueprints, queryFn: catalog.blueprints.list });
-  const [edit, setEdit] = useState<{ id?: string; status?: string; version?: number; form: BlueprintIn } | null>(null);
+  const [edit, setEdit] = useState<{ id?: string; status?: string; version?: number; form: BlueprintIn; base?: string } | null>(null);
   const inv = [qk.blueprints];
   const save = useAct((e: NonNullable<typeof edit>) => {
     const body = { ...e.form, names: cleanNames(e.form.names) };
@@ -30,13 +30,14 @@ export default function BlueprintsPage() {
   const clone = useAct((id: string) => catalog.blueprints.clone(id), inv, t("admin.blueprints.clonedAsDraft"));
   const del = useAct((id: string) => catalog.blueprints.remove(id), inv, t("admin.common.deleted"));
   const locked = edit?.status === "published";
+  const dirty = !!edit?.id && JSON.stringify(edit.form) !== edit.base;
   const f = edit?.form;
   const set = (p: Partial<BlueprintIn>) => setEdit((e) => e && { ...e, form: { ...e.form, ...p } });
   const sections = (f?.sections ?? []) as unknown as Section[];
   const setSections = (s: Section[]) => set({ sections: s as unknown as BlueprintIn["sections"] });
   const bases = useBases();
   const subjects = useSubjects();
-  const open = (b: Blueprint) => setEdit({ id: b.id, status: b.status, version: b.version, form: { code: b.code, names: b.names, kind: b.kind as BlueprintIn["kind"], sections: b.sections, duration_min: b.duration_min, source_id: b.source_id ?? null } });
+  const open = (b: Blueprint) => { const form: BlueprintIn = { code: b.code, names: b.names, kind: b.kind as BlueprintIn["kind"], sections: b.sections, duration_min: b.duration_min, source_id: b.source_id ?? null }; setEdit({ id: b.id, status: b.status, version: b.version, form, base: JSON.stringify(form) }); };
 
   return (
     <>
@@ -53,12 +54,12 @@ export default function BlueprintsPage() {
             { key: "s", head: t("admin.common.sections"), cell: (r) => r.sections.length },
           ]} />
       </div>
-      <Drawer open={!!edit} onClose={() => setEdit(null)} title={`${edit?.id ? t("admin.blueprints.blueprint") : t("admin.blueprints.newBlueprint")}${edit?.status ? ` · ${edit.status}` : ""}`}
+      <Drawer open={!!edit} onClose={() => setEdit(null)} title={`${edit?.id ? t("admin.blueprints.blueprint") : t("admin.blueprints.newBlueprint")}${edit?.status ? ` · ${t(`admin.status.${edit.status}`)}` : ""}`}
         footer={<>
-          {edit?.id && <Btn variant="danger" className="mr-auto" onClick={() => ask({ title: t("admin.blueprints.deleteBlueprint"), name: nm(edit.form.names), danger: true, confirmLabel: t("admin.common.delete") }, () => del.mutate(edit.id!, { onSuccess: () => setEdit(null) }))}>{t("admin.common.delete")}</Btn>}
+          {edit?.id && !locked && <Btn variant="danger" className="mr-auto" onClick={() => ask({ title: t("admin.blueprints.deleteBlueprint"), name: nm(edit.form.names), danger: true, confirmLabel: t("admin.common.delete") }, () => del.mutate(edit.id!, { onSuccess: () => setEdit(null) }))}>{t("admin.common.delete")}</Btn>}
           <Btn onClick={() => setEdit(null)}>{t("admin.common.close")}</Btn>
-          {edit?.id && <Btn onClick={() => clone.mutate(edit.id!, { onSuccess: () => setEdit(null) })}>{t("admin.blueprints.cloneAsDraft")}</Btn>}
-          {edit?.id && !locked && <Btn onClick={() => ask({ title: t("admin.blueprints.publishThisDraftAs"), name: nm(edit.form.names), confirmLabel: t("admin.common.publish") }, () => publish.mutate(edit.id!, { onSuccess: () => setEdit(null) }))}>{t("admin.common.publish")}</Btn>}
+          {edit?.id && locked && <Btn onClick={() => clone.mutate(edit.id!, { onSuccess: () => setEdit(null) })}>{t("admin.blueprints.cloneAsDraft")}</Btn>}
+          {edit?.id && !locked && <Btn disabled={dirty || publish.isPending} title={dirty ? t("admin.blueprints.saveBeforePublish") : undefined} onClick={() => ask({ title: t("admin.blueprints.publishThisDraftAs"), name: nm(edit.form.names), body: <p className="text-sm text-ink-soft">{t("admin.blueprints.publishIrreversible")}</p>, confirmLabel: t("admin.common.publish"), danger: true }, () => publish.mutate(edit.id!, { onSuccess: () => setEdit(null) }))}>{t("admin.common.publish")}</Btn>}
           {!locked && <Btn variant="primary" disabled={save.isPending} onClick={() => save.mutate(edit!, { onSuccess: () => setEdit(null) })}>{t("admin.common.save")}</Btn>}
         </>}>
         {f && (
@@ -76,6 +77,7 @@ export default function BlueprintsPage() {
               <SectionEditor key={i} s={s} onChange={(n) => setSections(sections.map((x, j) => (j === i ? n : x)))} onRemove={() => setSections(sections.filter((_, j) => j !== i))} />
             ))}
             <p className="text-xs text-ink-soft">{t("admin.blueprints.totalHint", { n: sections.reduce((a, s) => a + (s.count || 0), 0) })} <code>{t("admin.blueprints.questionIds")}</code> {t("admin.blueprints.countMustMatch")}</p>
+            {dirty && !locked && <p className="text-xs font-bold text-orange">{t("admin.blueprints.saveBeforePublish")}</p>}
           </fieldset>
         )}
       </Drawer>

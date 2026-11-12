@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
 import { Avatar, buttonClass, cn, Logo, Mascot, Modal, Icon } from "@dtmai/ui";
 import { LocaleSwitcher, useT } from "@dtmai/i18n";
 import { useAuth } from "@/lib/auth";
@@ -13,7 +13,13 @@ import { TopStats } from "./TopStats";
 export function AppShell({ children }: { children: ReactNode }) {
   const t = useT();
   const path = usePathname();
+  const router = useRouter();
   const { isGuest, me } = useAuth();
+  // Account gate: a guest who finished onboarding must create an account (or sign in) before using the app; the plan stays reachable.
+  const gated = isGuest && !path.startsWith("/plan") && !path.startsWith("/account");
+  useEffect(() => {
+    if (gated) router.replace("/account/");
+  }, [gated, router]);
   const { canBuy } = useBilling();
   const [more, setMore] = useState(false);
   const active = (href: string) => path.startsWith(href.slice(0, -1));
@@ -23,6 +29,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const visible = (href: string) => (href !== "/premium/" || canBuy) && (href !== "/rep/" || isRep);
   const moreItems = MORE_NAV.filter((n) => visible(n.href));
   const moreActive = moreItems.some((n) => active(n.href));
+
+  if (gated) return <div className="grid min-h-dvh place-items-center" aria-busy="true" />;
 
   return (
     <div className="min-h-dvh overflow-x-clip bg-white">
@@ -67,14 +75,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             <LocaleSwitcher className="hidden md:block" align="end" />
           </div>
         </header>
-        {isGuest && (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-accent bg-accent-soft px-4 py-2 text-sm font-bold text-ink">
-            <span>{t("guest.banner")}</span>
-            <Link href="/register/" className={buttonClass("primary", false, "min-h-11 px-3 py-1.5 text-xs")}>
-              {t("guest.save")}
-            </Link>
-          </div>
-        )}
         <div className="mx-auto flex max-w-5xl justify-center gap-8 px-4 py-6 pb-28 lg:pb-10">
           <main className="min-w-0 max-w-3xl flex-1">{children}</main>
           <aside className="sticky top-6 hidden h-fit w-80 shrink-0 flex-col gap-4 xl:flex" aria-label={t("nav.more")}>

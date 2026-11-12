@@ -9,7 +9,7 @@ import { api } from "@/lib/api";
 import { pick } from "@/lib/localized";
 import { useStats } from "@/lib/stats";
 import { useAsync } from "@/lib/useAsync";
-import { useAuth } from "@/lib/auth";
+import { useAuth, useLearnLanguage } from "@/lib/auth";
 import { hasContent, SubjectEmpty } from "@/components/practice/SubjectEmpty";
 import { SubjectPath } from "./SubjectPath";
 import { DreamPin } from "./DreamPin";
@@ -19,7 +19,8 @@ const LAST = "dtmai.learn.subject";
 export function LearnView() {
   const t = useT();
   const { locale } = useLocale();
-  const subjects = useAsync(() => api.unwrap(api.client.GET("/v1/catalog/subjects")), []);
+  const language = useLearnLanguage();
+  const subjects = useAsync(() => api.unwrap(api.client.GET("/v1/catalog/subjects", { params: { query: { language } } })), [language]);
   const stats = useStats();
   const { me } = useAuth();
   const [picked, setPicked] = useState<string | null>(() => {

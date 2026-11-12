@@ -40,7 +40,7 @@ export function Tabs<T extends string>({
             type="button"
             onClick={() => onChange(it.id)}
             className={cn(
-              "shrink-0 rounded-xl border-2 px-4 py-2 text-sm font-extrabold uppercase tracking-wide transition",
+              "min-h-11 shrink-0 rounded-xl border-2 px-4 py-2 text-sm font-extrabold uppercase tracking-wide transition",
               on ? "border-brand bg-brand-soft text-brand" : "border-line bg-white text-ink-soft hover:bg-snow",
             )}
           >

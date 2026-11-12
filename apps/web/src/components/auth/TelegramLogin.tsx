@@ -14,10 +14,10 @@ declare global {
 }
 
 /** Official Telegram Login Widget; bot username comes from NEXT_PUBLIC_TG_BOT. */
-export function TelegramLogin() {
+export function TelegramLogin({ dest }: { dest?: string }) {
   const t = useT();
   const host = useRef<HTMLDivElement>(null);
-  const signedIn = useSignedIn();
+  const signedIn = useSignedIn(dest);
   const signedInRef = useRef(signedIn);
   signedInRef.current = signedIn;
   const [error, setError] = useState<ReturnType<typeof authErrorKey> | null>(null);

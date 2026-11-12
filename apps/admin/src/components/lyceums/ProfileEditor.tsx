@@ -29,16 +29,16 @@ export function ImageSlot({ label, value, onChange }: { label: string; value: st
   const t = useT();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
-  const pick = async (f?: File) => {
+  const pick = async (f?: File, input?: HTMLInputElement) => {
     if (!f) return;
     setBusy(true);
-    try { onChange((await uploadMedia(f)).key); } catch (e) { toast(errMsg(e), "error"); } finally { setBusy(false); }
+    try { onChange((await uploadMedia(f)).key); } catch (e) { if (input) input.value = ""; toast(errMsg(e), "error"); } finally { setBusy(false); }
   };
   return (
     <Field label={label}>
       <div className="flex items-center gap-2">
         {value ? <img src={mediaUrl(value)} alt="" className="size-14 rounded-xl border border-line object-cover" /> : <div className="size-14 rounded-xl border border-dashed border-line" />}
-        <input type="file" accept="image/*" disabled={busy} onChange={(e) => void pick(e.target.files?.[0])} className="text-xs" />
+        <input type="file" accept="image/*" disabled={busy} onChange={(e) => void pick(e.target.files?.[0], e.target)} className="text-xs" />
         {busy && <Spinner />}
         {value && <Btn variant="ghost" onClick={() => onChange("")}>{t("admin.common.remove")}</Btn>}
       </div>
@@ -102,6 +102,7 @@ function Tags({ value, onChange }: { value: string[]; onChange: (v: string[]) =>
 
 export function ProfileEditor({ lyceum, onClose }: { lyceum: LyceumRow | null; onClose: () => void }) {
   const t = useT();
+  const toast = useToast();
   const detail = useQuery({ queryKey: ["lyceum-detail", lyceum?.id], queryFn: () => lyceums.detail(lyceum!.id), enabled: !!lyceum });
   const cities = useQuery({ queryKey: ["cities"], queryFn: lyceums.cities });
   const [f, setF] = useState<Form | null>(null);
@@ -119,6 +120,7 @@ export function ProfileEditor({ lyceum, onClose }: { lyceum: LyceumRow | null; o
   const set = (p: Partial<Form>) => setF((x) => (x ? { ...x, ...p } : x));
   const submit = () => {
     if (!lyceum || !f) return;
+    if (f.extra.buildings.some((b) => b.plans.some((p) => !p.image))) { toast(t("admin.lyceums.floorPlanImageRequired"), "error"); return; }
     save.mutate({
       id: lyceum.id,
       body: {
@@ -167,7 +169,7 @@ export function ProfileEditor({ lyceum, onClose }: { lyceum: LyceumRow | null; o
             <legend className="px-1 text-xs font-extrabold uppercase tracking-wide text-ink-soft">{t("admin.lyceums.dormitory")}</legend>
             <Field label={t("admin.common.status")}>
               <Select value={f.dormStatus} onChange={(e) => set({ dormStatus: e.target.value as DormitoryStatus })}>
-                {DORM.map((d) => <option key={d} value={d}>{d}</option>)}
+                {DORM.map((d) => <option key={d} value={d}>{t(`lyceums.dorm.${d}`)}</option>)}
               </Select>
             </Field>
             {LOCALE_LIST.map((l) => (

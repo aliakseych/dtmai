@@ -133,7 +133,7 @@ export function Markdown({ text }: { text: string }) {
           case "ol": {
             const L = b.k;
             return (
-              <L key={i} className={`${L === "ul" ? "list-disc" : "list-decimal"} flex flex-col gap-1 pl-6`}>
+              <L key={i} className={`${L === "ul" ? "list-disc" : "list-decimal"} flex flex-col gap-2 pl-6 leading-loose`}>
                 {b.items.map((it, j) => <li key={j}>{inline(it)}</li>)}
               </L>
             );

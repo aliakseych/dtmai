@@ -10,7 +10,7 @@ from app.interfaces.http.v1 import catalog as route
 async def test_subjects_carry_verified_question_count(monkeypatch: pytest.MonkeyPatch) -> None:
     full, empty = uuid4(), uuid4()
 
-    async def count(_s, subject_id):  # noqa: ANN001, ANN202
+    async def count(_s, subject_id, language=None):  # noqa: ANN001, ANN202
         return {full: 12, empty: 0}[subject_id]
 
     monkeypatch.setattr(route.bank, "count_verified_for_subject", count)

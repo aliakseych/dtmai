@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Badge, buttonClass, Card, EmptyState, Tabs } from "@dtmai/ui";
 import { useLocale, useT } from "@dtmai/i18n";
 import { AsyncView } from "@/components/AsyncView";
-import { SaveProgress } from "@/components/auth/SaveProgress";
 import { useAuth } from "@/lib/auth";
 import { PageTitle } from "@/components/PageTitle";
 import { getHome, getProfile, getSettings, getToday, type HomeOut, type TodayOut } from "@/lib/planner";
@@ -25,7 +24,15 @@ export function PlanView() {
   return (
     <>
       <PageTitle>{t("plan.title")}</PageTitle>
-      {isGuest && <SaveProgress />}
+      {isGuest && (
+        <Card className="mb-5 flex flex-col items-center gap-3 text-center">
+          <h2 className="text-xl">{t("account.gate.title")}</h2>
+          <p className="text-ink-soft">{t("account.gate.body")}</p>
+          <Link href="/account/" className={buttonClass("primary", true, "min-h-11")}>
+            {t("account.gate.cta")}
+          </Link>
+        </Card>
+      )}
       <AsyncView state={plan.state} onRetry={plan.reload}>
         {(p) =>
           p === null ? (

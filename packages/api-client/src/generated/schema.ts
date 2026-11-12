@@ -7473,7 +7473,7 @@ export interface components {
             position: number;
             /**
              * Question Count
-             * @description Verified, learner-servable questions; 0 = no content yet (learner list only)
+             * @description Verified, learner-servable questions (in the requested language); 0 = no content yet (learner list only)
              * @default 0
              */
             question_count: number;
@@ -19521,7 +19521,10 @@ export interface operations {
     };
     catalog_list_subjects: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Count only questions in this content language (learner's education language) */
+                language?: ("uz" | "ru" | "en") | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;

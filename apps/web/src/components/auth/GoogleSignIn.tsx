@@ -31,12 +31,12 @@ function loadGis(): Promise<void> {
 }
 
 /** "Sign in with Google" (Google Identity Services). Renders nothing unless the API reports a client id. */
-export function GoogleSignIn() {
+export function GoogleSignIn({ dest }: { dest?: string }) {
   const t = useT();
   const cfg = useAsync(() => api.unwrap(api.client.GET("/v1/identity/config")), []);
   const clientId = cfg.state.status === "ready" ? cfg.state.data.google_client_id : null;
   const host = useRef<HTMLDivElement>(null);
-  const signedIn = useSignedIn();
+  const signedIn = useSignedIn(dest);
   const signedInRef = useRef(signedIn);
   signedInRef.current = signedIn;
   const [error, setError] = useState<ReturnType<typeof authErrorKey> | null>(null);

@@ -45,7 +45,7 @@ export default function SourcesPage() {
             { key: "year", head: t("admin.common.year"), cell: (r) => r.year ?? "—" },
             { key: "prov", head: t("admin.sources.provenance"), cell: (r) => r.provenance ?? "—" },
             { key: "act", head: t("admin.common.state"), cell: (r) => r.archived ? <Badge tone="gray">{t("admin.common.archived")}</Badge> : <Badge tone={r.active ? "green" : "gray"}>{r.active ? t("admin.common.active") : t("admin.topics.inactive")}</Badge> },
-            { key: "arch", head: "", cell: (r) => <Btn onClick={() => archive.mutate({ id: r.id, on: !r.archived })}>{r.archived ? t("admin.common.unarchive") : t("admin.common.archive")}</Btn> },
+            { key: "arch", head: "", cell: (r) => <Btn onClick={(e) => { e.stopPropagation(); archive.mutate({ id: r.id, on: !r.archived }); }}>{r.archived ? t("admin.common.unarchive") : t("admin.common.archive")}</Btn> },
           ]} />
       </div>
       <Drawer open={!!edit} onClose={() => setEdit(null)} width="max-w-lg" title={edit?.id ? t("admin.sources.editBase") : t("admin.sources.newBase")}

@@ -64,12 +64,12 @@ function Body({ result, attempt }: { result: AttemptResult; attempt: Attempt }) 
       )}
       <Card className="flex flex-col items-center gap-1 text-center">
         <p className="text-6xl font-extrabold text-brand">
-          {num.format(result.correct)}
-          <span className="text-2xl text-ink-soft"> / {num.format(result.questions || items.length)}</span>
+          {num.format(result.total)}
+          <span className="text-2xl text-ink-soft"> / {num.format(result.max_total)}</span>
         </p>
-        <p className="text-ink-soft">{t("mock.correctLabel")}</p>
+        <p className="text-ink-soft">{t("mock.total")}</p>
         <p className="text-sm font-bold text-ink-soft">
-          {t("mock.total")}: {num.format(result.total)} / {num.format(result.max_total)}
+          {t("mock.correctLabel")}: {num.format(result.correct)} / {num.format(result.questions || items.length)}
         </p>
         <p className="text-xs text-ink-soft">{t("mock.totalHint")}</p>
       </Card>

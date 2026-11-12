@@ -8,7 +8,8 @@ export type Names = Record<string, string>;
 /** Best display name from a locale map: current locale → uz-Latn → en → ru → anything. */
 export function nm(names: Names | undefined | null, fallback = "—"): string {
   if (!names) return fallback;
-  return names[currentLocale()] || names["uz-Latn"] || names.en || names.ru || Object.values(names).find(Boolean) || fallback;
+  const loc = currentLocale();
+  return names[loc] || (loc.startsWith("uz") ? names.uz : "") || names["uz-Latn"] || names.uz || names.en || names.ru || Object.values(names).find(Boolean) || fallback;
 }
 
 const STATUS_KEY: Record<number, string> = {

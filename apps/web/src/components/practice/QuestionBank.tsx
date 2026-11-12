@@ -56,9 +56,10 @@ export function QuestionBank() {
                   <span className="font-bold text-ink-soft">{t("bank.solvedOf", { solved: overview.solved, total: overview.total })}</span>
                 </div>
                 <ProgressBar value={overview.solved} max={Math.max(1, overview.total)} label={t("bank.progress")} />
-                <Tabs items={LEVELS.map((l) => ({ id: l, label: t(`bank.level.${l}`) }))} value={level} onChange={setLevel} />
+                <Tabs className="flex-wrap" items={LEVELS.map((l) => ({ id: l, label: t(`bank.level.${l}`) }))} value={level} onChange={setLevel} />
                 {overview.bases.length > 0 && (
                   <Tabs
+                    className="flex-wrap"
                     items={[{ id: "all", label: t("bank.base.all") }, ...overview.bases.map((b) => ({ id: b.id, label: `${pick(b.names, locale)}${b.year ? ` ${b.year}` : ""} · ${b.total}` }))]}
                     value={base}
                     onChange={setBase}
@@ -68,9 +69,15 @@ export function QuestionBank() {
                   <input type="checkbox" className="h-5 w-5 accent-brand" checked={unsolved} onChange={(e) => setUnsolved(e.target.checked)} />
                   {t("bank.unsolvedOnly")}
                 </label>
-                <Link href={run("")} className={buttonClass("primary", true)}>
-                  {t("bank.practiceAll")}
-                </Link>
+                {overview.total === 0 || rows.length === 0 ? (
+                  <span aria-disabled="true" className={buttonClass("primary", true, "pointer-events-none opacity-50")}>
+                    {t("bank.practiceAll")}
+                  </span>
+                ) : (
+                  <Link href={run("")} className={buttonClass("primary", true)}>
+                    {t("bank.practiceAll")}
+                  </Link>
+                )}
               </Card>
               {rows.length === 0 && <p className="text-center text-ink-soft">{t("bank.noMatch")}</p>}
               {rows.map(([topicId, cells]) => (

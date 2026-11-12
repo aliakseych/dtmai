@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocale, useT } from "@dtmai/i18n";
 import { LessonPlayer } from "@/components/lesson/LessonPlayer";
 import { api } from "@/lib/api";
@@ -14,21 +14,20 @@ import { PlacementStep } from "./PlacementStep";
 import { CityStep, type CityChoice } from "./CityStep";
 import { fetchCities } from "@/lib/cities";
 import { hasContent } from "@/components/practice/SubjectEmpty";
-import { SubjectsStep } from "./SubjectsStep";
 import { FieldStep } from "./FieldStep";
 import { PrioritiesStep } from "./PrioritiesStep";
 import { fetchFields } from "@/lib/fields";
 
-const STEPS = ["city", "language", "field", "subjects", "lyceum", "priorities", "placement"] as const;
+const STEPS = ["city", "language", "field", "lyceum", "priorities", "placement"] as const;
 
-/** City -> language -> field (shows its subject pair) -> subjects -> first lyceum -> other priorities -> placement -> plan -> account. */
+/** City -> language -> field (shown as its subjects; they are derived from it) -> first lyceum -> other priorities -> placement -> plan -> account. */
 export function Onboarding() {
   const t = useT();
   const { locale } = useLocale();
   const router = useRouter();
   const { isGuest, reloadMe, me } = useAuth();
   // Resume: prefill from the saved profile and open the first unanswered step.
-  const [i, setI] = useState(() => (!me?.city ? 0 : !me.education_language_id ? 1 : !me.field_code ? 2 : me.dream_lyceum_ids.length === 0 ? 4 : 6));
+  const [i, setI] = useState(() => (!me?.city ? 0 : !me.education_language_id ? 1 : !me.field_code ? 2 : me.dream_lyceum_ids.length === 0 ? 3 : 5));
   const [city, setCity] = useState<CityChoice>(me?.city ?? undefined);
   const [lyceumIds, setLyceumIds] = useState<string[]>(me?.dream_lyceum_ids ?? []);
   const [languageId, setLanguageId] = useState<string | null>(me?.education_language_id ?? null);
@@ -45,23 +44,12 @@ export function Onboarding() {
   const cities = useAsync(fetchCities, []);
   const fields = useAsync(fetchFields, []);
   const fieldList = fields.state.status === "ready" ? fields.state.data : [];
-  const chosenField = fieldList.find((f) => f.code === fieldCode);
-  // Subjects are fixed by the field's mapping; editable only when it has none.
-  const subjectsLocked = !!chosenField && chosenField.subject_ids.length > 0;
-  const lyceumRows = lyceums.state.status === "ready" ? lyceums.state.data : [];
 
   const subjectList = subjects.state.status === "ready" ? subjects.state.data : [];
   // First chosen subject in catalog order, preferring one that has questions (placement needs content).
   const chosen = subjectList.filter((s) => subjectIds.includes(s.id));
   const firstSubject = chosen.find(hasContent) ?? chosen[0];
   const placementEmpty = !!firstSubject && !hasContent(firstSubject);
-  // A field without a subject mapping leaves the picker empty: preselect the subjects that have content.
-  const needsDefault = STEPS[i] === "subjects" && !subjectsLocked && subjectIds.length === 0 && subjectList.length > 0;
-  useEffect(() => {
-    if (!needsDefault) return;
-    const ready = subjectList.filter(hasContent);
-    setSubjectIds((ready.length > 0 ? ready : subjectList.slice(0, 1)).map((s) => s.id));
-  }, [needsDefault, subjectList]);
   // Education-language codes are numeric (11 Uzbek, 12 Russian, 14 English); the placement API takes uz/ru/en.
   const langCode = () => {
     const c = languages.state.status === "ready" ? languages.state.data.find((l) => l.id === languageId)?.code : undefined;
@@ -115,7 +103,6 @@ export function Onboarding() {
   const step = STEPS[i]!;
   const next = () => setI((n) => n + 1);
   const back = i > 0 ? () => setI((n) => n - 1) : undefined;
-  const toggleSubject = (id: string) => setSubjectIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   if (step === "placement")
     return <PlacementStep subjectName={firstSubject ? pick(firstSubject.names, locale) : ""} noContent={placementEmpty} busy={busy} error={saveError} isGuest={isGuest} onStart={start} onSkip={skip} onBack={() => setI(i - 1)} />;
@@ -157,7 +144,10 @@ export function Onboarding() {
             onChange={(code) => {
               setFieldCode(code);
               const f = fieldList.find((x) => x.code === code);
-              if (f && f.subject_ids.length > 0) setSubjectIds(f.subject_ids);
+              if (!f) return;
+              // Subjects come from the field; one without a mapping falls back to the subjects that have content.
+              const ready = subjectList.filter(hasContent);
+              setSubjectIds(f.subject_ids.length > 0 ? f.subject_ids : (ready.length > 0 ? ready : subjectList.slice(0, 1)).map((x) => x.id));
             }}
           />
         </OnboardingFrame>
@@ -165,11 +155,6 @@ export function Onboarding() {
       {step === "priorities" && (
         <OnboardingFrame {...frame} speech={t("onb.title.priorities")} canContinue={lyceumIds.length > 0}>
           <PrioritiesStep state={lyceums.state} onRetry={lyceums.reload} city={city ?? null} value={lyceumIds} onChange={setLyceumIds} fieldCode={fieldCode} />
-        </OnboardingFrame>
-      )}
-      {step === "subjects" && (
-        <OnboardingFrame {...frame} speech={t("onb.title.subjects")} canContinue={subjectIds.length > 0}>
-          <SubjectsStep state={subjects.state} onRetry={subjects.reload} value={subjectIds} onToggle={toggleSubject} readOnly={subjectsLocked} />
         </OnboardingFrame>
       )}
     </>
