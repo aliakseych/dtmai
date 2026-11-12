@@ -205,7 +205,7 @@ _CLICK_BODY: dict[str, Any] = {
 async def click_prepare(request: Request, svc: BillingServiceDep) -> dict[str, Any]:
     svc.ensure_payments_enabled()
     _check_ip(request)
-    return await svc.process_click(await _click_params(request))
+    return await svc.process_click(await _click_params(request), expected_action="0")
 
 
 @router.post(
@@ -217,7 +217,7 @@ async def click_prepare(request: Request, svc: BillingServiceDep) -> dict[str, A
 async def click_complete(request: Request, svc: BillingServiceDep) -> dict[str, Any]:
     svc.ensure_payments_enabled()
     _check_ip(request)
-    return await svc.process_click(await _click_params(request))
+    return await svc.process_click(await _click_params(request), expected_action="1")
 
 
 # --- admin -------------------------------------------------------------------

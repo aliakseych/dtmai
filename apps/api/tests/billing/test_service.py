@@ -76,10 +76,15 @@ class Provider:
 class Invoices:
     def __init__(self) -> None:
         self.created = 0
+        self.open: Any = None
 
     async def create(self, **kw: Any) -> Any:
         self.created += 1
-        return object()
+        self.open = object()
+        return self.open
+
+    async def find_open(self, **kw: Any) -> Any:
+        return self.open
 
 
 class Targets:
@@ -235,3 +240,35 @@ def test_admin_grant_no_warning_for_regular_user() -> None:
     svc, _, _ = make()
     _, warnings = asyncio.run(svc.admin_grant(uuid4(), "pro", months=1))
     assert warnings == []
+
+
+def test_checkout_reuses_open_invoice() -> None:
+    svc, _, invoices = make()
+    uid = uuid4()
+    first, _ = asyncio.run(svc.checkout(uid, "pro"))
+    second, _ = asyncio.run(svc.checkout(uid, "pro"))
+    assert first is second
+    assert invoices.created == 1
+
+
+def test_click_action_must_match_route() -> None:
+    svc, _, _ = make()
+    raw = {
+        "click_trans_id": "1",
+        "service_id": "1",
+        "merchant_trans_id": str(uuid4()),
+        "amount": "49000",
+        "action": "1",
+        "sign_time": "2026-01-01 00:00:00",
+        "sign_string": "x",
+    }
+    out = asyncio.run(svc.process_click(raw, expected_action="0"))
+    assert out["error"] == -3
+
+
+def test_trusted_proxies_accepts_cidr_and_rejects_garbage() -> None:
+    assert trusted_proxies({"FORWARDED_ALLOW_IPS": "172.28.0.0/16"}) == "172.28.0.0/16"
+    with pytest.raises(SystemExit):
+        trusted_proxies({"FORWARDED_ALLOW_IPS": "not-an-ip"})
+    with pytest.raises(SystemExit):
+        trusted_proxies({"FORWARDED_ALLOW_IPS": "0.0.0.0/0,*"})

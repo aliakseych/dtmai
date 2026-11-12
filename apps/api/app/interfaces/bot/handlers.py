@@ -6,7 +6,7 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.interfaces.bot import keyboards
+from app.interfaces.bot import issued, keyboards
 from app.interfaces.bot.i18n import (
     CONTENT_LANGUAGE,
     DEFAULT_LOCALE,
@@ -154,6 +154,7 @@ async def on_daily(event: CallbackQuery | Message) -> None:
     if question is None:
         await msg.answer(t(locale, "no_question"))
         return
+    await issued.get_issued_store().issue(msg.chat.id, question.id)
     options = question.payload.get("options", [])
     labels = [str(o.get("text", "")) for o in options]
     await msg.answer(question.stem, reply_markup=keyboards.question_keyboard(question.id, labels))
@@ -184,6 +185,9 @@ async def on_answer(cb: CallbackQuery) -> None:
         if parsed is None:
             return await cb.answer(t(locale, "expired"), show_alert=True)
         qid, idx = parsed
+        # Only the question this chat was last served, and only once.
+        if not await issued.get_issued_store().consume(cb.message.chat.id, qid):
+            return await cb.answer(t(locale, "expired"), show_alert=True)
         found = await bank.get_questions(session, [qid])
         options = found[0].payload.get("options", []) if found else []
         if not found or not 0 <= idx < len(options):

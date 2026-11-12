@@ -1,9 +1,10 @@
+import json
 from datetime import datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +19,8 @@ from app.shared.db import get_session
 from app.shared.deps import require_role
 from app.shared.errors import NotFound, ProblemDetails
 from app.shared.security import Principal
+
+MAX_RESPONSE_JSON = 20_000
 
 router = APIRouter(tags=["labeling"])
 admin_router = APIRouter(tags=["labeling-admin"])
@@ -105,10 +108,17 @@ class ReviewOut(BaseModel):
 
 class DecideIn(BaseModel):
     action: Literal["accept", "edit", "skip", "flag"]
-    response: dict[str, Any] | None = None
+    response: dict[str, Any] | None = Field(None, max_length=50)
     time_ms: int = Field(0, ge=0)
     reason: str | None = Field(None, max_length=200)
     audit_sample_id: UUID | None = None
+
+    @field_validator("response")
+    @classmethod
+    def _response_size(cls, v: dict[str, Any] | None) -> dict[str, Any] | None:
+        if v is not None and len(json.dumps(v, default=str)) > MAX_RESPONSE_JSON:
+            raise ValueError("response too large")
+        return v
 
 
 class DecisionOut(BaseModel):
@@ -273,8 +283,8 @@ async def next_item(
     response_model=ReviewOut,
     responses=ERR,
 )
-async def get_item(question_id: UUID, svc: ReviewDep, _: Labeler) -> ReviewOut:
-    return _review(await svc.get_review(question_id))
+async def get_item(question_id: UUID, svc: ReviewDep, who: Labeler) -> ReviewOut:
+    return _review(await svc.get_review(question_id, reveal="admin" in who.roles))
 
 
 @router.post(
@@ -316,8 +326,11 @@ async def undo(decision_id: UUID, svc: ReviewDep, who: Labeler) -> DecisionOut:
 
 
 @router.get("/stats", operation_id="labeling_stats", response_model=LabelingStatsOut, responses=ERR)
-async def stats(svc: ReviewDep, _: Labeler, days: int = Query(7, ge=1, le=90)) -> LabelingStatsOut:
-    s = await svc.stats(days)
+async def stats(
+    svc: ReviewDep, who: Labeler, days: int = Query(7, ge=1, le=90)
+) -> LabelingStatsOut:
+    """Admins see every labeler; others only their own row."""
+    s = await svc.stats(days, only_labeler=None if "admin" in who.roles else who.user_id)
     per: dict[tuple[Any, str], dict[str, Any]] = {}
     for labeler, action, n, avg_ms in s["per_labeler"]:
         per.setdefault((labeler, ""), {"labeler_id": labeler, "actions": {}, "avg_ms": {}})

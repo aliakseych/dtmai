@@ -1,7 +1,7 @@
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -23,8 +23,10 @@ from app.modules.bank.domain.models import (
     transition_allowed,
 )
 from app.modules.bank.ports import QuestionRepository
-from app.shared.errors import Conflict, NotFound, ValidationFailed
+from app.shared.errors import Conflict, Forbidden, NotFound, ValidationFailed
 from app.shared.ids import new_id
+
+MAX_REPORTS_PER_DAY = 20
 
 _LANG = re.compile(r"^[a-z]{2,3}(-[A-Za-z]{2,4})?$")
 _PATCHABLE = {
@@ -344,9 +346,20 @@ class BankService:
                 res.errors.append((i, str(e) or type(e).__name__))
         return res
 
-    async def report(self, qid: UUID, user_id: UUID, reason: str) -> bool:
-        """Records a learner report; returns True when the question was auto-hidden."""
+    async def report(
+        self, qid: UUID, user_id: UUID, reason: str, *, is_guest: bool = False
+    ) -> bool:
+        """Records a learner report; returns True when the question was auto-hidden.
+
+        Guests (throwaway accounts) cannot report, so only registered distinct reporters
+        count toward the hide threshold; each user is capped per day.
+        """
+        if is_guest:
+            raise Forbidden("guests cannot report questions", code="guest_cannot_report")
         q = await self.require(qid)
+        since = datetime.now(UTC) - timedelta(days=1)
+        if await self.repo.count_reports_by_user_since(user_id, since) >= MAX_REPORTS_PER_DAY:
+            raise Conflict("daily report limit reached", code="report_rate_limited")
         n = await self.repo.add_report(qid, user_id, reason)
         if q.status == "verified" and n >= self.report_hide_threshold:
             await self.set_status(qid, "hidden", None, f"auto-hidden after {n} reports")

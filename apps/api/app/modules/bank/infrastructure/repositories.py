@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -147,7 +148,7 @@ class SqlQuestionRepository:
         if difficulty is not None:
             # nearest-difficulty first, random among near-equals
             stmt = stmt.order_by(
-                func.round((func.abs(QuestionRow.difficulty - difficulty) / 50.0)), func.random()
+                func.round(func.abs(QuestionRow.difficulty - difficulty) / 50.0), func.random()
             )
         else:
             stmt = stmt.order_by(func.random())
@@ -286,6 +287,16 @@ class SqlQuestionRepository:
             update(QuestionRow).where(QuestionRow.id == question_id).values(report_count=n)
         )
         return n
+
+    async def count_reports_by_user_since(self, user_id: UUID, since: datetime) -> int:
+        return int(
+            await self.s.scalar(
+                select(func.count())
+                .select_from(ReportRow)
+                .where(ReportRow.user_id == user_id, ReportRow.created_at >= since)
+            )
+            or 0
+        )
 
     async def claim_event(self, event_id: UUID) -> bool:
         res = await self.s.execute(

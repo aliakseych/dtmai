@@ -194,11 +194,26 @@ class ReviewService:
         )
         return [Vote(r.model, r.response, r.confidence) for r in rows]
 
-    async def get_review(self, question_id: UUID) -> Review:
+    async def get_review(self, question_id: UUID, *, reveal: bool = False) -> Review:
+        """`reveal=False` (non-admin callers) withholds suggestion and votes while a blind
+        audit on the question is pending, so the audit stays blind."""
         row = await self._s.get(QueueItemRow, question_id)
         if row is None:
             raise NotFound("Question is not in the labeling queue")
         (q,) = await bank.get_questions(self._s, [question_id])
+        if not reveal:
+            sample_id = (
+                await self._s.execute(
+                    select(AuditSampleRow.id)
+                    .where(
+                        AuditSampleRow.question_id == question_id,
+                        AuditSampleRow.completed_at.is_(None),
+                    )
+                    .limit(1)
+                )
+            ).scalar_one_or_none()
+            if sample_id is not None:
+                return Review(q, "audit", "blind_audit", None, None, sample_id)
         return Review(
             q, row.state, row.reason, row.suggested, row.confidence, None, await self._votes(q.id)
         )
@@ -551,7 +566,7 @@ class ReviewService:
         return batch, created
 
     # ---- stats ------------------------------------------------------------------------
-    async def stats(self, days: int) -> dict[str, Any]:
+    async def stats(self, days: int, *, only_labeler: UUID | None = None) -> dict[str, Any]:
         since = _now() - timedelta(days=days)
         per = (
             await self._s.execute(
@@ -561,7 +576,11 @@ class ReviewService:
                     func.count(),
                     func.avg(DecisionRow.time_ms),
                 )
-                .where(DecisionRow.created_at >= since, DecisionRow.undone_at.is_(None))
+                .where(
+                    DecisionRow.created_at >= since,
+                    DecisionRow.undone_at.is_(None),
+                    *([DecisionRow.labeler_id == only_labeler] if only_labeler else []),
+                )
                 .group_by(DecisionRow.labeler_id, DecisionRow.action)
             )
         ).all()

@@ -50,6 +50,7 @@ async def _on_session_completed(session: AsyncSession, event: Event) -> None:
         int(p.get("xp_base", 0)),
         int(p.get("correct", 0)),
         int(p.get("total", 0)),
+        event.occurred_at,
     )
 
 
@@ -57,7 +58,7 @@ async def _on_session_completed(session: AsyncSession, event: Event) -> None:
 async def _on_attempt_graded(session: AsyncSession, event: Event) -> None:
     p = event.payload
     await build_gamification_service(session).on_attempt_graded(
-        event.id, UUID(p["user_id"]), bool(p["correct"])
+        event.id, UUID(p["user_id"]), bool(p["correct"]), event.occurred_at
     )
 
 
@@ -69,6 +70,7 @@ async def _on_mock_submitted(session: AsyncSession, event: Event) -> None:
         UUID(p["user_id"]),
         str(p["attempt_id"]),
         bool(p.get("rewardable", False)),
+        event.occurred_at,
     )
 
 

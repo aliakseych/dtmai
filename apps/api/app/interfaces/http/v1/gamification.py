@@ -16,8 +16,10 @@ from app.modules.gamification.domain.quests import METRICS as QUEST_METRICS
 from app.modules.gamification.domain.quests import QuestAction, QuestTemplate, quest_action
 from app.modules.gamification.ports import LeaderboardRow, Tier
 from app.modules.gamification.wiring import GamificationServiceDep
+from app.shared.audit import audit_admin
 from app.shared.deps import CurrentUser, require_role
-from app.shared.errors import ProblemDetails
+from app.shared.errors import Conflict, ProblemDetails
+from app.shared.security import Principal
 
 ERR: dict[int | str, dict[str, Any]] = {
     401: {"model": ProblemDetails, "description": "Unauthorized"},
@@ -27,8 +29,11 @@ ERR: dict[int | str, dict[str, Any]] = {
     422: {"model": ProblemDetails, "description": "Validation failed"},
 }
 
+MAX_FOLLOWING = 500
+
 router = APIRouter(tags=["gamification"])
 me_router = APIRouter(tags=["gamification"])
+AdminUser = Annotated[Principal, Depends(require_role("admin"))]
 admin_router = APIRouter(tags=["gamification-admin"], dependencies=[Depends(require_role("admin"))])
 
 
@@ -255,6 +260,8 @@ async def friends(user: CurrentUser, svc: GamificationServiceDep) -> list[Leader
     "/friends/{user_id}", status_code=204, responses=ERR, operation_id="gamification_follow"
 )
 async def follow(user_id: UUID, user: CurrentUser, svc: GamificationServiceDep) -> None:
+    if len(await svc.friends(user.user_id)) >= MAX_FOLLOWING:
+        raise Conflict("following limit reached", code="following_limit")
     await svc.follow(user.user_id, user_id)
 
 
@@ -360,8 +367,12 @@ async def list_templates(svc: GamificationServiceDep) -> list[QuestTemplateOut]:
     responses=ERR,
     operation_id="gamification_admin_create_quest_template",
 )
-async def create_template(body: QuestTemplateIn, svc: GamificationServiceDep) -> QuestTemplateOut:
-    return QuestTemplateOut.of(await svc.save_template(None, **body.model_dump()))
+async def create_template(
+    body: QuestTemplateIn, svc: GamificationServiceDep, who: AdminUser
+) -> QuestTemplateOut:
+    out = QuestTemplateOut.of(await svc.save_template(None, **body.model_dump()))
+    audit_admin(who, "gamification.quest_template.create", body=body.model_dump(mode="json"))
+    return out
 
 
 @admin_router.put(
@@ -371,9 +382,16 @@ async def create_template(body: QuestTemplateIn, svc: GamificationServiceDep) ->
     operation_id="gamification_admin_update_quest_template",
 )
 async def update_template(
-    template_id: UUID, body: QuestTemplateIn, svc: GamificationServiceDep
+    template_id: UUID, body: QuestTemplateIn, svc: GamificationServiceDep, who: AdminUser
 ) -> QuestTemplateOut:
-    return QuestTemplateOut.of(await svc.save_template(template_id, **body.model_dump()))
+    out = QuestTemplateOut.of(await svc.save_template(template_id, **body.model_dump()))
+    audit_admin(
+        who,
+        "gamification.quest_template.update",
+        template_id=str(template_id),
+        body=body.model_dump(mode="json"),
+    )
+    return out
 
 
 @admin_router.get(
@@ -392,12 +410,14 @@ async def get_tiers(svc: GamificationServiceDep) -> list[TierOut]:
     responses=ERR,
     operation_id="gamification_admin_set_league_tiers",
 )
-async def set_tiers(body: TiersIn, svc: GamificationServiceDep) -> list[TierOut]:
+async def set_tiers(body: TiersIn, svc: GamificationServiceDep, who: AdminUser) -> list[TierOut]:
     tiers = [
         Tier(t.idx, t.code, t.name, t.cohort_size, t.promote_count, t.demote_count)
         for t in body.tiers
     ]
-    return [TierOut.of(t) for t in await svc.set_tiers(tiers)]
+    out = [TierOut.of(t) for t in await svc.set_tiers(tiers)]
+    audit_admin(who, "gamification.tiers.set", tiers=len(tiers))
+    return out
 
 
 @admin_router.post(
@@ -406,8 +426,10 @@ async def set_tiers(body: TiersIn, svc: GamificationServiceDep) -> list[TierOut]
     responses=ERR,
     operation_id="gamification_admin_league_rollover",
 )
-async def rollover(svc: GamificationServiceDep) -> RolloverOut:
-    return RolloverOut(settled_cohorts=await svc.rollover())
+async def rollover(svc: GamificationServiceDep, who: AdminUser) -> RolloverOut:
+    out = RolloverOut(settled_cohorts=await svc.rollover())
+    audit_admin(who, "gamification.league.rollover", settled_cohorts=out.settled_cohorts)
+    return out
 
 
 @admin_router.get(
@@ -427,6 +449,7 @@ async def get_config(svc: GamificationServiceDep) -> ConfigModel:
     responses=ERR,
     operation_id="gamification_admin_set_config",
 )
-async def set_config(body: ConfigModel, svc: GamificationServiceDep) -> ConfigModel:
+async def set_config(body: ConfigModel, svc: GamificationServiceDep, who: AdminUser) -> ConfigModel:
     await svc.set_config(GameConfig(**body.model_dump()))
+    audit_admin(who, "gamification.config.set", body=body.model_dump())
     return body

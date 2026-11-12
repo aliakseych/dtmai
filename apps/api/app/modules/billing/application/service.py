@@ -201,24 +201,41 @@ class BillingService:
         plan = await self._plans.get(plan_code)
         if plan is None or not plan.active or plan.is_free:
             raise NotFound("plan not found", code="plan_not_found")
-        invoice = await self._invoices.create(
+        invoice = await self._invoices.find_open(
             user_id=user_id,
             plan_code=plan.code,
             period_months=plan.period_months,
             amount_uzs=plan.price_uzs,
         )
+        if invoice is None:
+            invoice = await self._invoices.create(
+                user_id=user_id,
+                plan_code=plan.code,
+                period_months=plan.period_months,
+                amount_uzs=plan.price_uzs,
+            )
         return invoice, self._provider.checkout_url(invoice)
 
     async def process_click(
-        self, raw: dict[str, str], now: datetime | None = None
+        self,
+        raw: dict[str, str],
+        now: datetime | None = None,
+        *,
+        expected_action: str | None = None,
     ) -> dict[str, Any]:
-        """One Click prepare/complete callback; always answers with a Click error envelope."""
+        """One Click prepare/complete callback; always answers with a Click error envelope.
+
+        `expected_action` pins the callback to its route: a prepare request sent to the
+        complete URL (or vice versa) is answered ACTION_NOT_FOUND without touching the invoice.
+        """
         self.ensure_payments_enabled()
         now = now or datetime.now(UTC)
         try:
             req = ClickRequest.parse(raw)
         except ValidationFailed:
             return _envelope(raw, None, ClickOutcome(ClickError.BAD_REQUEST))
+        if expected_action is not None and req.action != expected_action:
+            return _envelope(raw, None, ClickOutcome(ClickError.ACTION_NOT_FOUND))
         invoice: Invoice | None = None
         try:
             invoice = await self._invoices.get(UUID(req.merchant_trans_id), for_update=True)

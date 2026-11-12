@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from datetime import datetime
 from typing import Any, Protocol
 from uuid import UUID
 
@@ -45,6 +46,8 @@ class QuestionRepository(Protocol):
     async def add_report(self, question_id: UUID, user_id: UUID, reason: str) -> int:
         """Idempotent per (question,user); returns the distinct reporter count."""
         ...
+
+    async def count_reports_by_user_since(self, user_id: UUID, since: datetime) -> int: ...
 
     async def claim_event(self, event_id: UUID) -> bool:
         """True the first time an event id is claimed (idempotent consumers)."""

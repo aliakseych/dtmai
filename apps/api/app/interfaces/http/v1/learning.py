@@ -2,11 +2,13 @@ from datetime import date, datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, Header, Query
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.interfaces.http.v1._bounds import check_response_size
 from app.interfaces.http.v1._media import MediaOut, to_media
+from app.modules.assessment.wiring import build_assessment_service
 from app.modules.catalog import facade as catalog
 from app.modules.catalog.domain.models import pick_name
 from app.modules.gamification import facade as gamification
@@ -148,6 +150,8 @@ class AnswerIn(BaseModel):
         "the group is correct only if every child is correct, unanswered children count as wrong."
     )
     time_ms: int | None = Field(default=None, ge=0)
+
+    _cap = field_validator("response")(check_response_size)
 
 
 class AnswerOut(BaseModel):
@@ -490,7 +494,7 @@ async def weak_areas(
     user: CurrentUser,
     svc: LearningServiceDep,
     session: Session,
-    limit: int = 5,
+    limit: Annotated[int, Query(ge=1, le=50)] = 5,
     accept_language: AcceptLanguage = None,
 ) -> list[WeakAreaOut]:
     areas = await svc.weak_areas(user.user_id, subject_id, limit)
@@ -513,6 +517,10 @@ async def merge_guest(
     if "guest" not in guest.roles:
         raise Forbidden("token does not belong to a guest", code="not_a_guest")
     await dispatch_pending()  # flush the guest's outbox so no event lands after the merge
+    await build_assessment_service(session).merge_guest(guest.user_id, user.user_id)
+    # a finalized guest mock publishes events for the guest id: credit them before re-keying
+    await session.commit()
+    await dispatch_pending()
     await learning_facade.merge_guest(session, guest.user_id, user.user_id)
     await gamification.merge_guest(session, guest.user_id, user.user_id)
     await study_plan.merge_guest(session, guest.user_id, user.user_id)

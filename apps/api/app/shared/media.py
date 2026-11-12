@@ -14,6 +14,28 @@ class MediaSettings(BaseSettings):
     media_max_bytes: int = 10 * 1024 * 1024
 
 
+_SIGNATURES: tuple[tuple[bytes, str, str], ...] = (
+    (b"\x89PNG\r\n\x1a\n", "image/png", ".png"),
+    (b"\xff\xd8\xff", "image/jpeg", ".jpg"),
+    (b"GIF87a", "image/gif", ".gif"),
+    (b"GIF89a", "image/gif", ".gif"),
+    (b"%PDF-", "application/pdf", ".pdf"),
+)
+
+
+def sniff_media(data: bytes) -> tuple[str, str] | None:
+    """(content type, extension) from the file's magic bytes; None when not an allowed type.
+
+    The client-declared type is never trusted: stored objects are served with the sniffed one.
+    """
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp", ".webp"
+    for magic, mime, ext in _SIGNATURES:
+        if data.startswith(magic):
+            return mime, ext
+    return None
+
+
 class MediaStore(Protocol):
     async def put(self, key: str, data: bytes, mime: str) -> None: ...
 
@@ -48,8 +70,14 @@ class S3MediaStore:
         )
 
     async def put(self, key: str, data: bytes, mime: str) -> None:
+        extra = {"ContentDisposition": "attachment"} if mime == "application/pdf" else {}
         await asyncio.to_thread(
-            self._c.put_object, Bucket=self._bucket, Key=key, Body=data, ContentType=mime
+            self._c.put_object,
+            Bucket=self._bucket,
+            Key=key,
+            Body=data,
+            ContentType=mime,
+            **extra,
         )
 
 

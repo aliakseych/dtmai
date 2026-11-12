@@ -107,14 +107,17 @@ class SqlNotifyRepo:
         if row is None:
             return None
         user_id, expires = row.user_id, row.expires_at
-        await self._s.delete(row)
         if expires < now:
+            await self._s.delete(row)
             return None
-        await self._s.execute(
+        res = await self._s.execute(
             update(TelegramChatRow)
             .where(TelegramChatRow.chat_id == chat_id)
             .values(user_id=user_id)
         )
+        if not getattr(res, "rowcount", 0):
+            return None  # chat unknown: keep the code so the user can retry after /start
+        await self._s.delete(row)
         return user_id
 
     # activity (streak tracking for reminders)

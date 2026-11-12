@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.assessment.domain.attempt import IN_PROGRESS, SUBMITTED, MockAttempt
@@ -102,3 +102,8 @@ class SqlAttemptRepository:
         r.status, r.answers, r.flags, r.result = a.status, a.answers, a.flags, a.result
         r.submit_reason, r.submitted_at, r.score = a.submit_reason, a.submitted_at, a.score
         await self._s.flush()
+
+    async def reassign(self, from_id: UUID, into_id: UUID) -> None:
+        await self._s.execute(
+            update(MockAttemptRow).where(MockAttemptRow.user_id == from_id).values(user_id=into_id)
+        )

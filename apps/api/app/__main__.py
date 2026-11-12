@@ -1,3 +1,4 @@
+import ipaddress
 import os
 import socket
 import sys
@@ -13,13 +14,20 @@ USAGE = (
 def trusted_proxies(environ: dict[str, str] | None = None) -> str:
     """Peers whose X-Forwarded-For uvicorn may believe: never `*`.
 
-    FORWARDED_ALLOW_IPS wins (a wildcard is refused); else the compose proxy; else loopback.
+    FORWARDED_ALLOW_IPS wins (comma-separated IPs or CIDRs such as the pinned compose subnet;
+    a wildcard or malformed entry is refused); else the compose proxy resolved once at
+    startup; else loopback.
     """
     env = os.environ if environ is None else environ
     configured = env.get("FORWARDED_ALLOW_IPS", "").strip()
     if configured:
         if "*" in configured:
             raise SystemExit("FORWARDED_ALLOW_IPS must not contain '*'")
+        for item in (i.strip() for i in configured.split(",")):
+            try:
+                ipaddress.ip_network(item, strict=False)
+            except ValueError:
+                raise SystemExit(f"FORWARDED_ALLOW_IPS: invalid IP or CIDR {item!r}") from None
         return configured
     try:
         return socket.gethostbyname(PROXY_HOST)

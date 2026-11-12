@@ -154,6 +154,7 @@ class GamificationService:
     async def _league_xp(self, stats: UserStats, day: date, amount: int) -> None:
         week = week_start(day)
         if await self._leagues.membership(stats.user_id, week) is None:
+            await self._settle_previous(stats, week)
             tiers = await self._leagues.tiers()
             if not tiers:
                 return
@@ -165,6 +166,14 @@ class GamificationService:
                 cohort = await self._leagues.create_cohort(week, idx)
             await self._leagues.add_member(cohort, stats.user_id, week)
         await self._leagues.add_xp(stats.user_id, week, amount)
+
+    async def _settle_previous(self, stats: UserStats, week: date) -> None:
+        """Apply pending promotions/demotions before joining a new week's cohort."""
+        if await self._leagues.unsettled(week):
+            moved: dict[UUID, int] = {}
+            await self._rollover(moved)
+            if stats.user_id in moved:
+                stats.league_tier = moved[stats.user_id]
 
     async def _ensure_quests(self, stats: UserStats, cfg: GameConfig, day: date) -> list[UserQuest]:
         existing = await self._rewards.quests_for_day(stats.user_id, day)
@@ -231,11 +240,12 @@ class GamificationService:
         xp_base: int,
         correct: int,
         total: int,
+        occurred_at: datetime | None = None,
     ) -> None:
         stats, cfg, hearts_max, _, now = await self._load(user_id)
         if not await self._stats.mark_event(event_id, "session_completed"):
             return
-        day = tashkent_day(now)
+        day = tashkent_day(occurred_at or now)
         await self._sync_profile(stats, now)
         xp = clamp_session_xp(xp_base, total, cfg.xp_caps)
         gained = await self._award_xp(stats, cfg, day, xp, f"session:{session_id}", capped=True)
@@ -254,18 +264,25 @@ class GamificationService:
         await self._achievements(stats)
         await self._stats.save(stats)
 
-    async def on_attempt_graded(self, event_id: UUID, user_id: UUID, correct: bool) -> None:
+    async def on_attempt_graded(
+        self, event_id: UUID, user_id: UUID, correct: bool, occurred_at: datetime | None = None
+    ) -> None:
         stats, cfg, _, _, now = await self._load(user_id)
         if not await self._stats.mark_event(event_id, "attempt_graded"):
             return
         if correct:
             stats.correct_total += 1
-            await self._advance(stats, cfg, tashkent_day(now), "correct_answers", 1)
+            await self._advance(stats, cfg, tashkent_day(occurred_at or now), "correct_answers", 1)
             await self._achievements(stats)
         await self._stats.save(stats)
 
     async def on_mock_submitted(
-        self, event_id: UUID, user_id: UUID, attempt_id: str, rewardable: bool = True
+        self,
+        event_id: UUID,
+        user_id: UUID,
+        attempt_id: str,
+        rewardable: bool = True,
+        occurred_at: datetime | None = None,
     ) -> None:
         stats, cfg, _, _, now = await self._load(user_id)
         if not await self._stats.mark_event(event_id, "mock_submitted"):
@@ -273,7 +290,7 @@ class GamificationService:
         if not rewardable:  # empty/tiny submits earn nothing
             await self._stats.save(stats)
             return
-        day = tashkent_day(now)
+        day = tashkent_day(occurred_at or now)
         await self._sync_profile(stats, now)
         gained = await self._award_xp(
             stats, cfg, day, cfg.mock_xp, f"mock:{attempt_id}", capped=True
@@ -448,6 +465,10 @@ class GamificationService:
     # ---------- weekly rollover ----------
     async def rollover(self) -> int:
         """Settle every finished week's cohorts: record ranks, move users between tiers. Idempotent."""
+        return await self._rollover({})
+
+    async def _rollover(self, moved: dict[UUID, int]) -> int:
+        """Rollover that also records each user's new tier in `moved`."""
         tiers = {t.idx: t for t in await self._leagues.tiers()}
         if not tiers:
             return 0
@@ -467,9 +488,9 @@ class GamificationService:
             )
             await self._leagues.settle(cohort.id, results)
             for r in results:
-                await self._leagues.set_tier(
-                    r.user_id, next_tier(cohort.tier_idx, r.outcome, len(tiers))
-                )
+                new_tier = next_tier(cohort.tier_idx, r.outcome, len(tiers))
+                moved[r.user_id] = new_tier
+                await self._leagues.set_tier(r.user_id, new_tier)
             settled += 1
         return settled
 

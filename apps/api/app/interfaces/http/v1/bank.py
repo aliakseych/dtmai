@@ -14,6 +14,7 @@ from app.modules.bank.wiring import BankServiceDep
 from app.modules.catalog import facade as catalog
 from app.modules.catalog.wiring import CatalogServiceDep
 from app.modules.learning import facade as learning
+from app.shared.audit import audit_admin
 from app.shared.db import get_session
 from app.shared.deps import CurrentUser, require_role
 from app.shared.errors import NotFound, ProblemDetails
@@ -378,7 +379,11 @@ async def get_public_passage(passage_id: UUID, svc: BankServiceDep) -> PublicPas
 async def report_question(
     question_id: UUID, body: ReportIn, user: CurrentUser, svc: BankServiceDep
 ) -> ReportOut:
-    return ReportOut(hidden=await svc.report(question_id, user.user_id, body.reason))
+    return ReportOut(
+        hidden=await svc.report(
+            question_id, user.user_id, body.reason, is_guest="guest" in user.roles
+        )
+    )
 
 
 # ---- admin -------------------------------------------------------------------------------
@@ -532,9 +537,13 @@ async def get_passage(passage_id: UUID, svc: BankServiceDep) -> PassageOut:
 @admin_router.patch(
     "/passages/{passage_id}", operation_id="bank_admin_update_passage", responses=ERR
 )
-async def update_passage(passage_id: UUID, body: PassagePatch, svc: BankServiceDep) -> PassageOut:
+async def update_passage(
+    passage_id: UUID, body: PassagePatch, svc: BankServiceDep, who: AdminUser
+) -> PassageOut:
     patch = {k: getattr(body, k) for k in body.model_fields_set}
-    return _passage(await svc.update_passage(passage_id, patch))
+    out = _passage(await svc.update_passage(passage_id, patch))
+    audit_admin(who, "bank.passage.update", passage_id=str(passage_id), fields=sorted(patch))
+    return out
 
 
 __all__ = ["BankService", "admin_router", "router"]

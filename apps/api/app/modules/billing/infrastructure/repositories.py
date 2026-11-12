@@ -184,6 +184,24 @@ class SqlInvoiceRepository:
         await self._s.refresh(row)  # loads the identity `seq`
         return _invoice(row)
 
+    async def find_open(
+        self, *, user_id: UUID, plan_code: str, period_months: int, amount_uzs: int
+    ) -> Invoice | None:
+        row = await self._s.scalar(
+            select(InvoiceRow)
+            .where(
+                InvoiceRow.user_id == user_id,
+                InvoiceRow.plan_code == plan_code,
+                InvoiceRow.period_months == period_months,
+                InvoiceRow.amount_uzs == amount_uzs,
+                InvoiceRow.status == InvoiceStatus.PENDING.value,
+                InvoiceRow.click_trans_id.is_(None),
+            )
+            .order_by(InvoiceRow.created_at.desc())
+            .limit(1)
+        )
+        return _invoice(row) if row else None
+
     async def get(self, invoice_id: UUID, *, for_update: bool = False) -> Invoice | None:
         q = select(InvoiceRow).where(InvoiceRow.id == invoice_id)
         if for_update:

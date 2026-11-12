@@ -422,13 +422,19 @@ class PlanService:
     # ---- events ---------------------------------------------------------------------------
 
     async def on_activity(
-        self, event_id: UUID, user_id: UUID, kind: TaskKind, blueprint_id: UUID | None = None
+        self,
+        event_id: UUID,
+        user_id: UUID,
+        kind: TaskKind,
+        blueprint_id: UUID | None = None,
+        occurred_at: datetime | None = None,
     ) -> None:
         """A learning session/mock finished: tick the matching open task. Idempotent per event."""
         plan = await self._r.get_plan(user_id)
         if plan is None or await self._r.has_source(plan.id, event_id):
             return
-        task = await self._r.first_open(plan.id, kind, self._today(), blueprint_id=blueprint_id)
+        day = occurred_at.astimezone(TASHKENT).date() if occurred_at else self._today()
+        task = await self._r.first_open(plan.id, kind, day, blueprint_id=blueprint_id)
         if task is None:
             return
         task.complete(self._now(), event_id)

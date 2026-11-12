@@ -1,10 +1,12 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Annotated, Any
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Header, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
+from app.interfaces.http.v1._bounds import check_response_size
 from app.modules.study_plan.application.views import (
     AnalyticsView,
     DailyQuestionsView,
@@ -38,25 +40,37 @@ AcceptLanguage = Annotated[str | None, Header()]
 
 class CertificateIO(BaseModel):
     section_id: UUID
-    cert_type: str
+    cert_type: str = Field(max_length=50)
     value: float
     language_subject_id: UUID | None = None
 
 
 class SettingsIn(BaseModel):
-    direction_code: str
-    language: str = Field(description="Education language: uz | ru")
-    minutes_school_day: int = 45
-    minutes_weekend_day: int = 90
-    target_lyceum_ids: list[UUID] = []
-    certificates: list[CertificateIO] = []
+    direction_code: str = Field(max_length=50)
+    language: str = Field(max_length=10, description="Education language: uz | ru")
+    minutes_school_day: int = Field(45, ge=5, le=600)
+    minutes_weekend_day: int = Field(90, ge=5, le=600)
+    target_lyceum_ids: list[UUID] = Field([], max_length=20)
+    certificates: list[CertificateIO] = Field([], max_length=20)
     choice_subject_id: UUID | None = None
     exam_date: date | None = Field(None, description="Defaults to the exam profile's date")
     start_date: date | None = Field(None, description="Defaults to today")
     study_time: str | None = Field(
         None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$", description="Planned study time, HH:MM"
     )
-    study_days: list[int] = Field([], description="Weekdays 0=Mon..6=Sun; empty = every day")
+    study_days: list[Annotated[int, Field(ge=0, le=6)]] = Field(
+        [], max_length=7, description="Weekdays 0=Mon..6=Sun; empty = every day"
+    )
+
+    @field_validator("exam_date")
+    @classmethod
+    def _exam_date_in_range(cls, v: date | None) -> date | None:
+        if v is None:
+            return v
+        today = datetime.now(ZoneInfo("Asia/Tashkent")).date()
+        if not today <= v <= today + timedelta(days=731):
+            raise ValueError("exam_date must be within the next 2 years")
+        return v
 
     def cmd(self) -> SettingsCmd:
         return SettingsCmd(
@@ -323,6 +337,8 @@ class DailyQuestionsOut(BaseModel):
 
 class DailyAnswerIn(BaseModel):
     response: dict[str, Any]
+
+    _cap = field_validator("response")(check_response_size)
 
 
 class DailyAnswerOut(BaseModel):

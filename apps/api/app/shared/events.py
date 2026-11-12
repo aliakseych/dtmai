@@ -22,6 +22,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.db import Base, get_sessionmaker
 
+log = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True, slots=True)
 class Event:
@@ -63,7 +65,8 @@ async def publish(session: AsyncSession, event: Event) -> None:
 
 
 async def dispatch_pending(limit: int = 200) -> int:
-    """Deliver undispatched events; each event's handlers run in one transaction."""
+    """Deliver undispatched events. Each event's handlers run in their own savepoint: a
+    failing event is rolled back alone and stays undispatched for the next run."""
     done = 0
     async with get_sessionmaker()() as session:
         rows = (
@@ -77,8 +80,13 @@ async def dispatch_pending(limit: int = 200) -> int:
         ).all()
         for row in rows:
             ev = Event(name=row.name, payload=row.payload, id=row.id, occurred_at=row.occurred_at)
-            for h in _handlers.get(row.name, []):
-                await h(session, ev)
+            try:
+                async with session.begin_nested():
+                    for h in _handlers.get(row.name, []):
+                        await h(session, ev)
+            except Exception:  # noqa: BLE001 - one bad event must not block the batch
+                log.exception("outbox event %s (%s) failed; left for retry", row.id, row.name)
+                continue
             row.dispatched_at = datetime.now(UTC)
             done += 1
         await session.commit()

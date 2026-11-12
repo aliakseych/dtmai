@@ -48,7 +48,7 @@ async def _on_session_completed(session: AsyncSession, event: Event) -> None:
     kind = MODE_TO_KIND.get(event.payload["mode"])
     if kind is not None:  # placement and other modes have no planned task
         await build_plan_service(session).on_activity(
-            event.id, UUID(event.payload["user_id"]), kind
+            event.id, UUID(event.payload["user_id"]), kind, occurred_at=event.occurred_at
         )
 
 
@@ -58,5 +58,9 @@ async def _on_mock_submitted(session: AsyncSession, event: Event) -> None:
     if not p.get("rewardable") or p.get("kind") == "personal" or not p.get("blueprint_id"):
         return
     await build_plan_service(session).on_activity(
-        event.id, UUID(p["user_id"]), TaskKind.MOCK, blueprint_id=UUID(p["blueprint_id"])
+        event.id,
+        UUID(p["user_id"]),
+        TaskKind.MOCK,
+        blueprint_id=UUID(p["blueprint_id"]),
+        occurred_at=event.occurred_at,
     )

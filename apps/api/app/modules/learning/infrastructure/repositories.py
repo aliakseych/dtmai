@@ -174,7 +174,14 @@ class SqlLearningRepository:
 
     # rating
     async def rating(self, user_id: UUID, subject_id: UUID, default: float) -> float:
-        r = await self._s.get(RatingRow, (user_id, subject_id))
+        r = (
+            await self._s.execute(
+                select(RatingRow)
+                .where(RatingRow.user_id == user_id, RatingRow.subject_id == subject_id)
+                .execution_options(populate_existing=True)
+                .with_for_update()
+            )
+        ).scalar_one_or_none()
         return r.elo if r else default
 
     async def set_rating(self, user_id: UUID, subject_id: UUID, elo: float) -> None:
@@ -185,7 +192,18 @@ class SqlLearningRepository:
 
     # mastery
     async def mastery(self, user_id: UUID, topic_id: UUID | None, type_id: UUID) -> Mastery:
-        r = await self._s.get(MasteryRow, (user_id, topic_id or NIL, type_id))
+        r = (
+            await self._s.execute(
+                select(MasteryRow)
+                .where(
+                    MasteryRow.user_id == user_id,
+                    MasteryRow.topic_id == (topic_id or NIL),
+                    MasteryRow.type_id == type_id,
+                )
+                .execution_options(populate_existing=True)
+                .with_for_update()
+            )
+        ).scalar_one_or_none()
         return Mastery(r.score, r.attempts, r.correct) if r else Mastery()
 
     async def set_mastery(
@@ -218,7 +236,14 @@ class SqlLearningRepository:
 
     # SRS
     async def card(self, user_id: UUID, question_id: UUID) -> Card | None:
-        r = await self._s.get(ReviewCardRow, (user_id, question_id))
+        r = (
+            await self._s.execute(
+                select(ReviewCardRow)
+                .where(ReviewCardRow.user_id == user_id, ReviewCardRow.question_id == question_id)
+                .execution_options(populate_existing=True)
+                .with_for_update()
+            )
+        ).scalar_one_or_none()
         return Card(r.ease, r.interval_days, r.reps, r.lapses, r.due_at) if r else None
 
     async def set_card(

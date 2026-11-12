@@ -3,9 +3,10 @@ from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.interfaces.http.v1._bounds import check_response_size
 from app.interfaces.http.v1._media import MediaOut, to_media
 from app.modules.assessment.application.service import AttemptView, PredictionView, ResultView
 from app.modules.assessment.domain.attempt import MockAttempt
@@ -273,11 +274,22 @@ class PersonalStartIn(BaseModel):
 
 class SaveIn(BaseModel):
     answers: dict[UUID, dict[str, Any]] | None = Field(
-        default=None, description="question_id -> response; empty clears"
+        default=None, max_length=200, description="question_id -> response; empty clears"
     )
     flags: list[UUID] | None = Field(
-        default=None, description="Marked-for-review question ids (replaces the set)"
+        default=None,
+        max_length=200,
+        description="Marked-for-review question ids (replaces the set)",
     )
+
+    @field_validator("answers")
+    @classmethod
+    def _cap_answers(
+        cls, v: dict[UUID, dict[str, Any]] | None
+    ) -> dict[UUID, dict[str, Any]] | None:
+        for resp in (v or {}).values():
+            check_response_size(resp)
+        return v
 
 
 @router.get(

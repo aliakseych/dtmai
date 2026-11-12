@@ -260,6 +260,17 @@ class AssessmentService:
             await self._r.save(a)
         return await self._view(a, accepted=accepted)
 
+    # ---- guest merge --------------------------------------------------------
+    async def merge_guest(self, from_id: UUID, into_id: UUID) -> None:
+        """Re-key a guest's mocks to the account. Two running mocks can't coexist
+        (uq_mock_attempts_one_active), so the guest's is finalized first."""
+        if from_id == into_id:
+            return
+        guest_active = await self._r.active_for(from_id, lock=True)
+        if guest_active is not None and await self._r.active_for(into_id, lock=True) is not None:
+            await self._finalize(guest_active, reason="auto")
+        await self._r.reassign(from_id, into_id)
+
     # ---- submitting ---------------------------------------------------------
     async def submit(self, user_id: UUID, attempt_id: UUID) -> ResultView:
         a = await self._owned(user_id, attempt_id, lock=True)
