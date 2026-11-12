@@ -45,6 +45,16 @@ jobs:
           NEXT_PUBLIC_API_URL: https://api.dtm-ai.uz
           NEXT_PUBLIC_TG_BOT: ci_bot
 
+  ui-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: "1.4.4"
+      - run: bun install --frozen-lockfile
+      - run: bun run --filter @dtmai/ui test
+
   openapi-drift:
     runs-on: ubuntu-24.04
     steps:
