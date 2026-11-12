@@ -2,15 +2,15 @@ import { createApiClient } from "@dtmai/api-client";
 import { apiUrl } from "./env";
 import { readTokens, writeTokens } from "./session";
 
-import { LOCALES } from "@dtmai/i18n";
+import { DEFAULT_LOCALE, LOCALES } from "@dtmai/i18n";
 
 /** UI locale as persisted by the @dtmai/i18n switcher (`dtmai.locale`); read per request so a switch applies immediately. */
 export function currentLocale(): string {
-  if (typeof window === "undefined") return "en";
+  if (typeof window === "undefined") return DEFAULT_LOCALE;
   try {
     const v = window.localStorage.getItem("dtmai.locale");
-    return v && (LOCALES as readonly string[]).includes(v) ? v : "en";
-  } catch { return "en"; }
+    return v && (LOCALES as readonly string[]).includes(v) ? v : DEFAULT_LOCALE;
+  } catch { return DEFAULT_LOCALE; }
 }
 
 let onUnauthorized: () => void = () => {};

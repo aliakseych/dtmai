@@ -1372,7 +1372,7 @@
   "admin.users.anyStatus": "Любой статус",
   "admin.users.atLeast8Characters": "Минимум 8 символов. Передайте безопасно; аккаунт создаётся подтверждённым.",
   "admin.users.disableAccount": "Отключить аккаунт",
-  "admin.users.disabled": "Отключён",
+  "admin.users.disabled": "Заблокирован",
   "admin.users.emailLogin": "Email / логин",
   "admin.users.emailNameOrTelegram": "Email, имя или Telegram",
   "admin.users.enableAccount": "Включить аккаунт",

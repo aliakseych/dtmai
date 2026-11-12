@@ -1372,7 +1372,7 @@
   "admin.users.anyStatus": "Istalgan holat",
   "admin.users.atLeast8Characters": "Kamida 8 ta belgi. Xavfsiz uzating; akkaunt tasdiqlangan holda yaratiladi.",
   "admin.users.disableAccount": "Akkauntni o‘chirib qo‘yish",
-  "admin.users.disabled": "O‘chirilgan",
+  "admin.users.disabled": "Bloklangan",
   "admin.users.emailLogin": "Email / login",
   "admin.users.emailNameOrTelegram": "Email, ism yoki Telegram",
   "admin.users.enableAccount": "Akkauntni yoqish",

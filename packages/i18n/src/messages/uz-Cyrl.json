@@ -1372,7 +1372,7 @@
   "admin.users.anyStatus": "Исталган ҳолат",
   "admin.users.atLeast8Characters": "Камида 8 та белги. Хавфсиз узатинг; аккаунт тасдиқланган ҳолда яратилади.",
   "admin.users.disableAccount": "Аккаунтни ўчириб қўйиш",
-  "admin.users.disabled": "Ўчирилган",
+  "admin.users.disabled": "Блокланган",
   "admin.users.emailLogin": "Email / логин",
   "admin.users.emailNameOrTelegram": "Email, исм ёки Телеграм",
   "admin.users.enableAccount": "Аккаунтни ёқиш",
