@@ -1,0 +1,264 @@
+{
+  "@@locale": "ru",
+  "appName": "ДТМ AI",
+  "continueLabel": "Продолжить",
+  "check": "Проверить",
+  "skip": "Пропустить",
+  "correct": "Верно!",
+  "incorrect": "Неверно",
+  "correctAnswer": "Правильный ответ:",
+  "explanation": "Объяснение",
+  "signIn": "Войти",
+  "email": "Email",
+  "sendCode": "Отправить код",
+  "code": "Код подтверждения",
+  "verify": "Подтвердить",
+  "orLabel": "или",
+  "onboardingTitle": "Выберите цель",
+  "chooseLyceum": "Лицей",
+  "chooseLanguage": "Язык обучения",
+  "startPlacement": "Начать вступительный тест",
+  "learn": "Учёба",
+  "practice": "Практика",
+  "mocks": "Пробные тесты",
+  "leagues": "Лиги",
+  "quests": "Задания",
+  "profile": "Профиль",
+  "premium": "Premium",
+  "lyceums": "Лицеи",
+  "hearts": "Сердца",
+  "noHearts": "Сердца закончились. Вернитесь позже или оформите Premium.",
+  "streakDays": "Серия: {n} дн.",
+  "@streakDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gems": "Кристаллы",
+  "xp": "XP",
+  "dailyGoal": "Дневная цель",
+  "mistakes": "Работа над ошибками",
+  "weakTopics": "Слабые темы",
+  "bankDrill": "Банк вопросов",
+  "personalMock": "Персональный пробный",
+  "start": "Начать",
+  "submit": "Сдать",
+  "finish": "Завершить",
+  "timeLeft": "Осталось времени",
+  "markReview": "Отметить",
+  "navigator": "Навигатор",
+  "answeredCount": "Отвечено: {a} из {t}",
+  "@answeredCount": {
+    "placeholders": {
+      "a": {
+        "type": "int"
+      },
+      "t": {
+        "type": "int"
+      }
+    }
+  },
+  "score": "Результат",
+  "predictedScore": "Прогнозируемый балл",
+  "lessonComplete": "Урок пройден!",
+  "dailyQuests": "Ежедневные задания",
+  "weeklyLeague": "Недельная лига",
+  "rank": "Место",
+  "friends": "Друзья",
+  "logout": "Выйти",
+  "language": "Язык",
+  "retry": "Повторить",
+  "errorGeneric": "Что-то пошло не так",
+  "empty": "Пока ничего нет",
+  "typeAnswer": "Введите ответ",
+  "premiumPerks": "ИИ-объяснения, ИИ-репетитор, персональные пробные и аналитика",
+  "quota": "Квота",
+  "applications": "Заявки",
+  "competition": "Конкурс",
+  "year": "Год",
+  "search": "Поиск",
+  "previousYears": "Прошлые годы",
+  "streakReminderTitle": "Не потеряйте серию!",
+  "streakReminderBody": "Пройдите сегодняшний урок — Темур ждёт вас.",
+  "reminderChannel": "Напоминания",
+  "password": "Пароль",
+  "nameLabel": "Имя",
+  "signUp": "Регистрация",
+  "haveAccount": "Уже есть аккаунт? Войти",
+  "noAccount": "Нет аккаунта? Зарегистрироваться",
+  "notNow": "Не сейчас",
+  "resendCode": "Отправить код ещё раз",
+  "verifyPrompt": "Введите код из письма",
+  "guestGateMessage": "Создайте аккаунт, чтобы пользоваться этим",
+  "skipPlacement": "Пропустить тест",
+  "placementBannerTitle": "Пройдите входной тест",
+  "placementBannerBody": "Мы подберём путь под ваш уровень",
+  "noPath": "Для этого предмета пока нет пути",
+  "noFriends": "Друзей пока нет",
+  "streakLabel": "Серия",
+  "planPremium": "Premium активен",
+  "planFree": "Бесплатный тариф",
+  "reviewToEarn": "Поработайте над ошибками, чтобы получить сердца",
+  "waitForRefill": "Или дождитесь восстановления сердец",
+  "heartsBanner": "Сердца закончились",
+  "exitConfirmTitle": "Выйти из урока?",
+  "exitConfirmBody": "Прогресс этого урока будет потерян.",
+  "cancel": "Отмена",
+  "leave": "Выйти",
+  "placementDone": "Тест пройден! Ваш путь готов.",
+  "accuracy": "Точность",
+  "resumeAttempt": "Продолжить экзамен",
+  "submitConfirmTitle": "Сдать экзамен?",
+  "exitMockTitle": "Выйти из экзамена?",
+  "exitMockBody": "Ответы сохранены; вы сможете продолжить, пока идёт время.",
+  "autosaveFailed": "Не удалось сохранить ответы",
+  "onTrack": "Вы на пути к проходному баллу",
+  "offTrack": "Ниже проходного балла",
+  "passingScore": "Проходной балл",
+  "gap": "Разница",
+  "setTarget": "Сделать целью",
+  "premiumWebOnly": "Подписка оформляется на сайте",
+  "monthsShort": "мес.",
+  "chooseSubject": "Предмет",
+  "planActive": "Premium до {date}",
+  "@planActive": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "refillIn": "Следующее сердце через {time}",
+  "@refillIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "leagueEndsIn": "Закончится через {time}",
+  "@leagueEndsIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "submitConfirmBody": "Без ответа: {unanswered}, отмечено: {flagged}. Всё равно сдать?",
+  "@submitConfirmBody": {
+    "placeholders": {
+      "unanswered": {
+        "type": "int"
+      },
+      "flagged": {
+        "type": "int"
+      }
+    }
+  },
+  "forgotPassword": "Забыли пароль?",
+  "resetPassword": "Сбросить пароль",
+  "newPassword": "Новый пароль",
+  "resetPrompt": "Введите код из письма и новый пароль",
+  "invalidCode": "Неверный или просроченный код",
+  "weakPassword": "Слишком простой пароль",
+  "allTime": "За всё время",
+  "answersNotAccepted": "Время вышло — последние ответы не приняты. Отправляем работу.",
+  "audioFailed": "Не удалось воспроизвести аудио",
+  "channelEmail": "Почта",
+  "channelPush": "Push",
+  "channelTelegram": "Telegram",
+  "drillWeakTopics": "Тренировать слабые темы",
+  "explain": "Объяснить",
+  "freezeUsed": "Заморозка серии использована",
+  "guestLogoutTitle": "Выйти из гостевого режима?",
+  "guestLogoutBody": "Прогресс не привязан к аккаунту и будет потерян.",
+  "history": "История",
+  "kindDailyQuestion": "Вопрос дня",
+  "kindLeagueEnding": "Лига заканчивается",
+  "kindStreakReminder": "Напоминание о серии",
+  "listen": "Слушать",
+  "maxPerDay": "Максимум в день",
+  "mergeFailed": "Вход выполнен, но гостевой прогресс не удалось объединить",
+  "noReviewDue": "Сейчас нечего повторять",
+  "notAnswered": "Нет ответа",
+  "notificationSettings": "Уведомления",
+  "pauseAudio": "Пауза",
+  "playAudio": "Воспроизвести",
+  "quietHours": "Тихие часы",
+  "reportQuestion": "Сообщить об ошибке",
+  "reportReason": "Что не так с этим вопросом?",
+  "reportSent": "Спасибо, жалоба отправлена",
+  "reviewAnswers": "Разбор ответов",
+  "save": "Сохранить",
+  "saveProgress": "Сохраните прогресс",
+  "saveProgressBody": "Войдите или создайте аккаунт, чтобы не потерять серию и XP.",
+  "saved": "Сохранено",
+  "send": "Отправить",
+  "sessionExpired": "Сессия истекла. Войдите снова.",
+  "streakAtRisk": "Серия под угрозой — позанимайтесь сегодня!",
+  "tabFriends": "Друзья",
+  "tabLeague": "Лига",
+  "tabLyceum": "Лицей",
+  "useFreeze": "Применить заморозку",
+  "weekly": "Неделя",
+  "yourAnswer": "Ваш ответ",
+  "minutesShort": "{n} мин",
+  "@minutesShort": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "durationDaysHours": "{days}д {hours}ч",
+  "@durationDaysHours": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours}ч {minutes}м",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "streakFreezes": "Заморозок серии: {n}",
+  "@streakFreezes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "chooseCity": "Город",
+  "cityHint": "Или город, в котором вы планируете учиться. Не выбирайте, если готовы учиться в разных городах.",
+  "anyCity": "Любой город",
+  "chooseSubjects": "Предметы (один или несколько)",
+  "dormitory": "Общежитие",
+  "dormitoryAvailable": "Есть общежитие",
+  "dormitoryLimited": "Места в общежитии ограничены",
+  "dormitoryNone": "Общежития нет",
+  "dormitoryUnknown": "Нет данных об общежитии",
+  "dreamLyceums": "Мои лицеи мечты",
+  "dreamRules": "Можно выбрать до 3 лицеев по приоритету. Ваш балл сначала сравнивается с 1-м выбором. Если его хватает, вы зачислены туда, а 2-й и 3-й не рассматриваются. Если нет, проверяется 2-й выбор, затем 3-й. Если не подходит ни один, результат показывается по 1-му выбору. Поставьте настоящую мечту первой, а более надёжный вариант — третьим.",
+  "moveUp": "Выше",
+  "moveDown": "Ниже",
+  "removeItem": "Убрать",
+  "emptySlot": "Свободное место",
+  "addToDreams": "Добавить в мечты",
+  "removeFromDreams": "Убрать из мечт",
+  "addLyceum": "Добавить лицей",
+  "tooManyDreams": "Можно выбрать не более 3 лицеев."
+}

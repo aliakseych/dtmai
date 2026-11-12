@@ -1,0 +1,31 @@
+# Dev infrastructure only; run api/web on the host.
+name: dtmai-dev
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dtmai
+      POSTGRES_PASSWORD: dtmai
+      POSTGRES_DB: dtmai
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: [pg:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dtmai"]
+      interval: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    ports: ["127.0.0.1:6379:6379"]
+  rustfs:
+    image: rustfs/rustfs:latest
+    environment:
+      RUSTFS_ACCESS_KEY: dtmai
+      RUSTFS_SECRET_KEY: dtmai-secret
+    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+    volumes: [s3:/data]
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
+volumes:
+  pg:
+  s3:

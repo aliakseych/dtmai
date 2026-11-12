@@ -1,0 +1,264 @@
+{
+  "@@locale": "uz_Cyrl",
+  "appName": "DTM AI",
+  "continueLabel": "Давом этиш",
+  "check": "Текшириш",
+  "skip": "Ўтказиб юбориш",
+  "correct": "Тўғри!",
+  "incorrect": "Нотўғри",
+  "correctAnswer": "Тўғри жавоб:",
+  "explanation": "Тушунтириш",
+  "signIn": "Кириш",
+  "email": "Email",
+  "sendCode": "Код юбориш",
+  "code": "Тасдиқлаш коди",
+  "verify": "Тасдиқлаш",
+  "orLabel": "ёки",
+  "onboardingTitle": "Мақсадингизни танланг",
+  "chooseLyceum": "Лицей",
+  "chooseLanguage": "Таълим тили",
+  "startPlacement": "Саралаш тестини бошлаш",
+  "learn": "Ўрганиш",
+  "practice": "Машқ",
+  "mocks": "Мок тестлар",
+  "leagues": "Лигалар",
+  "quests": "Топшириқлар",
+  "profile": "Профиль",
+  "premium": "Premium",
+  "lyceums": "Лицейлар",
+  "hearts": "Юраклар",
+  "noHearts": "Юраклар тугади. Бироздан сўнг қайтинг ёки Premium олинг.",
+  "streakDays": "{n} кунлик серия",
+  "@streakDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gems": "Олмослар",
+  "xp": "XP",
+  "dailyGoal": "Кунлик мақсад",
+  "mistakes": "Хатолар устида ишлаш",
+  "weakTopics": "Заиф мавзулар",
+  "bankDrill": "Саволлар банки",
+  "personalMock": "Шахсий мок",
+  "start": "Бошлаш",
+  "submit": "Топшириш",
+  "finish": "Якунлаш",
+  "timeLeft": "Қолган вақт",
+  "markReview": "Белгилаш",
+  "navigator": "Саволлар харитаси",
+  "answeredCount": "{a} / {t} жавоб берилди",
+  "@answeredCount": {
+    "placeholders": {
+      "a": {
+        "type": "int"
+      },
+      "t": {
+        "type": "int"
+      }
+    }
+  },
+  "score": "Натижа",
+  "predictedScore": "Тахминий балл",
+  "lessonComplete": "Дарс якунланди!",
+  "dailyQuests": "Кунлик топшириқлар",
+  "weeklyLeague": "Ҳафталик лига",
+  "rank": "Ўрин",
+  "friends": "Дўстлар",
+  "logout": "Чиқиш",
+  "language": "Тил",
+  "retry": "Қайта уриниш",
+  "errorGeneric": "Хатолик юз берди",
+  "empty": "Ҳозирча ҳеч нарса йўқ",
+  "typeAnswer": "Жавобни киритинг",
+  "premiumPerks": "AI тушунтиришлар, AI репетитор, шахсий моклар ва таҳлил",
+  "quota": "Квота",
+  "applications": "Аризалар",
+  "competition": "Конкурс",
+  "year": "Йил",
+  "search": "Қидириш",
+  "previousYears": "Ўтган йиллар",
+  "streakReminderTitle": "Серияни йўқотманг!",
+  "streakReminderBody": "Бугунги дарсни бажаринг — Темур сизни кутмоқда.",
+  "reminderChannel": "Эслатмалар",
+  "password": "Парол",
+  "nameLabel": "Исм",
+  "signUp": "Рўйхатдан ўтиш",
+  "haveAccount": "Аккаунтингиз борми? Кириш",
+  "noAccount": "Аккаунтингиз йўқми? Рўйхатдан ўтинг",
+  "notNow": "Ҳозир эмас",
+  "resendCode": "Кодни қайта юбориш",
+  "verifyPrompt": "Емайлга юборилган кодни киритинг",
+  "guestGateMessage": "Бу имкониятдан фойдаланиш учун аккаунт яратинг",
+  "skipPlacement": "Саралаш тестини ўтказиб юбориш",
+  "placementBannerTitle": "Саралаш тестидан ўтинг",
+  "placementBannerBody": "Йўлни даражангизга мослаймиз",
+  "noPath": "Бу фан учун ҳали йўл йўқ",
+  "noFriends": "Ҳали дўстлар йўқ",
+  "streakLabel": "Серия",
+  "planPremium": "Premium фаол",
+  "planFree": "Бепул тариф",
+  "reviewToEarn": "Юраклар олиш учун хатолар устида ишланг",
+  "waitForRefill": "Ёки юраклар тикланишини кутинг",
+  "heartsBanner": "Юраклар тугади",
+  "exitConfirmTitle": "Дарсдан чиқасизми?",
+  "exitConfirmBody": "Бу дарсдаги жараён йўқолади.",
+  "cancel": "Бекор қилиш",
+  "leave": "Чиқиш",
+  "placementDone": "Саралаш тугади! Йўлингиз тайёр.",
+  "accuracy": "Аниқлик",
+  "resumeAttempt": "Имтиҳонни давом эттириш",
+  "submitConfirmTitle": "Имтиҳонни топширасизми?",
+  "exitMockTitle": "Имтиҳондан чиқасизми?",
+  "exitMockBody": "Жавоблар сақланди; вақт тугамагунча давом эттиришингиз мумкин.",
+  "autosaveFailed": "Жавобларни сақлаб бўлмади",
+  "onTrack": "Ўтиш балига яқинсиз",
+  "offTrack": "Ўтиш балидан паст",
+  "passingScore": "Ўтиш бали",
+  "gap": "Фарқ",
+  "setTarget": "Мақсад қилиш",
+  "premiumWebOnly": "Обуна сайтимизда расмийлаштирилади",
+  "monthsShort": "ой",
+  "chooseSubject": "Фан",
+  "planActive": "Premium {date} гача",
+  "@planActive": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "refillIn": "Кейинги юрак {time} дан кейин",
+  "@refillIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "leagueEndsIn": "{time} дан кейин тугайди",
+  "@leagueEndsIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "submitConfirmBody": "Жавобсиз: {unanswered}, белгиланган: {flagged}. Барибир топширасизми?",
+  "@submitConfirmBody": {
+    "placeholders": {
+      "unanswered": {
+        "type": "int"
+      },
+      "flagged": {
+        "type": "int"
+      }
+    }
+  },
+  "forgotPassword": "Паролни унутдингизми?",
+  "resetPassword": "Паролни тиклаш",
+  "newPassword": "Янги парол",
+  "resetPrompt": "Емайлдаги кодни ва янги паролни киритинг",
+  "invalidCode": "Код нотўғри ёки эскирган",
+  "weakPassword": "Парол жуда оддий",
+  "allTime": "Барча вақт",
+  "answersNotAccepted": "Вақт тугади – охирги жавоблар қабул қилинмади. Иш топширилмоқда.",
+  "audioFailed": "Аудиони ижро этиб бўлмади",
+  "channelEmail": "Email",
+  "channelPush": "Push",
+  "channelTelegram": "Telegram",
+  "drillWeakTopics": "Заиф мавзуларни машқ қилиш",
+  "explain": "Тушунтириш",
+  "freezeUsed": "Серия музлатилди",
+  "guestLogoutTitle": "Меҳмон режимидан чиқасизми?",
+  "guestLogoutBody": "Ютуқларингиз аккаунтга боғланмаган ва йўқолади.",
+  "history": "Тарих",
+  "kindDailyQuestion": "Кун саволи",
+  "kindLeagueEnding": "Лига тугаяпти",
+  "kindStreakReminder": "Серия эслатмаси",
+  "listen": "Тинглаш",
+  "maxPerDay": "Кунига кўпи билан",
+  "mergeFailed": "Кирилди, лекин меҳмон ютуқларини бирлаштириб бўлмади",
+  "noReviewDue": "Ҳозир такрорлаш учун ҳеч нарса йўқ",
+  "notAnswered": "Жавоб берилмаган",
+  "notificationSettings": "Билдиришномалар",
+  "pauseAudio": "Пауза",
+  "playAudio": "Ижро этиш",
+  "quietHours": "Тинч соатлар",
+  "reportQuestion": "Хато ҳақида хабар бериш",
+  "reportReason": "Бу саволда нима нотўғри?",
+  "reportSent": "Раҳмат, хабар юборилди",
+  "reviewAnswers": "Жавоблар таҳлили",
+  "save": "Сақлаш",
+  "saveProgress": "Ютуқларингизни сақланг",
+  "saveProgressBody": "Серия ва XP йўқолмаслиги учун киринг ёки аккаунт яратинг.",
+  "saved": "Сақланди",
+  "send": "Юбориш",
+  "sessionExpired": "Сеанс тугади. Қайта киринг.",
+  "streakAtRisk": "Серияингиз хавф остида – бугун машқ қилинг!",
+  "tabFriends": "Дўстлар",
+  "tabLeague": "Лига",
+  "tabLyceum": "Лицей",
+  "useFreeze": "Музлатиш",
+  "weekly": "Ҳафта",
+  "yourAnswer": "Сизнинг жавобингиз",
+  "minutesShort": "{n} дақ",
+  "@minutesShort": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "durationDaysHours": "{days}к {hours}с",
+  "@durationDaysHours": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours}с {minutes}д",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "streakFreezes": "Серия музлатгичлари: {n}",
+  "@streakFreezes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "chooseCity": "Шаҳар",
+  "cityHint": "Ёки ўқишни режалаштирган шаҳрингиз. Турли шаҳарларда ўқишга тайёр бўлсангиз, танламанг.",
+  "anyCity": "Исталган шаҳар",
+  "chooseSubjects": "Фанлар (битта ёки бир нечта)",
+  "dormitory": "Ётоқхона",
+  "dormitoryAvailable": "Ётоқхона бор",
+  "dormitoryLimited": "Ётоқхона ўринлари чекланган",
+  "dormitoryNone": "Ётоқхона йўқ",
+  "dormitoryUnknown": "Ётоқхона ҳақида маълумот йўқ",
+  "dreamLyceums": "Орзудаги лицейларим",
+  "dreamRules": "3 тагача лицейни устуворлик тартибида танлаш мумкин. Балингиз аввал 1-танлов билан солиштирилади. Етарли бўлса, ўша ерга қабул қилинасиз, 2- ва 3-танлов кўриб чиқилмайди. Етмаса, 2-танлов, кейин 3-танлов текширилади. Биортаси ҳам тўғри келмаса, натижангиз 1-танлов бўйича кўрсатилади. Ҳақиқий орзуингизни биринчи, ишончлироқ вариантни учинчи қўйинг.",
+  "moveUp": "Юқорига",
+  "moveDown": "Пастга",
+  "removeItem": "Олиб ташлаш",
+  "emptySlot": "Бўш ўрин",
+  "addToDreams": "Орзуларимга қўшиш",
+  "removeFromDreams": "Орзуларимдан олиб ташлаш",
+  "addLyceum": "Лицей қўшиш",
+  "tooManyDreams": "3 тагача лицей танлаш мумкин."
+}

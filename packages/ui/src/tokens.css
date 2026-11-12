@@ -1,0 +1,85 @@
+@import "@fontsource-variable/nunito";
+
+@theme {
+  --font-sans: "Nunito Variable", "Nunito", ui-rounded, system-ui, sans-serif;
+  /* Brand: #100FA0 primary, #AFF50B accent, rest black/white/grays. See .claude/skills/ui-ux/UI-RULES.md. */
+  --color-brand: #100fa0;
+  --color-brand-deep: #0b0a78;
+  --color-brand-soft: #ececff;
+  --color-accent: #aff50b;
+  --color-accent-deep: #7fb800;
+  --color-accent-soft: #f1fdd0;
+  --color-accent-ink: #5f8a00;
+  --color-ink-mute: #afafaf;
+  --color-line-deep: #cfcfcf;
+  /* DEPRECATED aliases (green/blue/gold/orange): do not use in new code; kept for apps not yet migrated. */
+  --color-green: #100fa0;
+  --color-green-deep: #100fa0;
+  --color-green-soft: #ececff;
+  --color-blue: #3a39d4;
+  --color-blue-deep: #100fa0;
+  --color-blue-soft: #ececff;
+  --color-gold: #aff50b;
+  --color-gold-deep: #5f8a00;
+  --color-orange: #1a1a1a;
+  --color-orange-deep: #000000;
+  /* Semantic feedback only. */
+  --color-red: #ff4b4b;
+  --color-red-deep: #ea2b2b;
+  --color-red-soft: #ffdfe0;
+  --color-correct: #2f9e0a;
+  --color-correct-deep: #2f6200;
+  --color-red-ink: #a11c1c;
+  --color-ink: #111111;
+  --color-ink-soft: #6b6b6b;
+  --color-line: #e5e5e5;
+  --color-snow: #f6f6f8;
+  --radius-card: 16px;
+}
+
+html {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: #fff;
+  font-weight: 700;
+}
+body { margin: 0; -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-weight: 800; }
+:focus-visible { outline: 3px solid var(--color-brand); outline-offset: 2px; }
+/* Brand-blue surfaces: a blue ring would vanish, use the lime accent. */
+.bg-brand :focus-visible, .bg-brand-deep :focus-visible { outline-color: var(--color-accent); }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+@keyframes sheet-in {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.sheet-in { animation: sheet-in 0.22s ease-out both; }
+@keyframes pop-in {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.pop-in { animation: pop-in 0.45s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .sheet-in, .pop-in { animation: none; }
+}
+
+@keyframes menu-in {
+  from { transform: translateY(-6px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.menu-in { animation: menu-in 0.16s ease-out both; }
+@keyframes fade-up {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.fade-up { animation: fade-up 0.5s ease-out both; }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.bob { animation: bob 3.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .menu-in, .fade-up, .bob { animation: none; }
+}

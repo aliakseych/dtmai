@@ -1,0 +1,41 @@
+name: dtmai
+description: DTM AI - DTM lyceum entrance exam preparation (mobile).
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.3
+  flutter_riverpod: ^3.5.0
+  go_router: ^18.1.4
+  dio: ^5.11.1
+  flutter_secure_storage: ^11.2.0
+  home_widget: ^0.10.0
+  firebase_core: ^5.1.0
+  firebase_messaging: ^17.0.1
+  flutter_local_notifications: ^23.0.1
+  timezone: ^0.11.2
+  flutter_timezone: ^5.1.1
+  flutter_svg: ^2.3.3
+  flutter_math_fork: ^0.7.4
+  google_fonts: ^9.0.0
+  material_ui: ^1.11.0
+  just_audio: ^0.10.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/brand/

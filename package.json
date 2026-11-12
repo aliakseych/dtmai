@@ -1,0 +1,11 @@
+{
+  "name": "dtmai",
+  "private": true,
+  "workspaces": ["apps/web", "apps/admin", "packages/*"],
+  "scripts": {
+    "dev": "bun run --filter './apps/*' dev",
+    "build": "bun run --filter './apps/*' build",
+    "lint": "bun run --filter './apps/*' lint && bun run --filter './packages/*' lint",
+    "gen:api": "cd apps/api && uv run python scripts/export_openapi.py && cd ../.. && bun run --filter @dtmai/api-client gen"
+  }
+}

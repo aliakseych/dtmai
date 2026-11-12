@@ -1,0 +1,264 @@
+{
+  "@@locale": "en",
+  "appName": "DTM AI",
+  "continueLabel": "Continue",
+  "check": "Check",
+  "skip": "Skip",
+  "correct": "Correct!",
+  "incorrect": "Incorrect",
+  "correctAnswer": "Correct answer:",
+  "explanation": "Explanation",
+  "signIn": "Sign in",
+  "email": "Email",
+  "sendCode": "Send code",
+  "code": "Verification code",
+  "verify": "Verify",
+  "orLabel": "or",
+  "onboardingTitle": "Choose your goal",
+  "chooseLyceum": "Lyceum",
+  "chooseLanguage": "Education language",
+  "startPlacement": "Start placement test",
+  "learn": "Learn",
+  "practice": "Practice",
+  "mocks": "Mock exams",
+  "leagues": "Leagues",
+  "quests": "Quests",
+  "profile": "Profile",
+  "premium": "Premium",
+  "lyceums": "Lyceums",
+  "hearts": "Hearts",
+  "noHearts": "Out of hearts. Come back later or go Premium.",
+  "streakDays": "{n} day streak",
+  "@streakDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gems": "Gems",
+  "xp": "XP",
+  "dailyGoal": "Daily goal",
+  "mistakes": "Review mistakes",
+  "weakTopics": "Weak topics",
+  "bankDrill": "Question bank",
+  "personalMock": "Personal mock",
+  "start": "Start",
+  "submit": "Submit",
+  "finish": "Finish",
+  "timeLeft": "Time left",
+  "markReview": "Mark for review",
+  "navigator": "Question map",
+  "answeredCount": "{a} of {t} answered",
+  "@answeredCount": {
+    "placeholders": {
+      "a": {
+        "type": "int"
+      },
+      "t": {
+        "type": "int"
+      }
+    }
+  },
+  "score": "Score",
+  "predictedScore": "Predicted score",
+  "lessonComplete": "Lesson complete!",
+  "dailyQuests": "Daily quests",
+  "weeklyLeague": "Weekly league",
+  "rank": "Rank",
+  "friends": "Friends",
+  "logout": "Log out",
+  "language": "Language",
+  "retry": "Retry",
+  "errorGeneric": "Something went wrong",
+  "empty": "Nothing here yet",
+  "typeAnswer": "Type your answer",
+  "premiumPerks": "AI explanations, AI tutor, personal mocks and analytics",
+  "quota": "Quota",
+  "applications": "Applications",
+  "competition": "Competition",
+  "year": "Year",
+  "search": "Search",
+  "previousYears": "Previous years",
+  "streakReminderTitle": "Keep your streak alive!",
+  "streakReminderBody": "Do today’s lesson — Temur is waiting for you.",
+  "reminderChannel": "Reminders",
+  "password": "Password",
+  "nameLabel": "Name",
+  "signUp": "Sign up",
+  "haveAccount": "Already have an account? Sign in",
+  "noAccount": "No account yet? Sign up",
+  "notNow": "Not now",
+  "resendCode": "Resend code",
+  "verifyPrompt": "Enter the code we emailed you",
+  "guestGateMessage": "Create an account to use this feature",
+  "skipPlacement": "Skip placement test",
+  "placementBannerTitle": "Take the placement test",
+  "placementBannerBody": "We will tailor your path to your level",
+  "noPath": "No path for this subject yet",
+  "noFriends": "No friends yet",
+  "streakLabel": "Streak",
+  "planPremium": "Premium active",
+  "planFree": "Free plan",
+  "reviewToEarn": "Review your mistakes to earn hearts",
+  "waitForRefill": "Or wait for hearts to refill",
+  "heartsBanner": "You are out of hearts",
+  "exitConfirmTitle": "Leave the lesson?",
+  "exitConfirmBody": "Your progress in this lesson will be lost.",
+  "cancel": "Cancel",
+  "leave": "Leave",
+  "placementDone": "Placement complete! Your path is ready.",
+  "accuracy": "Accuracy",
+  "resumeAttempt": "Resume your exam",
+  "submitConfirmTitle": "Submit the exam?",
+  "exitMockTitle": "Leave the exam?",
+  "exitMockBody": "Your answers are saved; you can resume later while time remains.",
+  "autosaveFailed": "Could not save your answers",
+  "onTrack": "On track for the passing score",
+  "offTrack": "Below the passing score",
+  "passingScore": "Passing score",
+  "gap": "Gap",
+  "setTarget": "Set as my target",
+  "premiumWebOnly": "Subscriptions are managed on our website",
+  "monthsShort": "mo.",
+  "chooseSubject": "Subject",
+  "planActive": "Premium until {date}",
+  "@planActive": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "refillIn": "Next heart in {time}",
+  "@refillIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "leagueEndsIn": "Ends in {time}",
+  "@leagueEndsIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "submitConfirmBody": "{unanswered} unanswered, {flagged} flagged. Submit anyway?",
+  "@submitConfirmBody": {
+    "placeholders": {
+      "unanswered": {
+        "type": "int"
+      },
+      "flagged": {
+        "type": "int"
+      }
+    }
+  },
+  "forgotPassword": "Forgot password?",
+  "resetPassword": "Reset password",
+  "newPassword": "New password",
+  "resetPrompt": "Enter the code from the email and a new password",
+  "invalidCode": "Invalid or expired code",
+  "weakPassword": "Password is too weak",
+  "allTime": "All time",
+  "answersNotAccepted": "Time is up – your last answers were not accepted. Submitting now.",
+  "audioFailed": "Could not play audio",
+  "channelEmail": "Email",
+  "channelPush": "Push",
+  "channelTelegram": "Telegram",
+  "drillWeakTopics": "Practice weak topics",
+  "explain": "Explain",
+  "freezeUsed": "Streak freeze used",
+  "guestLogoutTitle": "Log out as guest?",
+  "guestLogoutBody": "Your progress is not saved to an account and will be lost.",
+  "history": "History",
+  "kindDailyQuestion": "Daily question",
+  "kindLeagueEnding": "League ending",
+  "kindStreakReminder": "Streak reminder",
+  "listen": "Listen",
+  "maxPerDay": "Max per day",
+  "mergeFailed": "Signed in, but guest progress could not be merged",
+  "noReviewDue": "Nothing to review right now",
+  "notAnswered": "Not answered",
+  "notificationSettings": "Notifications",
+  "pauseAudio": "Pause",
+  "playAudio": "Play",
+  "quietHours": "Quiet hours",
+  "reportQuestion": "Report a problem",
+  "reportReason": "What is wrong with this question?",
+  "reportSent": "Thanks, report sent",
+  "reviewAnswers": "Review answers",
+  "save": "Save",
+  "saveProgress": "Save your progress",
+  "saveProgressBody": "Sign in or create an account so you never lose your streak and XP.",
+  "saved": "Saved",
+  "send": "Send",
+  "sessionExpired": "Your session has expired. Please sign in again.",
+  "streakAtRisk": "Your streak is at risk – practice today!",
+  "tabFriends": "Friends",
+  "tabLeague": "League",
+  "tabLyceum": "Lyceum",
+  "useFreeze": "Use freeze",
+  "weekly": "This week",
+  "yourAnswer": "Your answer",
+  "minutesShort": "{n} min",
+  "@minutesShort": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "durationDaysHours": "{days}d {hours}h",
+  "@durationDaysHours": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours}h {minutes}m",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "streakFreezes": "Streak freezes: {n}",
+  "@streakFreezes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "chooseCity": "City",
+  "cityHint": "Or the city where you plan to study. Don't pick one if you're open to studying in different cities.",
+  "anyCity": "Any city",
+  "chooseSubjects": "Subjects (pick one or more)",
+  "dormitory": "Dormitory",
+  "dormitoryAvailable": "Dormitory available",
+  "dormitoryLimited": "Limited dormitory places",
+  "dormitoryNone": "No dormitory",
+  "dormitoryUnknown": "Dormitory info unknown",
+  "dreamLyceums": "My dream lyceums",
+  "dreamRules": "You can choose up to 3 lyceums in order of priority. Your score is checked against your 1st choice first. If it's enough, you're admitted there and the 2nd and 3rd aren't considered. If not, your 2nd choice is checked, then the 3rd. If none fits, your result is shown under your 1st choice. Put your real dream first and a safer option third.",
+  "moveUp": "Move up",
+  "moveDown": "Move down",
+  "removeItem": "Remove",
+  "emptySlot": "Empty slot",
+  "addToDreams": "Add to my dreams",
+  "removeFromDreams": "Remove from my dreams",
+  "addLyceum": "Add a lyceum",
+  "tooManyDreams": "You can pick up to 3 lyceums."
+}

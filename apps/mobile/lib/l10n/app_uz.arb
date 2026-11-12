@@ -1,0 +1,264 @@
+{
+  "@@locale": "uz",
+  "appName": "DTM AI",
+  "continueLabel": "Davom etish",
+  "check": "Tekshirish",
+  "skip": "O‘tkazib yuborish",
+  "correct": "To‘g‘ri!",
+  "incorrect": "Noto‘g‘ri",
+  "correctAnswer": "To‘g‘ri javob:",
+  "explanation": "Tushuntirish",
+  "signIn": "Kirish",
+  "email": "Email",
+  "sendCode": "Kod yuborish",
+  "code": "Tasdiqlash kodi",
+  "verify": "Tasdiqlash",
+  "orLabel": "yoki",
+  "onboardingTitle": "Maqsadingizni tanlang",
+  "chooseLyceum": "Litsey",
+  "chooseLanguage": "Ta’lim tili",
+  "startPlacement": "Saralash testini boshlash",
+  "learn": "O‘rganish",
+  "practice": "Mashq",
+  "mocks": "Mock testlar",
+  "leagues": "Ligalar",
+  "quests": "Topshiriqlar",
+  "profile": "Profil",
+  "premium": "Premium",
+  "lyceums": "Litseylar",
+  "hearts": "Yuraklar",
+  "noHearts": "Yuraklar tugadi. Birozdan so‘ng qayting yoki Premium oling.",
+  "streakDays": "{n} kunlik seriya",
+  "@streakDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gems": "Olmoslar",
+  "xp": "XP",
+  "dailyGoal": "Kunlik maqsad",
+  "mistakes": "Xatolar ustida ishlash",
+  "weakTopics": "Zaif mavzular",
+  "bankDrill": "Savollar banki",
+  "personalMock": "Shaxsiy mock",
+  "start": "Boshlash",
+  "submit": "Topshirish",
+  "finish": "Yakunlash",
+  "timeLeft": "Qolgan vaqt",
+  "markReview": "Belgilash",
+  "navigator": "Savollar xaritasi",
+  "answeredCount": "{a} / {t} javob berildi",
+  "@answeredCount": {
+    "placeholders": {
+      "a": {
+        "type": "int"
+      },
+      "t": {
+        "type": "int"
+      }
+    }
+  },
+  "score": "Natija",
+  "predictedScore": "Taxminiy ball",
+  "lessonComplete": "Dars yakunlandi!",
+  "dailyQuests": "Kunlik topshiriqlar",
+  "weeklyLeague": "Haftalik liga",
+  "rank": "O‘rin",
+  "friends": "Do‘stlar",
+  "logout": "Chiqish",
+  "language": "Til",
+  "retry": "Qayta urinish",
+  "errorGeneric": "Xatolik yuz berdi",
+  "empty": "Hozircha hech narsa yo‘q",
+  "typeAnswer": "Javobni kiriting",
+  "premiumPerks": "AI tushuntirishlar, AI repetitor, shaxsiy mocklar va tahlil",
+  "quota": "Kvota",
+  "applications": "Arizalar",
+  "competition": "Konkurs",
+  "year": "Yil",
+  "search": "Qidirish",
+  "previousYears": "O‘tgan yillar",
+  "streakReminderTitle": "Seriyani yo‘qotmang!",
+  "streakReminderBody": "Bugungi darsni bajaring — Temur sizni kutmoqda.",
+  "reminderChannel": "Eslatmalar",
+  "password": "Parol",
+  "nameLabel": "Ism",
+  "signUp": "Ro‘yxatdan o‘tish",
+  "haveAccount": "Akkauntingiz bormi? Kirish",
+  "noAccount": "Akkauntingiz yo‘qmi? Ro‘yxatdan o‘ting",
+  "notNow": "Hozir emas",
+  "resendCode": "Kodni qayta yuborish",
+  "verifyPrompt": "Emailga yuborilgan kodni kiriting",
+  "guestGateMessage": "Bu imkoniyatdan foydalanish uchun akkaunt yarating",
+  "skipPlacement": "Saralash testini o‘tkazib yuborish",
+  "placementBannerTitle": "Saralash testidan o‘ting",
+  "placementBannerBody": "Yo‘lni darajangizga moslaymiz",
+  "noPath": "Bu fan uchun hali yo‘l yo‘q",
+  "noFriends": "Hali do‘stlar yo‘q",
+  "streakLabel": "Seriya",
+  "planPremium": "Premium faol",
+  "planFree": "Bepul tarif",
+  "reviewToEarn": "Yuraklar olish uchun xatolar ustida ishlang",
+  "waitForRefill": "Yoki yuraklar tiklanishini kuting",
+  "heartsBanner": "Yuraklar tugadi",
+  "exitConfirmTitle": "Darsdan chiqasizmi?",
+  "exitConfirmBody": "Bu darsdagi jarayon yo‘qoladi.",
+  "cancel": "Bekor qilish",
+  "leave": "Chiqish",
+  "placementDone": "Saralash tugadi! Yo‘lingiz tayyor.",
+  "accuracy": "Aniqlik",
+  "resumeAttempt": "Imtihonni davom ettirish",
+  "submitConfirmTitle": "Imtihonni topshirasizmi?",
+  "exitMockTitle": "Imtihondan chiqasizmi?",
+  "exitMockBody": "Javoblar saqlandi; vaqt tugamaguncha davom ettirishingiz mumkin.",
+  "autosaveFailed": "Javoblarni saqlab bo‘lmadi",
+  "onTrack": "O‘tish baliga yaqinsiz",
+  "offTrack": "O‘tish balidan past",
+  "passingScore": "O‘tish bali",
+  "gap": "Farq",
+  "setTarget": "Maqsad qilish",
+  "premiumWebOnly": "Obuna saytimizda rasmiylashtiriladi",
+  "monthsShort": "oy",
+  "chooseSubject": "Fan",
+  "planActive": "Premium {date} gacha",
+  "@planActive": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "refillIn": "Keyingi yurak {time} dan keyin",
+  "@refillIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "leagueEndsIn": "{time} dan keyin tugaydi",
+  "@leagueEndsIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "submitConfirmBody": "Javobsiz: {unanswered}, belgilangan: {flagged}. Baribir topshirasizmi?",
+  "@submitConfirmBody": {
+    "placeholders": {
+      "unanswered": {
+        "type": "int"
+      },
+      "flagged": {
+        "type": "int"
+      }
+    }
+  },
+  "forgotPassword": "Parolni unutdingizmi?",
+  "resetPassword": "Parolni tiklash",
+  "newPassword": "Yangi parol",
+  "resetPrompt": "Emaildagi kodni va yangi parolni kiriting",
+  "invalidCode": "Kod noto‘g‘ri yoki eskirgan",
+  "weakPassword": "Parol juda oddiy",
+  "allTime": "Barcha vaqt",
+  "answersNotAccepted": "Vaqt tugadi – oxirgi javoblar qabul qilinmadi. Ish topshirilmoqda.",
+  "audioFailed": "Audioni ijro etib bo‘lmadi",
+  "channelEmail": "Email",
+  "channelPush": "Push",
+  "channelTelegram": "Telegram",
+  "drillWeakTopics": "Zaif mavzularni mashq qilish",
+  "explain": "Tushuntirish",
+  "freezeUsed": "Seriya muzlatildi",
+  "guestLogoutTitle": "Mehmon rejimidan chiqasizmi?",
+  "guestLogoutBody": "Yutuqlaringiz akkauntga bog‘lanmagan va yo‘qoladi.",
+  "history": "Tarix",
+  "kindDailyQuestion": "Kun savoli",
+  "kindLeagueEnding": "Liga tugayapti",
+  "kindStreakReminder": "Seriya eslatmasi",
+  "listen": "Tinglash",
+  "maxPerDay": "Kuniga ko‘pi bilan",
+  "mergeFailed": "Kirildi, lekin mehmon yutuqlarini birlashtirib bo‘lmadi",
+  "noReviewDue": "Hozir takrorlash uchun hech narsa yo‘q",
+  "notAnswered": "Javob berilmagan",
+  "notificationSettings": "Bildirishnomalar",
+  "pauseAudio": "Pauza",
+  "playAudio": "Ijro etish",
+  "quietHours": "Tinch soatlar",
+  "reportQuestion": "Xato haqida xabar berish",
+  "reportReason": "Bu savolda nima noto‘g‘ri?",
+  "reportSent": "Rahmat, xabar yuborildi",
+  "reviewAnswers": "Javoblar tahlili",
+  "save": "Saqlash",
+  "saveProgress": "Yutuqlaringizni saqlang",
+  "saveProgressBody": "Seriya va XP yo‘qolmasligi uchun kiring yoki akkaunt yarating.",
+  "saved": "Saqlandi",
+  "send": "Yuborish",
+  "sessionExpired": "Seans tugadi. Qayta kiring.",
+  "streakAtRisk": "Seriyangiz xavf ostida – bugun mashq qiling!",
+  "tabFriends": "Do‘stlar",
+  "tabLeague": "Liga",
+  "tabLyceum": "Litsey",
+  "useFreeze": "Muzlatish",
+  "weekly": "Hafta",
+  "yourAnswer": "Sizning javobingiz",
+  "minutesShort": "{n} daq",
+  "@minutesShort": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "durationDaysHours": "{days}k {hours}s",
+  "@durationDaysHours": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours}s {minutes}d",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "streakFreezes": "Seriya muzlatgichlari: {n}",
+  "@streakFreezes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "chooseCity": "Shahar",
+  "cityHint": "Yoki o'qishni rejalashtirgan shahringiz. Turli shaharlarda o'qishga tayyor bo'lsangiz, tanlamang.",
+  "anyCity": "Istalgan shahar",
+  "chooseSubjects": "Fanlar (bir yoki bir nechta)",
+  "dormitory": "Yotoqxona",
+  "dormitoryAvailable": "Yotoqxona bor",
+  "dormitoryLimited": "Yotoqxona o'rinlari cheklangan",
+  "dormitoryNone": "Yotoqxona yo'q",
+  "dormitoryUnknown": "Yotoqxona haqida ma'lumot yo'q",
+  "dreamLyceums": "Orzudagi litseylarim",
+  "dreamRules": "3 tagacha litseyni ustuvorlik tartibida tanlash mumkin. Balingiz avval 1-tanlov bilan solishtiriladi. Yetarli bo'lsa, o'sha yerga qabul qilinasiz, 2- va 3-tanlov ko'rib chiqilmaydi. Yetmasa, 2-tanlov, keyin 3-tanlov tekshiriladi. Birortasi ham to'g'ri kelmasa, natijangiz 1-tanlov bo'yicha ko'rsatiladi. Haqiqiy orzuingizni birinchi, ishonchliroq variantni uchinchi qo'ying.",
+  "moveUp": "Yuqoriga",
+  "moveDown": "Pastga",
+  "removeItem": "Olib tashlash",
+  "emptySlot": "Bo'sh o'rin",
+  "addToDreams": "Orzularimga qo'shish",
+  "removeFromDreams": "Orzularimdan olib tashlash",
+  "addLyceum": "Litsey qo'shish",
+  "tooManyDreams": "3 tagacha litsey tanlash mumkin."
+}

@@ -1,0 +1,47 @@
+"use client";
+import type { components } from "@dtmai/api-client";
+import { api } from "./api";
+
+type S = components["schemas"];
+export type ImportRun = S["ImportRunOut"];
+export type LyceumRow = S["LyceumSummary"];
+export type LyceumDetail = S["LyceumDetail"];
+export type DormitoryStatus = LyceumRow["dormitory_status"];
+export type LyceumPatch = S["LyceumPatch"];
+export type City = S["CityOut"];
+export type FieldOf = S["FieldOut"];
+export type Membership = S["MembershipOut"];
+export type Post = S["PostOut"];
+const A = api.client;
+const u = api.unwrap;
+
+export const lyceums = {
+  imports: (limit = 50) => u(A.GET("/v1/admin/lyceums/imports", { params: { query: { limit } } })),
+  start: (year: number) => u(A.POST("/v1/admin/lyceums/import", { body: { year } })),
+  setPassingScore: (stat_id: string, passing_score: number | null) =>
+    u(A.PATCH("/v1/admin/lyceums/stats/{stat_id}", { params: { path: { stat_id } }, body: { passing_score } })),
+  list: (q?: string) => u(A.GET("/v1/lyceums", { params: { query: { q: q || undefined, limit: 100 } } })),
+  detail: (id: string) => u(A.GET("/v1/lyceums/{lyceum_id}", { params: { path: { lyceum_id: id } } })),
+  patch: (id: string, body: LyceumPatch) => u(A.PATCH("/v1/admin/lyceums/{lyceum_id}", { params: { path: { lyceum_id: id } }, body })),
+  fields: () => u(A.GET("/v1/lyceums/fields")),
+  setFieldSubjects: (code: string, subject_ids: string[]) =>
+    u(A.PUT("/v1/admin/lyceums/fields/{code}", { params: { path: { code } }, body: { subject_ids } })),
+  clearFieldSubjects: (code: string) => u(A.DELETE("/v1/admin/lyceums/fields/{code}", { params: { path: { code } } })),
+  cities: () => u(A.GET("/v1/lyceums/cities")),
+  applications: () => u(A.GET("/v1/admin/lyceums/rep/applications")),
+  approve: (lyceum_id: string, user_id: string) => u(A.POST("/v1/admin/lyceums/{lyceum_id}/rep/{user_id}/approve", { params: { path: { lyceum_id, user_id } } })),
+  reject: (lyceum_id: string, user_id: string) => u(A.POST("/v1/admin/lyceums/{lyceum_id}/rep/{user_id}/reject", { params: { path: { lyceum_id, user_id } } })),
+  posts: (status: S["PostStatus"] = "pending") => u(A.GET("/v1/admin/lyceums/posts", { params: { query: { status, limit: 100 } } })),
+  moderate: (post_id: string, action: "publish" | "reject", reason?: string) =>
+    u(A.POST("/v1/admin/lyceums/posts/{post_id}/moderate", { params: { path: { post_id } }, body: { action, reason: reason || null } })),
+  seedMatches: () => u(A.GET("/v1/admin/lyceums/admission/matches")),
+  setSeedMatch: (kind: "plan" | "contact", ref: number, lyceum_id: string | null) =>
+    u(A.PUT("/v1/admin/lyceums/admission/matches/{kind}/{ref}", { params: { path: { kind, ref } }, body: { lyceum_id } })),
+  putPlanRow: (lyceum_id: string, body: S["PlanRowIn"]) =>
+    u(A.PUT("/v1/admin/lyceums/{lyceum_id}/admission/plan", { params: { path: { lyceum_id } }, body })),
+  deletePlanRow: (lyceum_id: string, year: number, direction_code: string, language_name: string | null) =>
+    u(A.DELETE("/v1/admin/lyceums/{lyceum_id}/admission/plan", { params: { path: { lyceum_id }, query: { year, direction_code, language_name: language_name ?? undefined } } })),
+  putContact: (lyceum_id: string, phones: string[], telegram: string | null) =>
+    u(A.PUT("/v1/admin/lyceums/{lyceum_id}/contact", { params: { path: { lyceum_id } }, body: { phones, telegram } })),
+};
+

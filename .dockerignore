@@ -1,0 +1,16 @@
+**/node_modules
+**/.next
+**/out
+**/.venv
+**/__pycache__
+.git
+.github
+apps/api
+apps/mobile
+data
+new-media
+misc
+docs
+deploy
+.env
+.env.*

@@ -1,0 +1,33 @@
+@import "tailwindcss";
+@import "@dtmai/ui/tokens.css";
+@source "../../../../packages/ui/src";
+
+/* Display math wider than the viewport scrolls inside its own box instead of being clipped. */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  padding-block: 0.25rem;
+}
+
+/* Formula sheet: inline fractions are tall, so rows need room; each list item / paragraph scrolls sideways
+   instead of letting a wide formula wrap mid-expression and collide with the next line. */
+.formula-sheet p,
+.formula-sheet li {
+  line-height: 2.4;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.15rem;
+}
+.formula-sheet .katex {
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.formula-sheet .katex-display {
+  display: block;
+  margin: 0.5rem 0;
+}
+.formula-sheet li {
+  overflow-wrap: normal;
+}

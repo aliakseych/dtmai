@@ -1,32 +1,14 @@
-![](./misc/images/banner.png)
+# DTM AI
 
-# DTM AI - Lyceum mock exams constructor
+Duolingo-style preparation for Uzbekistan DTM lyceum entrance exams: learner web app, admin, Flutter mobile, Telegram bot / Mini App, Click payments, AI explanations.
 
-[**DTM AI** Telegram bot](https://t.me/dtmai_bot) is a service, which helps 8-9th
-grade students to prepare for Uzbekistan governmental exam (from Davlat Test Markazi,
-AKA DTM) for Academic Lyceums - with pre-prepared questions bank from various sources
-(real exams, paid mocks and crowd).
+| Path | What |
+|---|---|
+| `apps/api` | FastAPI backend (Python 3.13, uv), source of the OpenAPI contract |
+| `apps/web` | Next.js static export: landing + learner app + Mini App |
+| `apps/admin` | Next.js static export admin |
+| `apps/mobile` | Flutter app |
+| `packages/*` | `ui`, `api-client`, `i18n` |
+| `deploy/` | docker compose, nginx, runbook |
 
-## Logic
-
-All uploaded questions are made from original questions images (which are attached 
-in the question itself), and are solved with the help of Gemini 3.1 Pro model (from 
-OpenRouter in our case, but you can use any OpenAI-like services).
-
-Users can build tests by programs (like "Exact Sciences - Economics" and others), 
-approximate their resulting marks based on answers.
-
-**ATTENTION**. Questions are alike the real deal, but we can't guarantee that these
-exact typings, formats and structure exams will be on the real exam - but we will try 
-to mimick them.
-
-## Contribution
-
-You are more than welcome to send pull request with new functionality, bug fixes 
-and other to **develop branch**.
-
-## Contacts
-
-**Project owner & main contributor**: Alex ([GitHub](https://github.com/aliakseych),
-[LinkedIn](https://linkedin.com/in/alexsayfi)): [Telegram](https://t.me/megaplov),
-[Personal Email](aliakseych@gmail.com), [Work Email](s.aleksei@21ci.uz)
+Quick start: `docker compose -f deploy/docker-compose.dev.yaml up -d`, then `cd apps/api && uv sync && uv run python -m app migrate && uv run python -m app api`. Frontends: `bun install && bun run dev`. See `AGENTS.md`, `deploy/DEPLOY.md`.

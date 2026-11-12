@@ -1,0 +1,816 @@
+{
+ "source": "Call Markaz",
+ "lyceums": [
+  {
+   "n": 1,
+   "district": "Andijon shahri",
+   "name": "Andijon davlat universiteti akademik litseyi",
+   "phones": [
+    "+998916198626",
+    "+998943811661",
+    "+998943872706",
+    "+998889938626"
+   ],
+   "telegram": "https://t.me/akademik_litsey_Rasmiy"
+  },
+  {
+   "n": 2,
+   "district": "Andijon shahri",
+   "name": "Andijon davlat texnika instituti akademik litseyi",
+   "phones": [
+    "+998907681050",
+    "+998902540208",
+    "+998934157520",
+    "+998916019917"
+   ],
+   "telegram": "https://t.me/AndDTIalitsey"
+  },
+  {
+   "n": 3,
+   "district": "Andijon tumani",
+   "name": "Andijon davlat pedagogika instituti akademik litseyi",
+   "phones": [
+    "+998885825252",
+    "+998971614422",
+    "+998880581009"
+   ],
+   "telegram": "https://t.me/adpial_qabulbot"
+  },
+  {
+   "n": 4,
+   "district": "Andijon shahri",
+   "name": "Andijon qishloq xoʻjaligi va agrotexnologiyalari instituti qoshidagi akademik litseyi",
+   "phones": [
+    "+998907582757",
+    "+998742256824",
+    "+998902549795",
+    "+998742255465"
+   ],
+   "telegram": "https://t.me/aqxaialbot"
+  },
+  {
+   "n": 5,
+   "district": "Andijon shahri",
+   "name": "Andijon davlat tibbiyot instituti akademik litseyi",
+   "phones": [
+    "+998905437111",
+    "+998934439863",
+    "+998914965209"
+   ],
+   "telegram": "https://t.me/And_DTI_AL"
+  },
+  {
+   "n": 6,
+   "district": "Qorakoʻl tumani",
+   "name": "Buxoro davlat universiteti Qorakoʻl akademik litseyi",
+   "phones": [
+    "+998881157377",
+    "+998990143686",
+    "+998941295252",
+    "+998655651083"
+   ],
+   "telegram": "https://t.me/qorakol_akademik_litsey"
+  },
+  {
+   "n": 7,
+   "district": "Kogon shahri",
+   "name": "Buxoro davlat pedagogika instituti akademik litseyi",
+   "phones": [
+    "+998992022058",
+    "+998973039834",
+    "+998970806551",
+    "+998973041441"
+   ],
+   "telegram": "https://t.me/BuxDPI_AL_Murojaat_bot"
+  },
+  {
+   "n": 8,
+   "district": "Buxoro shahri",
+   "name": "Buxoro davlat tibbiyot instituti akademik litseyi",
+   "phones": [
+    "+998907448989",
+    "+998930832992",
+    "+998914077045",
+    "+998934528782"
+   ],
+   "telegram": "https://t.me/Buxoro_AL"
+  },
+  {
+   "n": 9,
+   "district": "Jizzax shahri",
+   "name": "Jizzax davlat pedagogika universiteti akademik litseyi",
+   "phones": [
+    "+998915999342",
+    "+998976422600",
+    "+998933027898"
+   ],
+   "telegram": "https://t.me/sayiljoyqabul_bot"
+  },
+  {
+   "n": 10,
+   "district": "Qarshi shahri",
+   "name": "Qarshi davlat universiteti akademik litseyi",
+   "phones": [
+    "+998970301188",
+    "+998990880604",
+    "+998951517680",
+    "+998973150894"
+   ],
+   "telegram": "https://t.me/qarshidual_qabul_bot"
+  },
+  {
+   "n": 11,
+   "district": "Qarshi shahri",
+   "name": "Qarshi davlat texnika universiteti Nuriston akademik litseyi",
+   "phones": [
+    "+998914615566",
+    "+998913204849",
+    "+998906090011",
+    "+998554012002"
+   ],
+   "telegram": "https://t.me/nuriston_akademik_litsey"
+  },
+  {
+   "n": 12,
+   "district": "Qarshi tumani",
+   "name": "Qarshi davlat texnika universiteti 2-son akademik litseyi",
+   "phones": [
+    "+998993488245",
+    "+998995572740",
+    "+998330209397",
+    "+998957749309"
+   ],
+   "telegram": "https://t.me/litsey2019"
+  },
+  {
+   "n": 13,
+   "district": "Kitob tumani",
+   "name": "Shahrisabz davlat pedagogika instituti huzuridagi akademik litsey",
+   "phones": [
+    "+998973850267",
+    "+998914593539",
+    "+998883888514",
+    "+998907330784"
+   ],
+   "telegram": "https://t.me/akademiklitseykitob"
+  },
+  {
+   "n": 14,
+   "district": "Qarshi shahri",
+   "name": "Toshkent davlat yuridik universiteti huzuridagi Qashqadaryo viloyat akademik litseyi",
+   "phones": [
+    "+998906176655",
+    "+998907204565",
+    "+998993791922",
+    "+998914534876"
+   ],
+   "telegram": "https://t.me/qashqadaryo_yuridik_litsey"
+  },
+  {
+   "n": 15,
+   "district": "Nukus shahri",
+   "name": "Qoraqalpoq davlat universiteti akademik litseyi",
+   "phones": [
+    "+998970599004",
+    "+998907090405",
+    "+998913996600",
+    "+998612235825"
+   ],
+   "telegram": "https://t.me/qmual"
+  },
+  {
+   "n": 16,
+   "district": "Nukus shahri",
+   "name": "Nukus davlat pedagogika instituti akademik litseyi",
+   "phones": [
+    "+998949186116",
+    "+998906609700",
+    "+998975066202",
+    "+998612290375"
+   ],
+   "telegram": "https://t.me/NMPI_ak_licey"
+  },
+  {
+   "n": 17,
+   "district": "Navoiy shahri",
+   "name": "Navoiy davlat universiteti akademik litseyi",
+   "phones": [
+    "+998913362181",
+    "+998997580736",
+    "+998792204028"
+   ],
+   "telegram": "https://t.me/NavoiyDU_AL"
+  },
+  {
+   "n": 18,
+   "district": "Navoiy shahri",
+   "name": "Navoiy davlat konchilik va texnologiyalar universiteti akademik litseyi",
+   "phones": [
+    "+998792236543",
+    "+998905001982",
+    "+998936124292",
+    "+998883201090"
+   ],
+   "telegram": "https://t.me/NDKTU_AL_Qabul_bot"
+  },
+  {
+   "n": 19,
+   "district": "Namangan shahri",
+   "name": "Namangan davlat universiteti akademik litseyi",
+   "phones": [
+    "+998932165599",
+    "+998936411422",
+    "+998941586397",
+    "+998931746265"
+   ],
+   "telegram": "https://t.me/NamDUALqabul2026_Bot"
+  },
+  {
+   "n": 20,
+   "district": "Namangan shahri",
+   "name": "Namangan davlat texnika universitetining 2-son akademik litseyi",
+   "phones": [
+    "+998934900016",
+    "+998939232111",
+    "+998944710041",
+    "+998943004582"
+   ],
+   "telegram": "https://t.me/nmtial"
+  },
+  {
+   "n": 21,
+   "district": "Chortoq tumani",
+   "name": "Namangan davlat pedagogika instituti akademik litseyi",
+   "phones": [
+    "+998931588321",
+    "+998943022310",
+    "+998770045648",
+    "+998884410500"
+   ],
+   "telegram": "https://t.me/chortoqakademiklitseyi"
+  },
+  {
+   "n": 22,
+   "district": "Namangan shahri",
+   "name": "Toshkent davlat yuridik universiteti huzuridagi Namangan viloyat akademik litseyi",
+   "phones": [
+    "+998993937973",
+    "+998692330720",
+    "+998939140387",
+    "+998948288484",
+    "+998972545557"
+   ],
+   "telegram": "https://t.me/TDYUNamanganBot"
+  },
+  {
+   "n": 23,
+   "district": "Samarqand shahri",
+   "name": "Sharof Rashidov nomidagi Samarqand davlat universiteti akademik litseyi",
+   "phones": [
+    "+998662321179",
+    "+998979237746",
+    "+998939938189",
+    "+998701048133"
+   ],
+   "telegram": "https://t.me/samdualuz_bot"
+  },
+  {
+   "n": 24,
+   "district": "Samarqand shahri",
+   "name": "Samarqand davlat chet tillar instituti akademik litseyi",
+   "phones": [
+    "+998662321180",
+    "+998905031725",
+    "+998911879441",
+    "+998915306039"
+   ],
+   "telegram": "https://t.me/matbuot_info"
+  },
+  {
+   "n": 25,
+   "district": "Samarqand shahri",
+   "name": "Samarqand iqtisodiyot va servis instituti akademik litseyi",
+   "phones": [
+    "+998933568931",
+    "+998933432791",
+    "+998945353549",
+    "+998937272269"
+   ],
+   "telegram": "https://t.me/litsey_qabul"
+  },
+  {
+   "n": 26,
+   "district": "Samarqand shahri",
+   "name": "Samarqand davlat arxitektura-qurilish universiteti akademik litseyi",
+   "phones": [
+    "+998973213340",
+    "+998937356009",
+    "+998997307330",
+    "+998662370111"
+   ],
+   "telegram": "https://t.me/SamDAQI_AL"
+  },
+  {
+   "n": 27,
+   "district": "Samarqand shahri",
+   "name": "Samarqand davlat pedagogika instituti akademik litseyi",
+   "phones": [
+    "+998880965641",
+    "+998995822431",
+    "+998944812788",
+    "+998885088889",
+    "+998906048777"
+   ],
+   "telegram": "https://t.me/+SbFGuIP9FcNmMmYy"
+  },
+  {
+   "n": 28,
+   "district": "Samarqand shahri",
+   "name": "Samarqan davlat tibbiyot universiteti akademik litseyi",
+   "phones": [
+    "+998992935818",
+    "+998972857506",
+    "+998939927360",
+    "+998662324125"
+   ],
+   "telegram": "https://t.me/qabulSAMDTU"
+  },
+  {
+   "n": 29,
+   "district": "Samarqand shahri",
+   "name": "Samarqand davlat veterinariya meditsinasi, chorvachilik va biotexnologiyalar universiteti akademik litseyi",
+   "phones": [
+    "+998932912991",
+    "+998913320916",
+    "+998979330929",
+    "+998662311144"
+   ],
+   "telegram": "https://t.me/samdvmchbu_al_official"
+  },
+  {
+   "n": 30,
+   "district": "Samarqand shahri",
+   "name": "Toshkent axborot texnologiyalari universiteti Samarqand filiali akademik litseyi",
+   "phones": [
+    "+998932272552",
+    "+998933328509",
+    "+998942404015"
+   ],
+   "telegram": "https://t.me/tatu_litsey_murojaat_bot"
+  },
+  {
+   "n": 31,
+   "district": "Samarqand shahri",
+   "name": "Toshkent davlat yuridik universiteti huzuridagi Samarqand akademik litseyi",
+   "phones": [
+    "+998937262697",
+    "+998662409415",
+    "+998990254711"
+   ],
+   "telegram": null
+  },
+  {
+   "n": 32,
+   "district": "Guliston shahri",
+   "name": "Guliston davlat universiteti akademik litseyi",
+   "phones": [
+    "+998945800207",
+    "+998934720179",
+    "+998972458605",
+    "+998990116848"
+   ],
+   "telegram": "https://t.me/gulaluz"
+  },
+  {
+   "n": 33,
+   "district": "Mirzaobod tumani",
+   "name": "Guliston davlat pedagogika instituti akademik litseyi",
+   "phones": [
+    "+998770762772",
+    "+998994736539",
+    "+998994380869",
+    "+998910208899",
+    "+998906103563",
+    "+998994747733"
+   ],
+   "telegram": "https://t.me/gdpialqabul2026"
+  },
+  {
+   "n": 34,
+   "district": "Termiz shahri",
+   "name": "Termiz davlat universiteti akademik litseyi",
+   "phones": [
+    "+998995060717",
+    "+998991040313",
+    "+998992723545",
+    "+998937644444"
+   ],
+   "telegram": "https://t.me/qabulterdual"
+  },
+  {
+   "n": 35,
+   "district": "Termiz shahri",
+   "name": "Termiz davlat muhandislik va agrotexnologiyalar universiteti akademik litseyi",
+   "phones": [
+    "+998938939799",
+    "+998771009095",
+    "+998919033632",
+    "+998972800219",
+    "+998915762797"
+   ],
+   "telegram": "https://t.me/TerDMAUAL"
+  },
+  {
+   "n": 36,
+   "district": "Termiz shahri",
+   "name": "Termiz davlat pedagogika instituti akademik litseyi",
+   "phones": [
+    "+998975521993",
+    "+998888430100",
+    "+998905205566",
+    "+998902852509"
+   ],
+   "telegram": "https://t.me/terdpial"
+  },
+  {
+   "n": 37,
+   "district": "Fargʻona shahri",
+   "name": "Fargʻona davlat universiteti akademik litseyi",
+   "phones": [
+    "+998908334613",
+    "+998991079736",
+    "+998732435806",
+    "+998732435820"
+   ],
+   "telegram": "https://t.me/qmual"
+  },
+  {
+   "n": 38,
+   "district": "Fargʻona shahri",
+   "name": "Fargʻona davlat texnika universiteti 1-son akademik litseyi",
+   "phones": [
+    "+998889499191",
+    "+998951079111",
+    "+998905367513",
+    "+998700400286"
+   ],
+   "telegram": "https://t.me/fdtu1alqabul"
+  },
+  {
+   "n": 39,
+   "district": "Fargʻona shahri",
+   "name": "Fargʻona davlat texnika universiteti 2-son akademik litseyi",
+   "phones": [
+    "+998732447068",
+    "+998999997212",
+    "+998907779669",
+    "+998907878272"
+   ],
+   "telegram": "https://t.me/tatuff_al_rasmiy"
+  },
+  {
+   "n": 40,
+   "district": "Qoʻqon shahri",
+   "name": "Qoʻqon davlat universiteti akademik litseyi",
+   "phones": [
+    "+998905433009",
+    "+998905676210",
+    "+998912040424",
+    "+998991008833"
+   ],
+   "telegram": "https://t.me/kokandALbot"
+  },
+  {
+   "n": 41,
+   "district": "Urganch shahri",
+   "name": "Abu Rayhon Beruniy nomidagi Urganch davlat universiteti akademik litseyi",
+   "phones": [
+    "+998905577292",
+    "+998937483665",
+    "+998907254749",
+    "+998974580948"
+   ],
+   "telegram": "https://t.me/urdulitsey"
+  },
+  {
+   "n": 42,
+   "district": "Urganch shahri",
+   "name": "Urganch davlat pedagogika instituti akademik litseyi",
+   "phones": [
+    "+998999644139",
+    "+998992736151",
+    "+998914237171",
+    "+998999420225"
+   ],
+   "telegram": "https://t.me/UrDPI_akademik"
+  },
+  {
+   "n": 43,
+   "district": "Urganch shahri",
+   "name": "Urganch davlat tibbiyot instituti akademik litseyi",
+   "phones": [
+    "+998914340204",
+    "+998956142255",
+    "+998914234141"
+   ],
+   "telegram": "https://t.me/UrDTI_akademiklitseyi"
+  },
+  {
+   "n": 44,
+   "district": "Parkent tumani",
+   "name": "Olmaliq davlat texnika instituti akademik litseyi",
+   "phones": [
+    "+998700710977",
+    "+998994018801",
+    "+998949269025",
+    "+998950884690"
+   ],
+   "telegram": "https://t.me/TDTU_OF_AL_BOT"
+  },
+  {
+   "n": 45,
+   "district": "Chirchiq shahri",
+   "name": "Chirchiq davlat pedagogika universiteti akademik litseyi",
+   "phones": [
+    "+998998751520",
+    "+998937252387",
+    "+998935367273",
+    "+998901279691"
+   ],
+   "telegram": "https://t.me/chdpial"
+  },
+  {
+   "n": 46,
+   "district": "Qibray tumani",
+   "name": "Toshkent davlat agrar universiteti akademik litseyi",
+   "phones": [
+    "+998977015531",
+    "+998555030278",
+    "+998974074258"
+   ],
+   "telegram": "https://t.me/ToshDAUAkademiklitseyi"
+  },
+  {
+   "n": 47,
+   "district": "Chilonzor tumani",
+   "name": "Oʻzbekiston Milliy universiteti huzuridagi “Tabiiy va aniq fanlar” ga ixtisoslashtirilgan S.H.Sirojiddinov nomidagi respublika akademik litseyi",
+   "phones": [
+    "+998900052818",
+    "+998975007146",
+    "+998995192014",
+    "+998934981725",
+    "+998712784357"
+   ],
+   "telegram": "https://t.me/sirojiddinov_litsey_bot"
+  },
+  {
+   "n": 48,
+   "district": "Chilonzor tumani",
+   "name": "Oʻzbeksiton davlat jahon tillari universiteti akademik litseyi",
+   "phones": [
+    "+998555888801",
+    "+998974410366",
+    "+998909432871",
+    "+998909710690"
+   ],
+   "telegram": "https://t.me/aluzswlu_uz"
+  },
+  {
+   "n": 49,
+   "district": "Olmazor tumani",
+   "name": "Islom Karimov nomidagi Toshkent davlat texnika universiteti akademik litseyi",
+   "phones": [
+    "+998909123351",
+    "+998946484322",
+    "+998974462602"
+   ],
+   "telegram": "https://t.me/TDTUALnews"
+  },
+  {
+   "n": 50,
+   "district": "Chilonzor tumani",
+   "name": "Toshkent davlat iqtisodiyot universiteti “International Business” akademik litseyi",
+   "phones": [
+    "+998775177717",
+    "+998995143279",
+    "+998909618685"
+   ],
+   "telegram": "https://t.me/TDIU_International_Business_AL"
+  },
+  {
+   "n": 51,
+   "district": "Olmazor tumani",
+   "name": "TDIU “International Finance” akademik litseyi",
+   "phones": [
+    "+998936699393",
+    "+998909755257",
+    "+998977526237",
+    "+998945589888"
+   ],
+   "telegram": "https://t.me/tdiu_almurojaatbot"
+  },
+  {
+   "n": 52,
+   "district": "Yunusobod tumani",
+   "name": "Toshkent davlat sharqshunoslik universiteti akademik litseyi",
+   "phones": [
+    "+998712241551",
+    "+998999241551",
+    "+998981231550",
+    "+998944191027"
+   ],
+   "telegram": "https://t.me/tdshu_al"
+  },
+  {
+   "n": 53,
+   "district": "Yakkasaroy tumani",
+   "name": "Toshkent toʻqimachilik va yengil sanoati instituti akademik litseyi",
+   "phones": [
+    "+998332536419",
+    "+998555106419",
+    "+998909776516",
+    "+998935944232"
+   ],
+   "telegram": "https://t.me/ttyesi_al"
+  },
+  {
+   "n": 54,
+   "district": "Yunusobod tumani",
+   "name": "Toshkent kimyo-texnologiya instituti akademik litseyi",
+   "phones": [
+    "+998900640562",
+    "+998990072730",
+    "+998990641414",
+    "+998770208015"
+   ],
+   "telegram": "https://t.me/tktial"
+  },
+  {
+   "n": 55,
+   "district": "Yunusobod tumani",
+   "name": "“TIQXMMI” MTU “International House-Tashkent” akademik litseyi",
+   "phones": [
+    "+998981016362",
+    "+998981216362"
+   ],
+   "telegram": "https://t.me/interhouseadmission"
+  },
+  {
+   "n": 56,
+   "district": "Olmazor tumani",
+   "name": "Toshkent arxitektura-qurilish universiteti qoshidagi akademik litseyi",
+   "phones": [
+    "+998712483571",
+    "+998909579401",
+    "+998935691970",
+    "+998993243571"
+   ],
+   "telegram": "https://t.me/arxitekturalitseyi"
+  },
+  {
+   "n": 57,
+   "district": "Yakkasaroy tumani",
+   "name": "Oʻzbekiston milliy pedagogika universiteti akademik litseyi",
+   "phones": [
+    "+998712557830",
+    "+998909868800",
+    "+998331781710",
+    "+998973707540"
+   ],
+   "telegram": "https://t.me/uzmpu_al_bot"
+  },
+  {
+   "n": 58,
+   "district": "Shayxontohur tumani",
+   "name": "Oʻzbekiston xalqaro islomshunoslik akademiyasi akademik litseyi",
+   "phones": [
+    "+998971169595",
+    "+998932624090",
+    "+998935652288"
+   ],
+   "telegram": "https://t.me/uzxia_al_bot"
+  },
+  {
+   "n": 59,
+   "district": "Olmazor tumani",
+   "name": "Toshkent davlat tibbiyot universiteti 1-son akademik litseyi",
+   "phones": [
+    "+998977490086",
+    "+998712145383",
+    "+998773431503"
+   ],
+   "telegram": "https://t.me/tma_al"
+  },
+  {
+   "n": 60,
+   "district": "Yunusobod tumani",
+   "name": "Toshkent davlat tibbiyot universiteti 2-son akademik litseyi",
+   "phones": [
+    "+998959089297",
+    "+998946938027",
+    "+998975283636"
+   ],
+   "telegram": "https://t.me/tashpmiuzbotAL"
+  },
+  {
+   "n": 61,
+   "district": "Yashnobod tumani",
+   "name": "Toshent davlat tibbiyot universiteti 3-son akademik litseyi",
+   "phones": [
+    "+998973300607",
+    "+998998756468",
+    "+998935868985",
+    "+998932651712"
+   ],
+   "telegram": "https://t.me/TDTUALNo3"
+  },
+  {
+   "n": 62,
+   "district": "Olmazor tumani",
+   "name": "Toshkent farmatsevtika instituti akademik litseyi",
+   "phones": [
+    "+998712073353",
+    "+998981772527",
+    "+998995197845",
+    "+998998237038"
+   ],
+   "telegram": "https://t.me/farmi_litsey"
+  },
+  {
+   "n": 63,
+   "district": "Yunusobod tumani",
+   "name": "Muhammad al-Xorazmiy nomidagi TATU akademik litseyi",
+   "phones": [
+    "+998712350669",
+    "+998883008230",
+    "+998910901414",
+    "+998555150177"
+   ],
+   "telegram": "https://t.me/tatu_akademik_litseyi"
+  },
+  {
+   "n": 64,
+   "district": "Shayxontohur tumani",
+   "name": "Toshkent davlat yuridik universiteti huzuridagi M.S.Vosiqova nomidagi akademik litseyi",
+   "phones": [
+    "+998949411144",
+    "+998998463238",
+    "+998900616803"
+   ],
+   "telegram": "https://t.me/tsul_litsey_murojaat_bot"
+  },
+  {
+   "n": 65,
+   "district": "Shayxontohur tumani",
+   "name": "Jahon iqtisodiyoti va diplomatiya universiteti akademik litseyi",
+   "phones": [
+    "+998974640724",
+    "+998911651902",
+    "+998999455666"
+   ],
+   "telegram": "https://t.me/JIDU_AL_Qabul_Bot"
+  },
+  {
+   "n": 66,
+   "district": "Shayxontohur tumani",
+   "name": "Toshkent davlat transport universiteti akademik litseyi",
+   "phones": [
+    "+998998631908",
+    "+998936645556",
+    "+998913315663"
+   ],
+   "telegram": "https://t.me/transportlitseyi_bot"
+  },
+  {
+   "n": 67,
+   "district": "Bektemir tumani",
+   "name": "I.M.Gubkin nomli Rossiya davlat neft va gaz (MTU) universiteti Toshkent shaxridagi filiali akademik litseyi",
+   "phones": [
+    "+998712957731",
+    "+998909338084",
+    "+998712957431"
+   ],
+   "telegram": "https://t.me/GubkinAdmin"
+  },
+  {
+   "n": 68,
+   "district": "Olmazor tumani",
+   "name": "Toshkent shahridagi Turin politexnika universiteti akademik litseyi",
+   "phones": [
+    "+998712465523",
+    "+998712465584",
+    "+998712462331"
+   ],
+   "telegram": "https://t.me/alturinofficial"
+  },
+  {
+   "n": 69,
+   "district": "Mirobod tumani",
+   "name": "Toshkent shahridagi Xalqaro Vestminster Universiteti akademik litseyi",
+   "phones": [
+    "+998712387427"
+   ],
+   "telegram": "https://t.me/WESTLYCEUM_UZ"
+  }
+ ]
+}
