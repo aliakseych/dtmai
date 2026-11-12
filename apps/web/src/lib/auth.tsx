@@ -2,7 +2,7 @@
 import type { Tokens } from "@dtmai/api-client";
 import { useLocale, useT } from "@dtmai/i18n";
 import { useRouter } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { GuestNudge } from "@/components/auth/GuestNudge";
 import { api, setApiLocale, setUnauthorizedHandler, type Language, type Me } from "./api";
 import { contentLang } from "./localized";
@@ -208,7 +208,8 @@ export function RequireAuth({ children, allowUnonboarded, account }: { children:
     } else if (!onboarded && !allowUnonboarded) router.replace("/onboarding/");
     else if (account && isGuest) router.replace("/account/");
   }, [loading, me, onboarded, allowUnonboarded, account, isGuest, router, startGuest]);
-  if (loading || !me || (!onboarded && !allowUnonboarded) || (account && isGuest)) return <div className="grid min-h-dvh place-items-center" aria-busy="true" />;
+  const langReady = useLearnLanguageReady();
+  if (loading || !me || (!onboarded && !allowUnonboarded) || (account && isGuest) || !langReady) return <div className="grid min-h-dvh place-items-center" aria-busy="true" />;
   return (
     <>
       <MergeBanner />
@@ -219,19 +220,48 @@ export function RequireAuth({ children, allowUnonboarded, account }: { children:
 }
 
 let languages: Promise<Language[]> | null = null;
+let langCodes: Map<string, string> | null = null;
+const langListeners = new Set<() => void>();
+function loadLanguages(): Promise<unknown> {
+  languages ??= api.unwrap(api.client.GET("/v1/lyceums/languages"));
+  return languages
+    .then((ls) => {
+      langCodes = new Map(ls.map((l) => [l.id, l.code]));
+      langListeners.forEach((f) => f());
+    })
+    .catch(() => {
+      languages = null;
+      langCodes = new Map();
+      langListeners.forEach((f) => f());
+    });
+}
+const subscribeLangs = (f: () => void) => {
+  langListeners.add(f);
+  return () => langListeners.delete(f);
+};
 /** edu.uz education-language classifier code → content language ("12" Russian, "14" English, anything else Uzbek/Karakalpak). */
 export const contentLangOfCode = (code: string): "uz" | "ru" | "en" => (code === "12" ? "ru" : code === "14" ? "en" : "uz");
 
-/** Content language of the learner's education language, independent of the UI locale (UI locale only until it is known). */
+/** Content language of the learner's education language, independent of the UI locale. RequireAuth holds rendering until it is known. */
 export function useLearnLanguage(): "uz" | "ru" | "en" {
   const { me } = useAuth();
   const { locale } = useLocale();
-  const [code, setCode] = useState<string | null>(null);
+  const codes = useSyncExternalStore(subscribeLangs, () => langCodes, () => null);
   const id = me?.education_language_id;
   useEffect(() => {
-    if (!id) return;
-    languages ??= api.unwrap(api.client.GET("/v1/lyceums/languages"));
-    languages.then((ls) => setCode(ls.find((l) => l.id === id)?.code ?? null)).catch(() => (languages = null));
+    if (id && !langCodes) void loadLanguages();
   }, [id]);
+  const code = id ? codes?.get(id) : undefined;
   return code ? contentLangOfCode(code) : contentLang(locale);
+}
+
+/** True once the learner's content language can be resolved without falling back to the UI locale. */
+function useLearnLanguageReady(): boolean {
+  const { me } = useAuth();
+  const codes = useSyncExternalStore(subscribeLangs, () => langCodes, () => null);
+  const id = me?.education_language_id;
+  useEffect(() => {
+    if (id && !langCodes) void loadLanguages();
+  }, [id]);
+  return !id || codes !== null;
 }

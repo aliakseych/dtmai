@@ -27,7 +27,6 @@
   "stat.gems": "Олмослар",
   "stat.xp": "XP",
   "stat.streak": "Серия",
-  "stat.days": "{n} кун",
   "landing.nav.features": "Имкониятлар",
   "landing.nav.pricing": "Нархлар",
   "landing.nav.faq": "Саволлар",
@@ -1706,5 +1705,9 @@
   "admin.common.chooseFile": "Файл танлаш",
   "admin.enum.planFeature.personal_review": "Шахсий такрорлаш",
   "admin.enum.planFeature.study_plan_analytics": "Ўқув режаси таҳлили",
-  "admin.enum.planFeature.unlimited_hearts": "Чексиз юраклар"
+  "admin.enum.planFeature.unlimited_hearts": "Чексиз юраклар",
+  "stat.days.one": "{n} кун",
+  "stat.days.few": "{n} кун",
+  "stat.days.many": "{n} кун",
+  "stat.days.other": "{n} кун"
 }

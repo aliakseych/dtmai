@@ -27,7 +27,6 @@
   "stat.gems": "Gems",
   "stat.xp": "XP",
   "stat.streak": "Streak",
-  "stat.days": "{n} days",
   "landing.nav.features": "Features",
   "landing.nav.pricing": "Pricing",
   "landing.nav.faq": "FAQ",
@@ -1706,5 +1705,9 @@
   "admin.common.chooseFile": "Choose file",
   "admin.enum.planFeature.personal_review": "Personal review",
   "admin.enum.planFeature.study_plan_analytics": "Study plan analytics",
-  "admin.enum.planFeature.unlimited_hearts": "Unlimited hearts"
+  "admin.enum.planFeature.unlimited_hearts": "Unlimited hearts",
+  "stat.days.one": "{n} day",
+  "stat.days.few": "{n} days",
+  "stat.days.many": "{n} days",
+  "stat.days.other": "{n} days"
 }

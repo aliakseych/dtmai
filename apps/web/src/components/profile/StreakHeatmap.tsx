@@ -1,6 +1,7 @@
 "use client";
 import { motion, useReducedMotion } from "motion/react";
 import { useLocale, useT } from "@dtmai/i18n";
+import { tPlural } from "@/lib/plural";
 import type { Stats } from "./types";
 import { shortDate, weekdayIndex, weekdayNames } from "./format";
 
@@ -22,7 +23,7 @@ export function StreakHeatmap({ daily }: { daily: Stats["daily"] }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div role="img" aria-label={`${t("profile.stats.calendar")}: ${t("stat.days", { n: active })}`} className="mx-auto w-full max-w-sm">
+      <div role="img" aria-label={`${t("profile.stats.calendar")}: ${tPlural(t, locale, "stat.days", active)}`} className="mx-auto w-full max-w-sm">
         <div className="mb-1 grid grid-cols-7 gap-1.5 text-center text-xs font-bold text-ink-soft" aria-hidden="true">
           {weekdayNames(locale).map((n) => (
             <span key={n} className="truncate">

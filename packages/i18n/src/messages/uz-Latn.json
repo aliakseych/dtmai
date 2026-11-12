@@ -27,7 +27,6 @@
   "stat.gems": "Olmoslar",
   "stat.xp": "XP",
   "stat.streak": "Seriya",
-  "stat.days": "{n} kun",
   "landing.nav.features": "Imkoniyatlar",
   "landing.nav.pricing": "Narxlar",
   "landing.nav.faq": "Savollar",
@@ -1706,5 +1705,9 @@
   "admin.common.chooseFile": "Fayl tanlash",
   "admin.enum.planFeature.personal_review": "Shaxsiy takrorlash",
   "admin.enum.planFeature.study_plan_analytics": "O‘quv rejasi tahlili",
-  "admin.enum.planFeature.unlimited_hearts": "Cheksiz yuraklar"
+  "admin.enum.planFeature.unlimited_hearts": "Cheksiz yuraklar",
+  "stat.days.one": "{n} kun",
+  "stat.days.few": "{n} kun",
+  "stat.days.many": "{n} kun",
+  "stat.days.other": "{n} kun"
 }

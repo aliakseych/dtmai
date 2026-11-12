@@ -27,7 +27,6 @@
   "stat.gems": "Кристаллы",
   "stat.xp": "XP",
   "stat.streak": "Серия",
-  "stat.days": "{n} дн.",
   "landing.nav.features": "Возможности",
   "landing.nav.pricing": "Тарифы",
   "landing.nav.faq": "Вопросы",
@@ -1706,5 +1705,9 @@
   "admin.common.chooseFile": "Выбрать файл",
   "admin.enum.planFeature.personal_review": "Персональный разбор",
   "admin.enum.planFeature.study_plan_analytics": "Аналитика учебного плана",
-  "admin.enum.planFeature.unlimited_hearts": "Безлимитные сердца"
+  "admin.enum.planFeature.unlimited_hearts": "Безлимитные сердца",
+  "stat.days.one": "{n} день",
+  "stat.days.few": "{n} дня",
+  "stat.days.many": "{n} дней",
+  "stat.days.other": "{n} дня"
 }
