@@ -36,15 +36,15 @@ function LeagueTab() {
                   <li
                     key={e.user_id}
                     aria-current={e.is_me ? "true" : undefined}
-                    className={cn("flex items-center gap-4 border-b-2 border-line px-4 py-3 last:border-b-0", ZONE[e.zone], e.is_me && "ring-2 ring-inset ring-brand")}
+                    className={cn("flex min-w-0 items-center gap-4 border-b-2 border-line px-4 py-3 last:border-b-0", ZONE[e.zone], e.is_me && "ring-2 ring-inset ring-brand")}
                   >
                     <span className="w-6 text-center font-extrabold">{e.rank}</span>
                     <Avatar name={e.name} size={44} />
-                    <span className="flex-1 text-ink">
+                    <span className="min-w-0 flex-1 truncate text-ink">
                       {e.name}
                       {e.zone !== "safe" && <span className="ml-2 text-xs font-extrabold uppercase">{t(e.zone === "promote" ? "leagues.zone.promote" : "leagues.zone.demote")}</span>}
                     </span>
-                    <span className="text-ink-soft">
+                    <span className="shrink-0 text-ink-soft">
                       {e.xp} {t("stat.xp")}
                     </span>
                   </li>
@@ -121,7 +121,7 @@ function Board({ kind }: { kind: "friends" | "lyceum" }) {
                     <span className="w-6 text-center font-extrabold">{i + 1}</span>
                     <Avatar name={e.name} size={44} />
                     <span className="min-w-0 flex-1 truncate text-ink">{e.name}</span>
-                    <span className="text-ink-soft">
+                    <span className="shrink-0 text-ink-soft">
                       {e.xp} {t("stat.xp")}
                     </span>
                     {!mine && (

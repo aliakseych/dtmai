@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { cn } from "../cn";
 
 export type LanguageOption = { value: string; label: string; flag: ReactNode; /** Compact label (e.g. "UZ") shown below `sm`. */ short?: string };
@@ -34,6 +34,8 @@ export function LanguageSelector({
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const items = useRef<(HTMLButtonElement | null)[]>([]);
+  const popover = useRef<HTMLDivElement>(null);
+  const [shift, setShift] = useState(0);
   const listId = useId();
   const current = options.find((o) => o.value === value) ?? options[0];
 
@@ -52,6 +54,19 @@ export function LanguageSelector({
     document.addEventListener("pointerdown", onPointer);
     return () => document.removeEventListener("pointerdown", onPointer);
   }, [open, options, value]);
+
+  // Keep the popover inside the viewport regardless of where the trigger sits.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const el = popover.current;
+    if (!el) return;
+    const margin = 8;
+    const rect = el.getBoundingClientRect();
+    const base = rect.left - shift;
+    const vw = document.documentElement.clientWidth;
+    const next = Math.max(margin - base, Math.min(0, vw - margin - (base + rect.width)));
+    if (next !== shift) setShift(next);
+  }, [open, shift]);
 
   const move = (from: number, delta: number) => {
     const n = options.length;
@@ -128,6 +143,8 @@ export function LanguageSelector({
       </button>
       {open && (
         <div
+          ref={popover}
+          style={shift ? { translate: `${shift}px 0` } : undefined}
           className={cn(
             "menu-in absolute z-50 w-[19rem] max-w-[calc(100vw-2rem)] rounded-2xl border-2 border-line bg-white p-2 shadow-xl",
             placement === "bottom" ? "top-full mt-3" : "bottom-full mb-3",
@@ -141,6 +158,7 @@ export function LanguageSelector({
               placement === "bottom" ? "-top-[9px] border-l-2 border-t-2" : "-bottom-[9px] border-b-2 border-r-2",
               align === "start" ? "left-8" : "right-8",
             )}
+            style={shift ? { translate: `${-shift}px 0` } : undefined}
           />
           <div id={listId} role="listbox" aria-label={label} className="relative grid grid-cols-2 gap-1">
             {options.map((o, i) => {

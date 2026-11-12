@@ -5,7 +5,7 @@ import { useT, type MessageKey } from "@dtmai/i18n";
 export function Faq() {
   const t = useT();
   return (
-    <section id="faq" className="mx-auto max-w-3xl px-4 py-16">
+    <section id="faq" className="scroll-mt-20 mx-auto max-w-3xl px-4 py-16">
       <Mascot mood="question" size={120} alt="" className="mx-auto mb-3 h-auto w-24" />
       <h2 className="mb-8 text-center text-3xl">{t("landing.faq.title")}</h2>
       <div className="flex flex-col gap-3">

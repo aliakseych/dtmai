@@ -15,7 +15,7 @@ const FEATURES: { id: string; icon: IconName; tone: string }[] = [
 export function Features() {
   const t = useT();
   return (
-    <section id="features" className="mx-auto max-w-6xl px-4 py-16">
+    <section id="features" className="scroll-mt-20 mx-auto max-w-6xl px-4 py-16">
       <h2 className="mb-10 text-center text-3xl">{t("landing.features.title")}</h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f, i) => (

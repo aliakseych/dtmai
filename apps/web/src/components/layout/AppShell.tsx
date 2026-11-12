@@ -105,7 +105,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-current={active(n.href) ? "page" : undefined}
             className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-extrabold", active(n.href) ? "text-brand" : "text-ink-soft")}
           >
-            <span className={cn("grid h-9 w-12 place-items-center rounded-xl transition", active(n.href) && "bg-brand-soft")}>
+            <span className={cn("grid h-11 w-12 place-items-center rounded-xl transition", active(n.href) && "bg-brand-soft")}>
               <Icon name={n.icon} />
             </span>
             <span className="max-w-full truncate px-1">{t(n.label)}</span>
@@ -119,7 +119,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setMore(true)}
             className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-extrabold", moreActive ? "text-brand" : "text-ink-soft")}
           >
-            <span className={cn("grid h-9 w-12 place-items-center rounded-xl transition", moreActive && "bg-brand-soft")}>
+            <span className={cn("grid h-11 w-12 place-items-center rounded-xl transition", moreActive && "bg-brand-soft")}>
               <Icon name="more" />
             </span>
             <span className="max-w-full truncate px-1">{t("nav.more")}</span>

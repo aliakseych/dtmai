@@ -41,7 +41,7 @@ export function OnboardingFrame({
     <div className="mx-auto flex min-h-dvh max-w-xl flex-col gap-5 px-4 py-6">
       <div className="flex items-center gap-3">
         {onBack ? (
-          <button type="button" onClick={onBack} aria-label={t("common.back")} className="grid size-10 shrink-0 place-items-center rounded-xl text-ink-soft hover:bg-snow">
+          <button type="button" onClick={onBack} aria-label={t("common.back")} className="grid size-11 shrink-0 place-items-center rounded-xl text-ink-soft hover:bg-snow">
             <Icon name="arrow-left" />
           </button>
         ) : null}

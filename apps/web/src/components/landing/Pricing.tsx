@@ -42,7 +42,9 @@ function PlanCard({ id, featured, count }: { id: "free" | "premium"; featured?: 
       <h3 className="text-2xl">{t(`plan.${id}.name` as MessageKey)}</h3>
       <p className="text-3xl font-extrabold text-ink">
         {id === "free" ? (
-          t("common.free")
+          <>
+            {fmt(locale).format(0)} <span className="text-base text-ink-soft">{t("common.uzs")} / {t("common.perMonth")}</span>
+          </>
         ) : (
           <>
             {price !== null ? fmt(locale).format(price) : "—"} <span className="text-base text-ink-soft">{t("common.uzs")} / {t("common.perMonth")}</span>
@@ -77,7 +79,7 @@ function PlanCard({ id, featured, count }: { id: "free" | "premium"; featured?: 
 export function Pricing() {
   const t = useT();
   return (
-    <section id="pricing" className="bg-snow py-16">
+    <section id="pricing" className="scroll-mt-20 bg-snow py-16">
       <div className="mx-auto max-w-4xl px-4">
         <h2 className="mb-2 text-center text-3xl">{t("landing.pricing.title")}</h2>
         <p className="mb-10 text-center text-ink-soft">{t("landing.pricing.subtitle")}</p>

@@ -251,10 +251,10 @@ export function QuestionBody({
                 <span className="flex-1 font-bold">
                   <RichText text={items.find((x) => x.id === id)?.text ?? id} />
                 </span>
-                <button type="button" disabled={disabled || i === 0} aria-label={t("lesson.moveUp")} onClick={() => move(i, -1)} className="grid size-10 place-items-center rounded-xl border-2 border-line disabled:opacity-40">
+                <button type="button" disabled={disabled || i === 0} aria-label={t("lesson.moveUp")} onClick={() => move(i, -1)} className="grid size-11 place-items-center rounded-xl border-2 border-line disabled:opacity-40">
                   <Icon name="arrow-up" size={20} />
                 </button>
-                <button type="button" disabled={disabled || i === orderIds.length - 1} aria-label={t("lesson.moveDown")} onClick={() => move(i, 1)} className="grid size-10 place-items-center rounded-xl border-2 border-line disabled:opacity-40">
+                <button type="button" disabled={disabled || i === orderIds.length - 1} aria-label={t("lesson.moveDown")} onClick={() => move(i, 1)} className="grid size-11 place-items-center rounded-xl border-2 border-line disabled:opacity-40">
                   <Icon name="arrow-down" size={20} />
                 </button>
               </li>

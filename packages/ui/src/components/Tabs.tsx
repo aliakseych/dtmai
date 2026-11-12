@@ -28,7 +28,7 @@ export function Tabs<T extends string>({
     (e.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]')[n])?.focus();
   };
   return (
-    <div role="tablist" onKeyDown={onKeyDown} className={cn("flex gap-2 overflow-x-auto", className)}>
+    <div role="tablist" onKeyDown={onKeyDown} className={cn("flex w-full min-w-0 max-w-full snap-x snap-proximity gap-2 overflow-x-auto overscroll-x-contain px-0.5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", className)}>
       {items.map((it) => {
         const on = it.id === value;
         return (
@@ -40,7 +40,7 @@ export function Tabs<T extends string>({
             type="button"
             onClick={() => onChange(it.id)}
             className={cn(
-              "min-h-11 shrink-0 rounded-xl border-2 px-4 py-2 text-sm font-extrabold uppercase tracking-wide transition",
+              "min-h-11 shrink-0 snap-start scroll-mx-2 rounded-xl border-2 px-4 py-2 text-sm font-extrabold uppercase tracking-wide transition",
               on ? "border-brand bg-brand-soft text-brand" : "border-line bg-white text-ink-soft hover:bg-snow",
             )}
           >

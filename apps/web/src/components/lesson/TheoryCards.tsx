@@ -43,7 +43,7 @@ export function TheoryCards({ cards, title, doneLabel, onDone }: { cards: Theory
   return (
     <div role="dialog" aria-modal="true" aria-label={title ?? t("theory.title")} className="fixed inset-0 z-50 flex flex-col bg-white">
       <header className="mx-auto flex w-full max-w-3xl items-center gap-4 px-4 py-5">
-        <button type="button" aria-label={t("theory.close")} className="grid size-10 shrink-0 place-items-center rounded-xl text-ink-soft hover:bg-snow" onClick={onDone}>
+        <button type="button" aria-label={t("theory.close")} className="grid size-11 shrink-0 place-items-center rounded-xl text-ink-soft hover:bg-snow" onClick={onDone}>
           <Icon name="close" />
         </button>
         <ol className="flex flex-1 justify-center gap-2" aria-label={t("theory.progress", { n: i + 1, total: cards.length })}>

@@ -278,7 +278,7 @@ function Runner({ session, exitHref, doneHref, theory, onRestart }: { onRestart:
   return (
     <div className="mx-auto flex min-h-dvh max-w-3xl flex-col px-4">
       <header className="flex items-center gap-4 py-5">
-        <button type="button" aria-label={t("lesson.exit")} className="grid size-10 shrink-0 place-items-center rounded-xl text-ink-soft hover:bg-snow" onClick={askExit}>
+        <button type="button" aria-label={t("lesson.exit")} className="grid size-11 shrink-0 place-items-center rounded-xl text-ink-soft hover:bg-snow" onClick={askExit}>
           <Icon name="close" />
         </button>
         <ProgressBar value={Math.min(session.answered + index + (phase === "feedback" ? 1 : 0), result?.total ?? session.total)} max={result?.total ?? session.total} label={t("lesson.progress")} />

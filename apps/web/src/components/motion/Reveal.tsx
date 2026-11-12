@@ -15,14 +15,15 @@ export function Reveal({
   className?: string;
 }) {
   const reduce = useReducedMotion();
-  if (reduce) return <div className={className}>{children}</div>;
+  // One stable element: the prerendered hidden state is cleared immediately when reduced motion applies.
   return (
     <motion.div
       className={className}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
+      animate={reduce ? { opacity: 1, y: 0 } : undefined}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.5, delay, ease: "easeOut" }}
+      transition={reduce ? { duration: 0 } : { duration: 0.5, delay, ease: "easeOut" }}
     >
       {children}
     </motion.div>
@@ -42,12 +43,11 @@ export function Float({
   className?: string;
 }) {
   const reduce = useReducedMotion();
-  if (reduce) return <div className={className}>{children}</div>;
   return (
     <motion.div
       className={className}
-      animate={{ y: [0, -amplitude, 0] }}
-      transition={{ duration, repeat: Infinity, ease: "easeInOut" }}
+      animate={reduce ? { y: 0 } : { y: [0, -amplitude, 0] }}
+      transition={reduce ? { duration: 0 } : { duration, repeat: Infinity, ease: "easeInOut" }}
     >
       {children}
     </motion.div>
