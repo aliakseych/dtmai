@@ -12,8 +12,9 @@ A records (TTL 300) to the VPS IPv4 (add matching AAAA only if the VPS has IPv6 
 | `app.dtm-ai.uz` | A | VPS IP | learner app + Mini App `/tg` (web) |
 | `api.dtm-ai.uz` | A | VPS IP | API, `/tg/webhook`, `/v1/billing/click/*` |
 | `admin.dtm-ai.uz` | A | VPS IP | admin panel |
+| `media.dtm-ai.uz` | A | VPS IP | public read-only media (`media/` prefix of the S3 bucket) |
 
-Wait until all four resolve (`dig +short app.dtm-ai.uz`) before issuing certificates.
+Wait until all five resolve (`dig +short app.dtm-ai.uz`) before issuing certificates.
 
 ## 3. Config
 `git clone` the repo (or copy `deploy/`), `cp .env.sample .env`, fill secrets (`openssl rand -hex 32` for JWT). `docker login ghcr.io`.
@@ -24,7 +25,10 @@ nginx needs certs to start, so issue them standalone once (ports 80/443 free):
 docker compose -f docker-compose.prod.yaml run --rm -p 80:80 --entrypoint certbot certbot certonly --standalone \
   -d dtm-ai.uz -d app.dtm-ai.uz -d admin.dtm-ai.uz -d api.dtm-ai.uz --email you@dtm-ai.uz --agree-tos
 ```
-One SAN cert named `dtm-ai.uz` is used by all sites. The `certbot` service renews via webroot every 12 h; the `edge` container reloads nginx every 6 h (its command), so renewed certs are picked up automatically with no cron.
+One SAN cert named `dtm-ai.uz` is used by all sites except media, which has its own cert (`/etc/letsencrypt/live/media.dtm-ai.uz/`): add `-d media.dtm-ai.uz` as a separate `certonly --cert-name media.dtm-ai.uz` run. The `certbot` service renews via webroot every 12 h; the `edge` container reloads nginx every 6 h (its command), so renewed certs are picked up automatically with no cron.
+
+### Media host
+`media.dtm-ai.uz` proxies GET/HEAD only to the `media/` prefix of the bucket (`uploads/` is unreachable). Anonymous read must be granted on that prefix only (RustFS console or `mc anonymous set download <alias>/dtmai/media`), never on the whole bucket. Content is forced `nosniff`, sandboxed CSP, and `attachment` unless it is a raster image or audio.
 
 ## 5. Start
 ```

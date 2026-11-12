@@ -144,7 +144,7 @@ services:
       - ./nginx/sites:/etc/nginx/sites:ro
       - certs:/etc/letsencrypt:ro
       - acme:/var/www/acme:ro
-    depends_on: [api, web, admin]
+    depends_on: [api, web, admin, rustfs]
     networks: [internal]
   certbot:
     <<: *hardened
