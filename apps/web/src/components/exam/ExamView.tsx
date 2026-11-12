@@ -75,7 +75,7 @@ function Item({ faq }: { faq: Faq }) {
                 </p>
               ))}
               {!faq.verified && <p className="text-sm font-bold text-ink-soft">{t("plan.unverified")}</p>}
-              {faq.source_url && (
+              {faq.source_url && /^https?:\/\//i.test(faq.source_url) && (
                 <a href={faq.source_url} target="_blank" rel="noopener noreferrer" className="text-sm font-extrabold text-brand underline">
                   {t("exam.source")}
                 </a>

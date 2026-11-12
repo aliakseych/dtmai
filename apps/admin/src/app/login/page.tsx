@@ -20,7 +20,9 @@ export default function LoginPage() {
   useEffect(() => {
     if (loading || !me) return;
     const next = new URLSearchParams(window.location.search).get("next");
-    router.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/");
+    // Resolve before trusting: "/\\evil.com" or "/%09/evil.com" pass a prefix check but leave the origin.
+    const u = next ? new URL(next, window.location.origin) : null;
+    router.replace(u && u.origin === window.location.origin ? u.pathname + u.search + u.hash : "/");
   }, [loading, me, router]);
 
   async function submit(e: FormEvent) {
