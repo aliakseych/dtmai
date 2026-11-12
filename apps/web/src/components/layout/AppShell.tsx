@@ -67,7 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="lg:pl-72">
         <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b-2 border-line bg-white/95 px-4 py-2 backdrop-blur lg:hidden">
-          <Link href="/learn/" aria-label={t("app.name")}>
+          <Link href="/learn/" aria-label={t("app.name")} className="flex min-h-11 items-center">
             <Logo name={t("app.name")} size={28} />
           </Link>
           <div className="flex items-center gap-2">

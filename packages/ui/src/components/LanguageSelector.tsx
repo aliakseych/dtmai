@@ -56,17 +56,19 @@ export function LanguageSelector({
   }, [open, options, value]);
 
   // Keep the popover inside the viewport regardless of where the trigger sits.
+  // Measure once per open (shift is 0 then); re-measuring on every shift change loops when an ancestor clips or transforms the popover.
   useLayoutEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setShift(0);
+      return;
+    }
     const el = popover.current;
     if (!el) return;
     const margin = 8;
     const rect = el.getBoundingClientRect();
-    const base = rect.left - shift;
     const vw = document.documentElement.clientWidth;
-    const next = Math.max(margin - base, Math.min(0, vw - margin - (base + rect.width)));
-    if (next !== shift) setShift(next);
-  }, [open, shift]);
+    setShift(Math.max(margin - rect.left, Math.min(0, vw - margin - rect.right)));
+  }, [open]);
 
   const move = (from: number, delta: number) => {
     const n = options.length;

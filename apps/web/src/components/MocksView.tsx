@@ -47,7 +47,7 @@ export function MocksView() {
                 type="button"
                 aria-pressed={kind === k}
                 onClick={() => setKind(k)}
-                className={`rounded-xl border-2 px-3 py-1.5 font-bold ${kind === k ? "border-brand bg-brand text-white" : "border-line text-ink-soft"}`}
+                className={`min-h-11 rounded-xl border-2 px-3 py-1.5 font-bold ${kind === k ? "border-brand bg-brand text-white" : "border-line text-ink-soft"}`}
               >
                 {k === "all" ? t("mocks.filterAll") : t(`mocks.kind.${k}`)}
               </button>

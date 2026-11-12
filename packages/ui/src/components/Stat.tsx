@@ -4,7 +4,7 @@ import { FlameIcon, GemIcon, HeartIcon, XpIcon } from "./icons";
 
 /** Every stat shares the same box (height, padding, icon slot) so a row of them aligns on one baseline. */
 const BOX =
-  "inline-flex h-10 min-w-14 items-center justify-center gap-1.5 rounded-xl px-2 text-base font-extrabold leading-none tabular-nums";
+  "inline-flex h-11 min-w-14 items-center justify-center gap-1.5 rounded-xl px-2 text-base font-extrabold leading-none tabular-nums";
 
 export function StatChip({
   icon,

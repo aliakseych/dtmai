@@ -10,12 +10,16 @@ function LocaleHead() {
   const t = useT();
   const pathname = usePathname();
   useEffect(() => {
-    // Defer so Next's static metadata (applied on hydration/navigation) cannot win; keep page-specific titles ("X · Name").
-    const id = window.setTimeout(() => {
-      if (pathname === "/" || !document.title.includes(" · ")) document.title = t("app.title");
-    }, 0);
+    // Next re-applies static metadata after hydration/navigation; re-assert the localized title whenever <title> changes, keeping page-specific titles ("X · Name").
+    const want = t("app.title");
+    const apply = () => {
+      if ((pathname === "/" || !document.title.includes(" · ")) && document.title !== want) document.title = want;
+    };
+    apply();
+    const obs = new MutationObserver(apply);
+    obs.observe(document.head, { subtree: true, childList: true, characterData: true });
     document.querySelector('meta[name="description"]')?.setAttribute("content", t("app.description"));
-    return () => window.clearTimeout(id);
+    return () => obs.disconnect();
   }, [t, pathname]);
   return null;
 }

@@ -16,11 +16,11 @@ export function TopStats() {
   const [open, setOpen] = useState<"hearts" | "streak" | null>(null);
   const stats = state.status === "ready" ? state.data : null;
   const left = useCountdown(stats?.hearts.next_refill_at);
-  if (!stats) return state.status === "error" ? null : <Skeleton className="h-10 w-32 sm:w-48" />;
+  if (!stats) return state.status === "error" ? null : <Skeleton className="h-11 w-32 sm:w-48" />;
   const h = stats.hearts;
   return (
     <>
-      <div className="flex h-10 items-center gap-1 sm:gap-2">
+      <div className="flex h-11 items-center gap-1 sm:gap-2">
         <StreakStat value={stats.streak} label={t("stat.streak")} onClick={() => setOpen("streak")} />
         <GemsStat value={stats.gems} label={t("stat.gems")} />
         <HeartsStat value={h.unlimited ? "∞" : h.count} label={t("stat.hearts")} onClick={() => setOpen("hearts")} />
