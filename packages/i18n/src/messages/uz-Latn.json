@@ -1718,5 +1718,6 @@
   "admin.enum.consensus.disagreement": "Modellar kelishmagan",
   "admin.enum.consensus.no_adjudication": "Hakam javob bermadi",
   "admin.enum.consensus.adjudicator_agrees": "Hakam rozi",
-  "admin.enum.consensus.adjudicator_differs": "Hakam boshqacha javob berdi"
+  "admin.enum.consensus.adjudicator_differs": "Hakam boshqacha javob berdi",
+  "admin.enum.consensus.audit_mismatch": "Audit natijasi mos kelmadi"
 }

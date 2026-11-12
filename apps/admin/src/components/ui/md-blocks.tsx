@@ -46,7 +46,7 @@ function parse(src: string): Block[] {
       out.push({ k: "code", text: code.join("\n") });
       continue;
     }
-    if (line.includes("|") && i + 1 < lines.length && TABLE_SEP.test(lines[i + 1])) {
+    if (line.includes("|") && i + 1 < lines.length && lines[i + 1].includes("|") && TABLE_SEP.test(lines[i + 1])) {
       flush();
       const head = cells(line);
       const rows: string[][] = [];

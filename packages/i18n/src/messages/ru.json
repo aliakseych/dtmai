@@ -1718,5 +1718,6 @@
   "admin.enum.consensus.disagreement": "Модели расходятся",
   "admin.enum.consensus.no_adjudication": "Арбитр не дал ответа",
   "admin.enum.consensus.adjudicator_agrees": "Арбитр согласен",
-  "admin.enum.consensus.adjudicator_differs": "Арбитр ответил иначе"
+  "admin.enum.consensus.adjudicator_differs": "Арбитр ответил иначе",
+  "admin.enum.consensus.audit_mismatch": "Аудит не совпал"
 }

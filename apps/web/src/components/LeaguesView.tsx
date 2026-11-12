@@ -40,9 +40,9 @@ function LeagueTab() {
                   >
                     <span className="w-6 text-center font-extrabold">{e.rank}</span>
                     <Avatar name={e.name} size={44} />
-                    <span className="min-w-0 flex-1 truncate text-ink">
-                      {e.name}
-                      {e.zone !== "safe" && <span className="ml-2 text-xs font-extrabold uppercase">{t(e.zone === "promote" ? "leagues.zone.promote" : "leagues.zone.demote")}</span>}
+                    <span className="flex min-w-0 flex-1 items-center text-ink">
+                      <span className="truncate">{e.name}</span>
+                      {e.zone !== "safe" && <span className="ml-2 shrink-0 text-xs font-extrabold uppercase">{t(e.zone === "promote" ? "leagues.zone.promote" : "leagues.zone.demote")}</span>}
                     </span>
                     <span className="shrink-0 text-ink-soft">
                       {e.xp} {t("stat.xp")}

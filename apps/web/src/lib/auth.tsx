@@ -221,17 +221,20 @@ export function RequireAuth({ children, allowUnonboarded, account }: { children:
 
 let languages: Promise<Language[]> | null = null;
 let langCodes: Map<string, string> | null = null;
+/** Last fetch failed: unblocks rendering (UI-locale fallback) while `langCodes` stays null so the next mount retries. */
+let langFailed = false;
 const langListeners = new Set<() => void>();
 function loadLanguages(): Promise<unknown> {
   languages ??= api.unwrap(api.client.GET("/v1/lyceums/languages"));
   return languages
     .then((ls) => {
       langCodes = new Map(ls.map((l) => [l.id, l.code]));
+      langFailed = false;
       langListeners.forEach((f) => f());
     })
     .catch(() => {
       languages = null;
-      langCodes = new Map();
+      langFailed = true;
       langListeners.forEach((f) => f());
     });
 }
@@ -259,9 +262,10 @@ export function useLearnLanguage(): "uz" | "ru" | "en" {
 function useLearnLanguageReady(): boolean {
   const { me } = useAuth();
   const codes = useSyncExternalStore(subscribeLangs, () => langCodes, () => null);
+  const failed = useSyncExternalStore(subscribeLangs, () => langFailed, () => false);
   const id = me?.education_language_id;
   useEffect(() => {
     if (id && !langCodes) void loadLanguages();
   }, [id]);
-  return !id || codes !== null;
+  return !id || codes !== null || failed;
 }

@@ -1718,5 +1718,6 @@
   "admin.enum.consensus.disagreement": "Моделлар келишмаган",
   "admin.enum.consensus.no_adjudication": "Ҳакам жавоб бермади",
   "admin.enum.consensus.adjudicator_agrees": "Ҳакам рози",
-  "admin.enum.consensus.adjudicator_differs": "Ҳакам бошқача жавоб берди"
+  "admin.enum.consensus.adjudicator_differs": "Ҳакам бошқача жавоб берди",
+  "admin.enum.consensus.audit_mismatch": "Аудит натижаси мос келмади"
 }

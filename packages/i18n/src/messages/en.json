@@ -1718,5 +1718,6 @@
   "admin.enum.consensus.disagreement": "Models disagree",
   "admin.enum.consensus.no_adjudication": "No adjudicator answer",
   "admin.enum.consensus.adjudicator_agrees": "Adjudicator agrees",
-  "admin.enum.consensus.adjudicator_differs": "Adjudicator differs"
+  "admin.enum.consensus.adjudicator_differs": "Adjudicator differs",
+  "admin.enum.consensus.audit_mismatch": "Audit mismatch"
 }
