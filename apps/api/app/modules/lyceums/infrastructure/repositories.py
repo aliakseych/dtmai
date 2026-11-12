@@ -177,7 +177,10 @@ class SqlImportSink:
             set_={
                 "code": item.code,
                 "name_uz": item.name_uz,
-                "name_en": item.name_en,
+                # edu.uz ships no English names; keep curated ones instead of blanking them.
+                "name_en": func.coalesce(
+                    func.nullif(item.name_en, ""), EducationLanguageRow.name_en
+                ),
                 "name_ru": item.name_ru,
             },
         ).returning(EducationLanguageRow.id)
