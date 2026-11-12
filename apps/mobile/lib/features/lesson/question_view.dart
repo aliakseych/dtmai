@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n_ext.dart';
+import '../../core/media_url.dart';
 import '../../core/models.dart';
 import '../../theme/tokens.dart';
 import '../../widgets/audio_clip.dart';
@@ -29,10 +30,10 @@ class _PassageBlock extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (final m in d.media.where((m) => m.kind == 'image'))
+            for (final m in d.media.where((m) => m.kind == 'image' && resolveMedia(m.url) != null))
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: Image.network(m.url, semanticLabel: m.alt, errorBuilder: (_, _, _) => const SizedBox.shrink()),
+                child: Image.network(resolveMedia(m.url)!, semanticLabel: m.alt, errorBuilder: (_, _, _) => const SizedBox.shrink()),
               ),
             MathText(d.text, style: const TextStyle(fontSize: 16, color: Tokens.text)),
           ],
@@ -361,7 +362,8 @@ class _QuestionViewState extends State<QuestionBody> {
 
   @override
   Widget build(BuildContext context) {
-    final img = item.imageUrl;
+    final img = resolveMedia(item.imageUrl);
+    final audio = resolveMedia(item.audioUrl);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -377,8 +379,8 @@ class _QuestionViewState extends State<QuestionBody> {
           _PassageBlock(id: item.passageId!),
           const SizedBox(height: 12),
         ],
-        if (item.audioUrl != null) ...[
-          AudioClip(url: item.audioUrl!, label: item.media.firstWhere((m) => m.kind == 'audio').alt),
+        if (audio != null) ...[
+          AudioClip(url: audio, label: item.media.firstWhere((m) => m.kind == 'audio').alt),
           const SizedBox(height: 12),
         ],
         MathText(item.stem, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Tokens.text)),

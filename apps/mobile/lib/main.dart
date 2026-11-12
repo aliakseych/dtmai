@@ -3,10 +3,12 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
+import 'core/config.dart';
 import 'core/notifications/notification_service.dart';
 import 'core/notifications/push_handler.dart';
 
 Future<void> main() async {
+  Config.validate();
   WidgetsFlutterBinding.ensureInitialized();
   final notifications = NotificationService();
   await notifications.init();

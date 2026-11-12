@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/api/api.dart';
 import '../../core/api/api_client.dart';
 import '../../core/l10n_ext.dart';
+import '../../core/media_url.dart';
 import '../../core/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/tokens.dart';
@@ -154,10 +155,11 @@ class _LyceumLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fallback = Image.asset('assets/brand/icon_lyceum.png', width: 40, height: 40);
-    if (url == null) return fallback;
+    final src = resolveMedia(url);
+    if (src == null) return fallback;
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: Image.network(url!, width: 40, height: 40, fit: BoxFit.cover, errorBuilder: (_, _, _) => fallback),
+      child: Image.network(src, width: 40, height: 40, fit: BoxFit.cover, errorBuilder: (_, _, _) => fallback),
     );
   }
 }
@@ -216,12 +218,12 @@ class _LyceumSheetState extends ConsumerState<_LyceumSheet> {
         final year = _year ?? (years.isEmpty ? null : years.first);
         final rows = d.stats.where((s) => s.year == year).toList();
         return ListView(controller: widget.controller, padding: const EdgeInsets.fromLTRB(16, 0, 16, 24), children: [
-          if (d.campusPhotoUrl != null)
+          if (resolveMedia(d.campusPhotoUrl) != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(Tokens.radius),
-                child: Image.network(d.campusPhotoUrl!, height: 160, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink()),
+                child: Image.network(resolveMedia(d.campusPhotoUrl)!, height: 160, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink()),
               ),
             ),
           Row(children: [
