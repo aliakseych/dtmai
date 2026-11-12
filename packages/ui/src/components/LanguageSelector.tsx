@@ -2,6 +2,11 @@
 import { useCallback, useEffect, useLayoutEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { cn } from "../cn";
 
+/** Horizontal offset that keeps a popover spanning [left, right] inside a viewport of width `vw` (left edge wins when it cannot fit). */
+export function popoverShift(left: number, right: number, vw: number, margin = 8): number {
+  return Math.max(margin - left, Math.min(0, vw - margin - right));
+}
+
 export type LanguageOption = { value: string; label: string; flag: ReactNode; /** Compact label (e.g. "UZ") shown below `sm`. */ short?: string };
 
 /**
@@ -64,10 +69,8 @@ export function LanguageSelector({
     }
     const el = popover.current;
     if (!el) return;
-    const margin = 8;
     const rect = el.getBoundingClientRect();
-    const vw = document.documentElement.clientWidth;
-    setShift(Math.max(margin - rect.left, Math.min(0, vw - margin - rect.right)));
+    setShift(popoverShift(rect.left, rect.right, document.documentElement.clientWidth));
   }, [open]);
 
   const move = (from: number, delta: number) => {
