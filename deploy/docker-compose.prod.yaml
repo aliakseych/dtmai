@@ -34,6 +34,8 @@ x-api-env: &api-env
   CLICK_SECRET_KEY: ${CLICK_SECRET_KEY}
   PAYMENTS_ENABLED: ${PAYMENTS_ENABLED:-false}
   CLICK_ALLOWED_IPS: ${CLICK_ALLOWED_IPS:-[]}
+  # uvicorn trusts X-Forwarded-For only from the pinned compose subnet (edge nginx overwrites it).
+  FORWARDED_ALLOW_IPS: 172.28.0.0/16
   TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
   TELEGRAM_WEBHOOK_URL: https://api.dtm-ai.uz/tg/webhook
   TELEGRAM_MINI_APP_URL: https://app.dtm-ai.uz/tg
@@ -175,6 +177,9 @@ services:
 
 networks:
   internal:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
 volumes:
   pg:
   redis:
