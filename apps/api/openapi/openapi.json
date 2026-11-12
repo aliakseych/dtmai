@@ -2090,6 +2090,8 @@
           "source_url": {
             "anyOf": [
               {
+                "maxLength": 2048,
+                "pattern": "^https?://",
                 "type": "string"
               },
               {
@@ -2185,6 +2187,8 @@
           "source_url": {
             "anyOf": [
               {
+                "maxLength": 2048,
+                "pattern": "^https?://",
                 "type": "string"
               },
               {
@@ -2643,6 +2647,7 @@
           "email": {
             "anyOf": [
               {
+                "maxLength": 320,
                 "type": "string"
               },
               {
@@ -2654,6 +2659,7 @@
           "phone": {
             "anyOf": [
               {
+                "maxLength": 32,
                 "type": "string"
               },
               {
@@ -2665,6 +2671,7 @@
           "telegram": {
             "anyOf": [
               {
+                "maxLength": 200,
                 "type": "string"
               },
               {
@@ -3429,6 +3436,8 @@
           "source_url": {
             "anyOf": [
               {
+                "maxLength": 2048,
+                "pattern": "^https?://",
                 "type": "string"
               },
               {
@@ -4033,6 +4042,8 @@
           "source_url": {
             "anyOf": [
               {
+                "maxLength": 2048,
+                "pattern": "^https?://",
                 "type": "string"
               },
               {
@@ -5847,8 +5858,10 @@
             "anyOf": [
               {
                 "items": {
+                  "maxLength": 200,
                   "type": "string"
                 },
+                "maxItems": 50,
                 "type": "array"
               },
               {
@@ -5861,8 +5874,10 @@
             "anyOf": [
               {
                 "additionalProperties": {
+                  "maxLength": 5000,
                   "type": "string"
                 },
+                "maxProperties": 4,
                 "type": "object"
               },
               {
@@ -7192,6 +7207,8 @@
           },
           "period_months": {
             "default": 1,
+            "maximum": 36.0,
+            "minimum": 1.0,
             "title": "Period Months",
             "type": "integer"
           },
@@ -7329,6 +7346,8 @@
           "period_months": {
             "anyOf": [
               {
+                "maximum": 36.0,
+                "minimum": 1.0,
                 "type": "integer"
               },
               {
@@ -8071,6 +8090,8 @@
           "source_url": {
             "anyOf": [
               {
+                "maxLength": 2048,
+                "pattern": "^https?://",
                 "type": "string"
               },
               {
@@ -9608,8 +9629,10 @@
             "anyOf": [
               {
                 "items": {
+                  "maxLength": 200,
                   "type": "string"
                 },
+                "maxItems": 50,
                 "type": "array"
               },
               {
@@ -9622,8 +9645,10 @@
             "anyOf": [
               {
                 "additionalProperties": {
+                  "maxLength": 5000,
                   "type": "string"
                 },
+                "maxProperties": 4,
                 "type": "object"
               },
               {
@@ -25205,6 +25230,94 @@
           }
         ],
         "summary": "Reject Rep",
+        "tags": [
+          "lyceums-admin"
+        ]
+      }
+    },
+    "/v1/admin/lyceums/{lyceum_id}/rep/{user_id}/revoke": {
+      "post": {
+        "operationId": "lyceums_admin_revoke_rep",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lyceum_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Lyceum Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MembershipOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Validation failed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Revoke Rep",
         "tags": [
           "lyceums-admin"
         ]
